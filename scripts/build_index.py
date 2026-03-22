@@ -237,8 +237,9 @@ def insert_file(conn: sqlite3.Connection, path: Path) -> None:
     text = path.read_text(encoding="utf-8")
     frontmatter_text, body = split_frontmatter(text)
     meta = parse_frontmatter(frontmatter_text)
+    source_file = str(path.relative_to(ROOT)).replace("\\", "/")
 
-    item_id = str(meta.get("id") or path.stem)
+    item_id = str(meta.get("id") or f"file:{source_file}")
     item_type = str(meta.get("type") or "note")
     title = str(meta.get("title") or path.stem)
     status = str(meta.get("status") or "active")
@@ -252,7 +253,6 @@ def insert_file(conn: sqlite3.Connection, path: Path) -> None:
     created_at = str(meta.get("created_at") or "")
     updated_at = str(meta.get("updated_at") or "")
     summary_text = make_summary(body)
-    source_file = str(path.relative_to(ROOT)).replace("\\", "/")
 
     conn.execute(
         """

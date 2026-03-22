@@ -9,7 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
-ARTIFACT_PATH = ROOT / "artifacts" / "wind-agent" / "session-context-smoke.md"
+WIND_ARTIFACT_PATH = ROOT / "artifacts" / "wind-agent" / "session-context-smoke.md"
+SELF_ARTIFACT_PATH = ROOT / "artifacts" / "session-memory" / "session-context-smoke.md"
 
 
 def run_json(script_name: str, *args: str) -> dict:
@@ -54,12 +55,28 @@ def main() -> None:
         "--limit",
         "10",
     )
+    self_query_result = run_json(
+        "query_index.py",
+        "--project-id",
+        "session-memory",
+        "--text",
+        "SQLite FTS5",
+        "--limit",
+        "10",
+    )
     run_plain(
         "assemble_context.py",
         "--project-id",
         "wind-agent",
         "--output",
-        str(ARTIFACT_PATH),
+        str(WIND_ARTIFACT_PATH),
+    )
+    run_plain(
+        "assemble_context.py",
+        "--project-id",
+        "session-memory",
+        "--output",
+        str(SELF_ARTIFACT_PATH),
     )
 
     if build_result["memory_items"] < 1:
@@ -67,9 +84,13 @@ def main() -> None:
     if check_result["memory_fts"] < 1:
         raise SystemExit("memory_fts is empty")
     if query_result["count"] < 1:
-        raise SystemExit("query returned no rows")
-    if not ARTIFACT_PATH.exists():
-        raise SystemExit("assemble output missing")
+        raise SystemExit("wind-agent query returned no rows")
+    if self_query_result["count"] < 1:
+        raise SystemExit("session-memory query returned no rows")
+    if not WIND_ARTIFACT_PATH.exists():
+        raise SystemExit("wind-agent assemble output missing")
+    if not SELF_ARTIFACT_PATH.exists():
+        raise SystemExit("session-memory assemble output missing")
 
     print(
         json.dumps(
@@ -80,8 +101,14 @@ def main() -> None:
                     "memory_evidence_refs": check_result["memory_evidence_refs"],
                     "memory_fts": check_result["memory_fts"],
                 },
-                "query_count": query_result["count"],
-                "artifact": str(ARTIFACT_PATH),
+                "query": {
+                    "wind-agent": query_result["count"],
+                    "session-memory": self_query_result["count"],
+                },
+                "artifacts": {
+                    "wind-agent": str(WIND_ARTIFACT_PATH),
+                    "session-memory": str(SELF_ARTIFACT_PATH),
+                },
             },
             ensure_ascii=True,
             indent=2,

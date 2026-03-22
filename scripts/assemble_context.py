@@ -41,6 +41,35 @@ def clean_section_text(path: Path, strip_heading: bool = True, strip_yaml: bool 
     return text.strip()
 
 
+SECTION_RE = re.compile(r"^## (.+?)\r?$", re.MULTILINE)
+
+
+def parse_h2_sections(text: str) -> dict[str, str]:
+    matches = list(SECTION_RE.finditer(text))
+    sections: dict[str, str] = {}
+    for index, match in enumerate(matches):
+        title = match.group(1).strip()
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        body = text[start:end].strip()
+        sections[title] = body
+    return sections
+
+
+def append_named_sections(parts: list[str], title: str, sections: dict[str, str], names: list[str]) -> None:
+    selected: list[str] = []
+    for name in names:
+        body = sections.get(name, "").strip()
+        if not body:
+            continue
+        selected.append(f"### {name}\n\n{body}")
+    if not selected:
+        return
+    parts.append(f"## {title}\n")
+    parts.append("\n\n".join(selected))
+    parts.append("")
+
+
 def latest_snapshot(project_dir: Path) -> Path | None:
     snapshot_dir = project_dir / "snapshots"
     if not snapshot_dir.exists():
@@ -83,20 +112,29 @@ def main() -> None:
     parts.append(f"Project: `{args.project_id}`\n")
 
     if current_task_path.exists():
-        parts.append("## Current Task\n")
-        parts.append(clean_section_text(current_task_path, strip_heading=True, strip_yaml=False))
-        parts.append("")
+        current_task_sections = parse_h2_sections(clean_section_text(current_task_path, strip_heading=True, strip_yaml=False))
+        append_named_sections(
+            parts,
+            "Current Task",
+            current_task_sections,
+            ["Goal", "Current State", "Active Risks", "Next Steps"],
+        )
 
     if blockers_path.exists():
-        parts.append("## Blockers\n")
-        parts.append(clean_section_text(blockers_path, strip_heading=True, strip_yaml=False))
-        parts.append("")
+        blocker_sections = parse_h2_sections(clean_section_text(blockers_path, strip_heading=True, strip_yaml=False))
+        append_named_sections(parts, "Blockers", blocker_sections, ["Active", "Waiting"])
 
     if snapshot_path:
+        snapshot_sections = parse_h2_sections(clean_section_text(snapshot_path, strip_heading=False, strip_yaml=True))
         parts.append("## Latest Snapshot\n")
         parts.append(f"Source: `{snapshot_path.relative_to(ROOT).as_posix()}`\n")
-        parts.append(clean_section_text(snapshot_path, strip_heading=False, strip_yaml=True))
         parts.append("")
+        for name in ["Goal", "Completed Work", "Validated Facts", "Next Steps"]:
+            body = snapshot_sections.get(name, "").strip()
+            if not body:
+                continue
+            parts.append(f"### {name}\n\n{body}")
+            parts.append("")
 
     if rows:
         parts.append("## Durable Memory\n")
