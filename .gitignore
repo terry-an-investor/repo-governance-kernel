@@ -1,0 +1,11 @@
+# Derived local index
+index/memory.sqlite
+
+# Derived assembled context and other generated artifacts
+artifacts/**
+!artifacts/
+
+# Python cache
+__pycache__/
+*.pyc
+.venv/
