@@ -60,7 +60,7 @@ def main() -> None:
         "--project-id",
         "session-memory",
         "--text",
-        "SQLite FTS5",
+        "workspace",
         "--limit",
         "10",
     )
@@ -83,6 +83,10 @@ def main() -> None:
         raise SystemExit("memory_items is empty")
     if check_result["memory_fts"] < 1:
         raise SystemExit("memory_fts is empty")
+    if build_result["memory_links"] < 1:
+        raise SystemExit("memory_links is empty")
+    if check_result["memory_links"] < 1:
+        raise SystemExit("check memory_links is empty")
     if query_result["count"] < 1:
         raise SystemExit("wind-agent query returned no rows")
     if self_query_result["count"] < 1:
@@ -99,6 +103,7 @@ def main() -> None:
                 "check": {
                     "memory_items": check_result["memory_items"],
                     "memory_evidence_refs": check_result["memory_evidence_refs"],
+                    "memory_links": check_result["memory_links"],
                     "memory_fts": check_result["memory_fts"],
                 },
                 "query": {
