@@ -45,6 +45,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md`
 - `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
 - `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
+- `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/build_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
