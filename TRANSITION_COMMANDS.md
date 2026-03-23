@@ -30,6 +30,10 @@ The registry still does not encode every full rewrite semantics, but it now owns
 - guard codes
 - write targets
 - side-effect codes
+- durable owners
+- projection owners
+- artifact owners
+- live inspection owners
 - whether a command emits a transition event
 - which commands are currently executor-supported
 - bounded adjudication plan family names
@@ -49,6 +53,12 @@ That means:
 - each command has explicit guards
 - each command has defined write targets
 - side effects are part of the contract, not operator folklore
+- owner-layer responsibility is registry-owned, not left to per-script private semantics
+
+Current implementation status:
+
+- all implemented transition command domains now consume shared registry-backed owner-layer contract assertions
+- partial commands must also declare owner-layer fields before they are treated as semantically covered
 
 ## Command Domains
 
@@ -419,7 +429,9 @@ Required inputs:
 
 - `project_id`
 - `title`
+- `summary`
 - `reason`
+- `temporary_behavior`
 - `risk`
 - `owner_scope`
 - `exit_condition`
@@ -431,6 +443,7 @@ Primary writes:
 
 Guards:
 
+- one active objective must exist for the contract to attach honestly
 - all required fields must be present
 
 ### `retire-exception-contract`
@@ -449,6 +462,12 @@ Primary writes:
 
 - exception-contract file update
 - exception ledger update
+
+Guards:
+
+- referenced exception contract must exist
+- referenced exception contract must still be active
+- when `pivot_id` is supplied, that pivot must exist
 
 ### `invalidate-exception-contract`
 
@@ -495,6 +514,11 @@ of pretending to be a live repo projection.
 
 This command already has partial implementation.
 
+Its owner-layer contract is registry-backed:
+
+- durable owner: `current:current-task`
+- live inspection owner: `workspace:git-status`
+
 ### `render-live-workspace`
 
 Purpose:
@@ -520,6 +544,11 @@ This command keeps live repo truth out of committed `current/current-task.md`
 while still giving handoff and debugging flows one reusable workspace
 projection primitive.
 
+Its owner-layer contract is registry-backed:
+
+- artifact owner: `artifact:live-workspace-projection`
+- live inspection owner: `workspace:git-status`
+
 ### `capture-snapshot`
 
 Purpose:
@@ -531,6 +560,11 @@ Primary writes:
 - `projects/<project_id>/snapshots/<timestamp>-<slug>.md`
 
 This command already has partial implementation.
+
+Its owner-layer contract is registry-backed:
+
+- artifact owner: `snapshot:historical`
+- live inspection owner: `workspace:git-status`
 
 ## 7. Transition Event Recording
 

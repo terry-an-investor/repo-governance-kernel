@@ -6,16 +6,17 @@ import json
 
 from round_control import (
     apply_transition_transaction,
+    assert_exception_contract_command_contract,
     exception_ledger_path,
     load_exception_contract_file,
     locate_exception_contract_file,
     parse_bullet_list,
     project_dir,
+    render_exception_contract_guard_lines,
     render_exception_contract_file,
     render_exception_ledger_file,
     resolve_anchor,
     timestamp_now,
-    transition_events_dir,
 )
 
 
@@ -81,6 +82,16 @@ def main() -> int:
     )
     ledger_path = exception_ledger_path(args.project_id)
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    assert_exception_contract_command_contract(
+        "retire-exception-contract",
+        provided_inputs={"project_id", "exception_contract_id", "reason"},
+        satisfied_guard_codes={"exception_contract_exists", "exception_contract_is_active"},
+        write_targets={"durable:exception-contract", "control:exception-ledger", "memory:transition-event"},
+        durable_owners={"memory:exception-contract"},
+        projection_owners={"control:exception-ledger"},
+        artifact_owners=set(),
+        live_inspection_owners=set(),
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -92,10 +103,10 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"exception contract `{args.exception_contract_id}` status `{previous_status}`",
         next_state=f"exception contract `{args.exception_contract_id}` is now `retired`",
-        guards=[
-            f"exception contract `{args.exception_contract_id}` exists",
-            "only active exception contracts can be retired",
-        ],
+        guards=render_exception_contract_guard_lines(
+            "retire-exception-contract",
+            context={"exception_contract_id": args.exception_contract_id},
+        ),
         evidence=[args.reason, *evidence],
         target_ids=[args.exception_contract_id, str(meta.get("objective_id") or "").strip()],
         event_file_stem=f"{timestamp}-{args.exception_contract_id}-retired",

@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 from assemble_context import extract_current_task_anchor, inspect_live_workspace, parse_h2_sections, read_text
-from round_control import expected_current_task_control_values
+from round_control import assert_anchor_maintenance_command_contract, expected_current_task_control_values
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -146,6 +146,16 @@ def main() -> int:
 
     workspace_root = args.workspace_root or anchor.get("workspace_root") or live_workspace.get("workspace_root", "")
     control_values = expected_current_task_control_values(args.project_id)
+    assert_anchor_maintenance_command_contract(
+        "refresh-anchor",
+        provided_inputs={"project_id"},
+        satisfied_guard_codes={"current_task_anchor_exists", "live_workspace_available"},
+        write_targets={"current:current-task"},
+        durable_owners={"current:current-task"},
+        projection_owners=set(),
+        artifact_owners=set(),
+        live_inspection_owners={"workspace:git-status"},
+    )
     refreshed_current_state = refresh_current_state_section(current_state, workspace_root, control_values)
     updated_text = replace_h2_section(text, CURRENT_STATE_SECTION, refreshed_current_state)
     current_task_path.write_text(updated_text, encoding="utf-8")

@@ -39,6 +39,16 @@ OBJECTIVE_PHASE_COMMAND_NAMES = {
     "record-hard-pivot",
     "set-phase",
 }
+EXCEPTION_CONTRACT_COMMAND_NAMES = {
+    "activate-exception-contract",
+    "retire-exception-contract",
+    "invalidate-exception-contract",
+}
+ANCHOR_MAINTENANCE_COMMAND_NAMES = {
+    "refresh-anchor",
+    "render-live-workspace",
+    "capture-snapshot",
+}
 ROUND_COMMAND_GUARD_TEXT = {
     "linked_objective_is_active": lambda context: f"objective `{context['objective_id']}` exists and is active",
     "linked_objective_is_execution": lambda context: "objective phase is `execution`",
@@ -104,6 +114,38 @@ OBJECTIVE_PHASE_COMMAND_GUARD_TEXT = {
     ),
     "execution_phase_has_or_bootstraps_round": lambda context: "execution phase has one bounded round or bootstraps one in the same guarded transition",
 }
+EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT = {
+    "active_objective_available": lambda context: (
+        f"objective `{context['objective_id']}` exists and is active"
+        if context.get("objective_id")
+        else "one active objective exists"
+    ),
+    "exception_contract_required_fields_present": lambda context: (
+        "summary, reason, temporary behavior, risk, exit condition, and owner scope are present"
+    ),
+    "exception_contract_exists": lambda context: (
+        f"exception contract `{context['exception_contract_id']}` exists"
+        if context.get("exception_contract_id")
+        else "exception contract exists"
+    ),
+    "exception_contract_is_active": lambda context: (
+        f"exception contract `{context['exception_contract_id']}` is `active`"
+        if context.get("exception_contract_id")
+        else "exception contract is `active`"
+    ),
+    "pivot_exists_when_supplied": lambda context: (
+        f"pivot `{context['pivot_id']}` exists"
+        if context.get("pivot_id")
+        else "no pivot id was supplied, so no pivot lookup was required"
+    ),
+}
+ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT = {
+    "current_task_anchor_exists": lambda context: "current-task anchor exists and is readable",
+    "live_workspace_available": lambda context: "live workspace inspection is available",
+    "workspace_locator_available": lambda context: "workspace locator is present in current-task anchor",
+    "project_control_state_available": lambda context: "project control state required for snapshot capture is available",
+    "workspace_anchor_available": lambda context: "workspace anchor is available from current-task or latest snapshot context",
+}
 ROUND_WRITE_TARGET_LABELS = {
     "durable:round",
     "control:active-round",
@@ -116,6 +158,16 @@ OBJECTIVE_PHASE_WRITE_TARGET_LABELS = {
     "control:pivot-log",
     "control:active-round",
     "memory:transition-event",
+}
+EXCEPTION_CONTRACT_WRITE_TARGET_LABELS = {
+    "durable:exception-contract",
+    "control:exception-ledger",
+    "memory:transition-event",
+}
+ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS = {
+    "current:current-task",
+    "artifact:live-workspace-projection",
+    "snapshot:historical",
 }
 
 
@@ -276,21 +328,126 @@ def resolve_anchor(project_id: str) -> dict[str, str]:
 
 
 def round_command_spec(command_name: str):
-    spec = transition_command_spec(command_name)
-    if spec.domain != "round":
-        raise SystemExit(f"transition command `{command_name}` is not a round-domain command")
-    if command_name not in ROUND_COMMAND_NAMES:
-        raise SystemExit(f"round-domain command `{command_name}` is not declared in the owner-layer round command set")
-    return spec
+    return _domain_command_spec(
+        command_name,
+        expected_domains={"round"},
+        declared_names=ROUND_COMMAND_NAMES,
+        domain_label="round-domain",
+    )
 
 
 def objective_phase_command_spec(command_name: str):
+    return _domain_command_spec(
+        command_name,
+        expected_domains={"objective-line", "phase"},
+        declared_names=OBJECTIVE_PHASE_COMMAND_NAMES,
+        domain_label="objective/phase-domain",
+    )
+
+
+def exception_contract_command_spec(command_name: str):
+    return _domain_command_spec(
+        command_name,
+        expected_domains={"exception-contract"},
+        declared_names=EXCEPTION_CONTRACT_COMMAND_NAMES,
+        domain_label="exception-contract-domain",
+    )
+
+
+def anchor_maintenance_command_spec(command_name: str):
+    return _domain_command_spec(
+        command_name,
+        expected_domains={"anchor-maintenance"},
+        declared_names=ANCHOR_MAINTENANCE_COMMAND_NAMES,
+        domain_label="anchor-maintenance-domain",
+    )
+
+
+def _domain_command_spec(
+    command_name: str,
+    *,
+    expected_domains: set[str],
+    declared_names: set[str],
+    domain_label: str,
+):
     spec = transition_command_spec(command_name)
-    if spec.domain not in {"objective-line", "phase"}:
-        raise SystemExit(f"transition command `{command_name}` is not an objective-line or phase-domain command")
-    if command_name not in OBJECTIVE_PHASE_COMMAND_NAMES:
+    if spec.domain not in expected_domains:
+        allowed_domains = ", ".join(f"`{domain}`" for domain in sorted(expected_domains))
+        raise SystemExit(f"transition command `{command_name}` is not in expected {domain_label} domains {allowed_domains}")
+    if command_name not in declared_names:
+        raise SystemExit(f"{domain_label} command `{command_name}` is not declared in the owner-layer command set")
+    return spec
+
+
+def _assert_command_contract(
+    command_name: str,
+    *,
+    domain_label: str,
+    spec,
+    provided_inputs: set[str],
+    satisfied_guard_codes: set[str],
+    write_targets: set[str],
+    durable_owners: set[str],
+    projection_owners: set[str],
+    artifact_owners: set[str],
+    live_inspection_owners: set[str],
+    allowed_write_targets: set[str],
+    emits_transition_event: bool,
+):
+    missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
+    if missing_inputs:
         raise SystemExit(
-            f"objective/phase-domain command `{command_name}` is not declared in the owner-layer objective/phase command set"
+            f"{domain_label} command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
+        )
+
+    expected_guards = set(spec.guard_codes)
+    missing_guards = sorted(expected_guards - satisfied_guard_codes)
+    unexpected_guards = sorted(satisfied_guard_codes - expected_guards)
+    if missing_guards:
+        raise SystemExit(
+            f"{domain_label} command `{command_name}` is missing registry-declared guards: {', '.join(missing_guards)}"
+        )
+    if unexpected_guards:
+        raise SystemExit(
+            f"{domain_label} command `{command_name}` declared unexpected guard coverage outside the registry: {', '.join(unexpected_guards)}"
+        )
+
+    expected_write_targets = set(spec.write_targets)
+    missing_write_targets = sorted(expected_write_targets - write_targets)
+    unexpected_write_targets = sorted(write_targets - expected_write_targets)
+    if missing_write_targets:
+        raise SystemExit(
+            f"{domain_label} command `{command_name}` is missing registry-declared write targets: {', '.join(missing_write_targets)}"
+        )
+    if unexpected_write_targets:
+        raise SystemExit(
+            f"{domain_label} command `{command_name}` declared unexpected write targets outside the registry: {', '.join(unexpected_write_targets)}"
+        )
+    if not write_targets.issubset(allowed_write_targets):
+        raise SystemExit(
+            f"{domain_label} command `{command_name}` declared unsupported write targets: {', '.join(sorted(write_targets - allowed_write_targets))}"
+        )
+
+    for owner_kind, expected_labels, provided_labels in [
+        ("durable owners", set(spec.durable_owners), durable_owners),
+        ("projection owners", set(spec.projection_owners), projection_owners),
+        ("artifact owners", set(spec.artifact_owners), artifact_owners),
+        ("live inspection owners", set(spec.live_inspection_owners), live_inspection_owners),
+    ]:
+        missing_labels = sorted(expected_labels - provided_labels)
+        unexpected_labels = sorted(provided_labels - expected_labels)
+        if missing_labels:
+            raise SystemExit(
+                f"{domain_label} command `{command_name}` is missing registry-declared {owner_kind}: {', '.join(missing_labels)}"
+            )
+        if unexpected_labels:
+            raise SystemExit(
+                f"{domain_label} command `{command_name}` declared unexpected {owner_kind} outside the registry: {', '.join(unexpected_labels)}"
+            )
+
+    if spec.emits_transition_event != emits_transition_event:
+        raise SystemExit(
+            f"{domain_label} command `{command_name}` transition-event expectation diverges from the registry"
         )
     return spec
 
@@ -301,47 +458,27 @@ def assert_round_command_contract(
     provided_inputs: set[str],
     satisfied_guard_codes: set[str],
     write_targets: set[str],
+    durable_owners: set[str],
+    projection_owners: set[str],
+    artifact_owners: set[str],
+    live_inspection_owners: set[str],
     emits_transition_event: bool = True,
 ) -> object:
     spec = round_command_spec(command_name)
-    missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
-    if missing_inputs:
-        raise SystemExit(
-            f"round-domain command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
-        )
-
-    expected_guards = set(spec.guard_codes)
-    missing_guards = sorted(expected_guards - satisfied_guard_codes)
-    unexpected_guards = sorted(satisfied_guard_codes - expected_guards)
-    if missing_guards:
-        raise SystemExit(
-            f"round-domain command `{command_name}` is missing registry-declared guards: {', '.join(missing_guards)}"
-        )
-    if unexpected_guards:
-        raise SystemExit(
-            f"round-domain command `{command_name}` declared unexpected guard coverage outside the registry: {', '.join(unexpected_guards)}"
-        )
-
-    expected_write_targets = set(spec.write_targets)
-    missing_write_targets = sorted(expected_write_targets - write_targets)
-    unexpected_write_targets = sorted(write_targets - expected_write_targets)
-    if missing_write_targets:
-        raise SystemExit(
-            f"round-domain command `{command_name}` is missing registry-declared write targets: {', '.join(missing_write_targets)}"
-        )
-    if unexpected_write_targets:
-        raise SystemExit(
-            f"round-domain command `{command_name}` declared unexpected write targets outside the registry: {', '.join(unexpected_write_targets)}"
-        )
-    if not write_targets.issubset(ROUND_WRITE_TARGET_LABELS):
-        raise SystemExit(
-            f"round-domain command `{command_name}` declared unsupported round write targets: {', '.join(sorted(write_targets - ROUND_WRITE_TARGET_LABELS))}"
-        )
-    if spec.emits_transition_event != emits_transition_event:
-        raise SystemExit(
-            f"round-domain command `{command_name}` transition-event expectation diverges from the registry"
-        )
-    return spec
+    return _assert_command_contract(
+        command_name,
+        domain_label="round-domain",
+        spec=spec,
+        provided_inputs=provided_inputs,
+        satisfied_guard_codes=satisfied_guard_codes,
+        write_targets=write_targets,
+        durable_owners=durable_owners,
+        projection_owners=projection_owners,
+        artifact_owners=artifact_owners,
+        live_inspection_owners=live_inspection_owners,
+        allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
+        emits_transition_event=emits_transition_event,
+    )
 
 
 def assert_objective_phase_command_contract(
@@ -350,107 +487,211 @@ def assert_objective_phase_command_contract(
     provided_inputs: set[str],
     satisfied_guard_codes: set[str],
     write_targets: set[str],
+    durable_owners: set[str],
+    projection_owners: set[str],
+    artifact_owners: set[str],
+    live_inspection_owners: set[str],
     emits_transition_event: bool = True,
 ) -> object:
     spec = objective_phase_command_spec(command_name)
-    missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
-    if missing_inputs:
-        raise SystemExit(
-            f"objective/phase-domain command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
-        )
+    return _assert_command_contract(
+        command_name,
+        domain_label="objective/phase-domain",
+        spec=spec,
+        provided_inputs=provided_inputs,
+        satisfied_guard_codes=satisfied_guard_codes,
+        write_targets=write_targets,
+        durable_owners=durable_owners,
+        projection_owners=projection_owners,
+        artifact_owners=artifact_owners,
+        live_inspection_owners=live_inspection_owners,
+        allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
+        emits_transition_event=emits_transition_event,
+    )
 
-    expected_guards = set(spec.guard_codes)
-    missing_guards = sorted(expected_guards - satisfied_guard_codes)
-    unexpected_guards = sorted(satisfied_guard_codes - expected_guards)
-    if missing_guards:
-        raise SystemExit(
-            f"objective/phase-domain command `{command_name}` is missing registry-declared guards: {', '.join(missing_guards)}"
-        )
-    if unexpected_guards:
-        raise SystemExit(
-            f"objective/phase-domain command `{command_name}` declared unexpected guard coverage outside the registry: {', '.join(unexpected_guards)}"
-        )
 
-    expected_write_targets = set(spec.write_targets)
-    missing_write_targets = sorted(expected_write_targets - write_targets)
-    unexpected_write_targets = sorted(write_targets - expected_write_targets)
-    if missing_write_targets:
-        raise SystemExit(
-            f"objective/phase-domain command `{command_name}` is missing registry-declared write targets: {', '.join(missing_write_targets)}"
-        )
-    if unexpected_write_targets:
-        raise SystemExit(
-            f"objective/phase-domain command `{command_name}` declared unexpected write targets outside the registry: {', '.join(unexpected_write_targets)}"
-        )
-    if not write_targets.issubset(OBJECTIVE_PHASE_WRITE_TARGET_LABELS):
-        raise SystemExit(
-            "objective/phase-domain command "
-            f"`{command_name}` declared unsupported objective/phase write targets: {', '.join(sorted(write_targets - OBJECTIVE_PHASE_WRITE_TARGET_LABELS))}"
-        )
-    if spec.emits_transition_event != emits_transition_event:
-        raise SystemExit(
-            f"objective/phase-domain command `{command_name}` transition-event expectation diverges from the registry"
-        )
-    return spec
+def assert_exception_contract_command_contract(
+    command_name: str,
+    *,
+    provided_inputs: set[str],
+    satisfied_guard_codes: set[str],
+    write_targets: set[str],
+    durable_owners: set[str],
+    projection_owners: set[str],
+    artifact_owners: set[str],
+    live_inspection_owners: set[str],
+    emits_transition_event: bool = True,
+) -> object:
+    spec = exception_contract_command_spec(command_name)
+    return _assert_command_contract(
+        command_name,
+        domain_label="exception-contract-domain",
+        spec=spec,
+        provided_inputs=provided_inputs,
+        satisfied_guard_codes=satisfied_guard_codes,
+        write_targets=write_targets,
+        durable_owners=durable_owners,
+        projection_owners=projection_owners,
+        artifact_owners=artifact_owners,
+        live_inspection_owners=live_inspection_owners,
+        allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
+        emits_transition_event=emits_transition_event,
+    )
+
+
+def assert_anchor_maintenance_command_contract(
+    command_name: str,
+    *,
+    provided_inputs: set[str],
+    satisfied_guard_codes: set[str],
+    write_targets: set[str],
+    durable_owners: set[str],
+    projection_owners: set[str],
+    artifact_owners: set[str],
+    live_inspection_owners: set[str],
+    emits_transition_event: bool = False,
+) -> object:
+    spec = anchor_maintenance_command_spec(command_name)
+    return _assert_command_contract(
+        command_name,
+        domain_label="anchor-maintenance-domain",
+        spec=spec,
+        provided_inputs=provided_inputs,
+        satisfied_guard_codes=satisfied_guard_codes,
+        write_targets=write_targets,
+        durable_owners=durable_owners,
+        projection_owners=projection_owners,
+        artifact_owners=artifact_owners,
+        live_inspection_owners=live_inspection_owners,
+        allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
+        emits_transition_event=emits_transition_event,
+    )
+
+
+def _render_guard_lines(command_name: str, *, domain_label: str, spec, guard_text_map: dict[str, object], context: dict[str, str] | None) -> list[str]:
+    guard_context = context or {}
+    rendered: list[str] = []
+    for guard_code in spec.guard_codes:
+        renderer = guard_text_map.get(guard_code)
+        if renderer is None:
+            raise SystemExit(f"{domain_label} guard `{guard_code}` has no owner-layer renderer")
+        rendered.append(renderer(guard_context))
+    return rendered
 
 
 def render_round_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
     spec = round_command_spec(command_name)
-    guard_context = context or {}
-    rendered: list[str] = []
-    for guard_code in spec.guard_codes:
-        renderer = ROUND_COMMAND_GUARD_TEXT.get(guard_code)
-        if renderer is None:
-            raise SystemExit(f"round-domain guard `{guard_code}` has no owner-layer renderer")
-        rendered.append(renderer(guard_context))
-    return rendered
+    return _render_guard_lines(
+        command_name,
+        domain_label="round-domain",
+        spec=spec,
+        guard_text_map=ROUND_COMMAND_GUARD_TEXT,
+        context=context,
+    )
 
 
 def render_objective_phase_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
     spec = objective_phase_command_spec(command_name)
-    guard_context = context or {}
-    rendered: list[str] = []
-    for guard_code in spec.guard_codes:
-        renderer = OBJECTIVE_PHASE_COMMAND_GUARD_TEXT.get(guard_code)
-        if renderer is None:
-            raise SystemExit(f"objective/phase-domain guard `{guard_code}` has no owner-layer renderer")
-        rendered.append(renderer(guard_context))
-    return rendered
+    return _render_guard_lines(
+        command_name,
+        domain_label="objective/phase-domain",
+        spec=spec,
+        guard_text_map=OBJECTIVE_PHASE_COMMAND_GUARD_TEXT,
+        context=context,
+    )
+
+
+def render_exception_contract_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
+    spec = exception_contract_command_spec(command_name)
+    return _render_guard_lines(
+        command_name,
+        domain_label="exception-contract-domain",
+        spec=spec,
+        guard_text_map=EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT,
+        context=context,
+    )
+
+
+def render_anchor_maintenance_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
+    spec = anchor_maintenance_command_spec(command_name)
+    return _render_guard_lines(
+        command_name,
+        domain_label="anchor-maintenance-domain",
+        spec=spec,
+        guard_text_map=ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT,
+        context=context,
+    )
+
+
+def _validate_domain_registry_contracts(
+    *,
+    command_names: set[str],
+    domain_label: str,
+    spec_loader,
+    allowed_statuses: set[str],
+    allowed_write_targets: set[str],
+    guard_text_map: dict[str, object],
+) -> None:
+    for command_name in sorted(command_names):
+        spec = spec_loader(command_name)
+        if spec.implementation_status not in allowed_statuses:
+            rendered_statuses = ", ".join(f"`{status}`" for status in sorted(allowed_statuses))
+            raise SystemExit(
+                f"{domain_label} command `{command_name}` must remain in {rendered_statuses} while the shared helper consumes it"
+            )
+        if not set(spec.write_targets).issubset(allowed_write_targets):
+            raise SystemExit(
+                f"{domain_label} command `{command_name}` declares unsupported write targets: {', '.join(sorted(set(spec.write_targets) - allowed_write_targets))}"
+            )
+        for guard_code in spec.guard_codes:
+            if guard_code not in guard_text_map:
+                raise SystemExit(
+                    f"{domain_label} command `{command_name}` declares unsupported guard renderer `{guard_code}`"
+                )
 
 
 def validate_round_domain_registry_contracts() -> None:
-    for command_name in sorted(ROUND_COMMAND_NAMES):
-        spec = round_command_spec(command_name)
-        if spec.implementation_status != "implemented":
-            raise SystemExit(f"round-domain command `{command_name}` must remain `implemented` while the round helper consumes it")
-        if set(spec.write_targets) != ROUND_WRITE_TARGET_LABELS:
-            raise SystemExit(
-                f"round-domain command `{command_name}` must declare the canonical round write targets: {', '.join(sorted(ROUND_WRITE_TARGET_LABELS))}"
-            )
-        for guard_code in spec.guard_codes:
-            if guard_code not in ROUND_COMMAND_GUARD_TEXT:
-                raise SystemExit(
-                    f"round-domain command `{command_name}` declares unsupported guard renderer `{guard_code}`"
-                )
+    _validate_domain_registry_contracts(
+        command_names=ROUND_COMMAND_NAMES,
+        domain_label="round-domain",
+        spec_loader=round_command_spec,
+        allowed_statuses={"implemented"},
+        allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
+        guard_text_map=ROUND_COMMAND_GUARD_TEXT,
+    )
 
 
 def validate_objective_phase_domain_registry_contracts() -> None:
-    for command_name in sorted(OBJECTIVE_PHASE_COMMAND_NAMES):
-        spec = objective_phase_command_spec(command_name)
-        if spec.implementation_status != "implemented":
-            raise SystemExit(
-                f"objective/phase-domain command `{command_name}` must remain `implemented` while the objective/phase helper consumes it"
-            )
-        if not set(spec.write_targets).issubset(OBJECTIVE_PHASE_WRITE_TARGET_LABELS):
-            raise SystemExit(
-                "objective/phase-domain command "
-                f"`{command_name}` declares unsupported write targets: {', '.join(sorted(set(spec.write_targets) - OBJECTIVE_PHASE_WRITE_TARGET_LABELS))}"
-            )
-        for guard_code in spec.guard_codes:
-            if guard_code not in OBJECTIVE_PHASE_COMMAND_GUARD_TEXT:
-                raise SystemExit(
-                    f"objective/phase-domain command `{command_name}` declares unsupported guard renderer `{guard_code}`"
-                )
+    _validate_domain_registry_contracts(
+        command_names=OBJECTIVE_PHASE_COMMAND_NAMES,
+        domain_label="objective/phase-domain",
+        spec_loader=objective_phase_command_spec,
+        allowed_statuses={"implemented"},
+        allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
+        guard_text_map=OBJECTIVE_PHASE_COMMAND_GUARD_TEXT,
+    )
+
+
+def validate_exception_contract_domain_registry_contracts() -> None:
+    _validate_domain_registry_contracts(
+        command_names=EXCEPTION_CONTRACT_COMMAND_NAMES,
+        domain_label="exception-contract-domain",
+        spec_loader=exception_contract_command_spec,
+        allowed_statuses={"implemented"},
+        allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
+        guard_text_map=EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT,
+    )
+
+
+def validate_anchor_maintenance_domain_registry_contracts() -> None:
+    _validate_domain_registry_contracts(
+        command_names=ANCHOR_MAINTENANCE_COMMAND_NAMES,
+        domain_label="anchor-maintenance-domain",
+        spec_loader=anchor_maintenance_command_spec,
+        allowed_statuses={"implemented", "partial"},
+        allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
+        guard_text_map=ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT,
+    )
 
 
 def load_active_objective(project_id: str) -> tuple[dict[str, str], dict[str, str]]:

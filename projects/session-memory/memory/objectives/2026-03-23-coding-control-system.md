@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 1c5011a5fe724a33812472aba5e57b901dc65d27
+git_sha: 4ed6b4d8cfa328fc6e8c9b3ee4cf5882fd09421d
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-24T07:02:45+08:00
-phase: paused
+updated_at: 2026-03-24T07:28:55+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -102,3 +102,5 @@ Phase changed from `execution` to `paused` because The bounded current-task snap
 Phase changed from `paused` to `execution` because A bounded execution slice is needed to separate durable current-task control state from non-durable live workspace projection.
 
 Phase changed from `execution` to `paused` because The bounded round that separated durable current-task control from live workspace projection is closed, so the active objective should return to paused.
+
+Phase changed from `paused` to `execution` because A bounded execution slice is needed to move exception-contract and anchor-maintenance commands under the same registry-backed owner-layer contract and to add explicit owner fields that block private semantics drift.

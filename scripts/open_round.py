@@ -133,6 +133,10 @@ def main() -> int:
         provided_inputs={"project_id", "objective_id", "title", "scope", "deliverable", "validation_plan"},
         satisfied_guard_codes=guard_codes,
         write_targets={"durable:round", "control:active-round", "memory:transition-event"},
+        durable_owners={"memory:round"},
+        projection_owners={"control:active-round"},
+        artifact_owners=set(),
+        live_inspection_owners=set(),
     )
     guards = render_round_guard_lines("open-round", context={"objective_id": objective_id})
     evidence = [args.validation_plan]

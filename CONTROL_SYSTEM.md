@@ -169,6 +169,17 @@ For implemented command domains, those transition gates should converge toward
 shared registry-backed owner-layer consumers instead of letting each command
 silently own its own private guard and write semantics.
 
+That registry-owned contract now includes:
+
+- required inputs
+- guard coverage
+- write-target coverage
+- durable owners
+- projection owners
+- artifact owners
+- live inspection owners
+- transition-event expectations
+
 That means the system can borrow the hooks idea without coupling project
 control to one vendor's runtime semantics.
 
@@ -212,7 +223,7 @@ Phase and round-scope changes are now first-class owner-layer transitions, not
 manual edits:
 
 - `set-phase` changes durable objective phase and active-objective projection together
-- objective-line plus phase commands consume one shared registry-backed owner-layer contract for declared inputs, guard coverage, write-target coverage, and transition-event expectations
+- objective-line plus phase commands consume one shared registry-backed owner-layer contract for declared inputs, guard coverage, write-target coverage, owner-layer coverage, and transition-event expectations
 - entering `execution` must already have one bounded round or bootstrap one in
   the same command
 - `refresh-round-scope` rewrites durable round `paths` from live dirty-path
@@ -220,8 +231,8 @@ manual edits:
 - `rewrite-open-round` rewrites one open round contract durably while preserving
   round identity, so pivots and adjudication can mutate round truth through a
   bounded owner-layer primitive instead of ad hoc file edits
-- `audit_control_state` now warns when either the objective/phase-domain helper
-  or the round-domain helper drifts from the semantic transition registry
+- round, exception-contract, and anchor-maintenance commands also consume the same shared registry-backed owner-layer assertion path
+- `audit_control_state` now warns when any shared domain consumer drifts from the semantic transition registry
 
 ## Precision Surfaces
 
@@ -497,7 +508,9 @@ It should not yet be described as:
 - state-machine enforced
 
 That means the docs already define state domains, transition intent, and drift
-semantics, but the implementation still lacks a unified transition engine.
+semantics. The implementation now does enforce shared owner-layer contracts for
+all implemented command domains, but it still lacks a fully general autonomous
+rewrite engine.
 
 ## Minimal Pivot Record
 
@@ -547,8 +560,9 @@ When the verdict already knows a safe rewrite pattern, the repo may carry it as
 one bounded plan contract and compile it into low-level executor payloads
 through repo-owned code instead of forcing operators to hand-author every JSON
 payload. Those plan contracts should stay anchored to the same machine-readable
-transition registry that names command guards, write targets, and side-effect
-classes for the underlying owner-layer commands.
+transition registry that names command guards, write targets, side-effect
+classes, and owner-layer responsibilities for the underlying owner-layer
+commands.
 Those bounded plan contracts may consume adjudication durable context such as
 the invalidated object set when target resolution remains deterministic and
 auditable.

@@ -7,16 +7,17 @@ import json
 from round_control import (
     active_objective_path,
     apply_transition_transaction,
+    assert_exception_contract_command_contract,
     exception_contracts_dir,
     exception_ledger_path,
     load_active_objective,
     project_dir,
+    render_exception_contract_guard_lines,
     render_exception_contract_file,
     render_exception_ledger_file,
     resolve_anchor,
     slugify,
     timestamp_now,
-    transition_events_dir,
 )
 
 
@@ -90,6 +91,16 @@ def main() -> int:
     )
     contract_path = exception_contracts_dir(args.project_id) / f"{file_stem}.md"
     ledger_path = exception_ledger_path(args.project_id)
+    assert_exception_contract_command_contract(
+        "activate-exception-contract",
+        provided_inputs={"project_id", "title", "summary", "reason", "temporary_behavior", "risk", "owner_scope", "exit_condition"},
+        satisfied_guard_codes={"active_objective_available", "exception_contract_required_fields_present"},
+        write_targets={"durable:exception-contract", "control:exception-ledger", "memory:transition-event"},
+        durable_owners={"memory:exception-contract"},
+        projection_owners={"control:exception-ledger"},
+        artifact_owners=set(),
+        live_inspection_owners=set(),
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -101,15 +112,10 @@ def main() -> int:
         anchor=anchor,
         previous_state="exception contract did not exist",
         next_state=f"exception contract `{exception_contract_id}` is now active on objective `{objective_id}`",
-        guards=[
-            f"objective `{objective_id}` exists and is active",
-            "summary is present",
-            "reason is present",
-            "temporary behavior is present",
-            "risk is present",
-            "exit condition is present",
-            "owner scope is present",
-        ],
+        guards=render_exception_contract_guard_lines(
+            "activate-exception-contract",
+            context={"objective_id": objective_id},
+        ),
         evidence=[args.reason, args.exit_condition, *[item.strip() for item in args.evidence if item.strip()]],
         target_ids=[exception_contract_id, objective_id],
         event_file_stem=f"{file_stem}-activate-exception-contract",

@@ -307,6 +307,10 @@ def main() -> int:
             "control:pivot-log",
             "memory:transition-event",
         },
+        durable_owners={"memory:objective", "memory:pivot"},
+        projection_owners={"control:active-objective", "control:pivot-log"},
+        artifact_owners=set(),
+        live_inspection_owners=set(),
     )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,

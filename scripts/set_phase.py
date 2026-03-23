@@ -284,6 +284,10 @@ def main() -> int:
             "control:active-round",
             "memory:transition-event",
         },
+        durable_owners={"memory:objective"},
+        projection_owners={"control:active-objective", "control:active-round"},
+        artifact_owners=set(),
+        live_inspection_owners=set(),
     )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,

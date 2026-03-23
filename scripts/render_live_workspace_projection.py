@@ -12,6 +12,7 @@ from assemble_context import (
     read_text,
     render_live_workspace_projection,
 )
+from round_control import assert_anchor_maintenance_command_contract
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -36,6 +37,16 @@ def main() -> int:
     live_workspace = inspect_live_workspace(anchor)
     if live_workspace.get("status") != "available":
         raise SystemExit(f"live workspace unavailable: {live_workspace}")
+    assert_anchor_maintenance_command_contract(
+        "render-live-workspace",
+        provided_inputs={"project_id"},
+        satisfied_guard_codes={"workspace_locator_available", "live_workspace_available"},
+        write_targets={"artifact:live-workspace-projection"},
+        durable_owners=set(),
+        projection_owners=set(),
+        artifact_owners={"artifact:live-workspace-projection"},
+        live_inspection_owners={"workspace:git-status"},
+    )
 
     projection = render_live_workspace_projection(
         project_id=args.project_id,

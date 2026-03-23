@@ -14,10 +14,23 @@ class TransitionCommandSpec:
     guard_codes: tuple[str, ...] = ()
     write_targets: tuple[str, ...] = ()
     side_effect_codes: tuple[str, ...] = ()
+    durable_owners: tuple[str, ...] = ()
+    projection_owners: tuple[str, ...] = ()
+    artifact_owners: tuple[str, ...] = ()
+    live_inspection_owners: tuple[str, ...] = ()
     emits_transition_event: bool = True
 
+    def has_owner_layer_contract(self) -> bool:
+        return bool(self.durable_owners or self.projection_owners or self.artifact_owners or self.live_inspection_owners)
+
     def has_semantic_contract(self) -> bool:
-        return bool(self.required_inputs and self.guard_codes and self.write_targets and self.side_effect_codes)
+        return bool(
+            self.required_inputs
+            and self.guard_codes
+            and self.write_targets
+            and self.side_effect_codes
+            and self.has_owner_layer_contract()
+        )
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -29,8 +42,37 @@ class TransitionCommandSpec:
             "guard_codes": list(self.guard_codes),
             "write_targets": list(self.write_targets),
             "side_effect_codes": list(self.side_effect_codes),
+            "durable_owners": list(self.durable_owners),
+            "projection_owners": list(self.projection_owners),
+            "artifact_owners": list(self.artifact_owners),
+            "live_inspection_owners": list(self.live_inspection_owners),
             "emits_transition_event": self.emits_transition_event,
         }
+
+
+SUPPORTED_DURABLE_OWNER_LABELS = {
+    "memory:objective",
+    "memory:pivot",
+    "memory:round",
+    "memory:exception-contract",
+    "current:current-task",
+}
+
+SUPPORTED_PROJECTION_OWNER_LABELS = {
+    "control:active-objective",
+    "control:pivot-log",
+    "control:active-round",
+    "control:exception-ledger",
+}
+
+SUPPORTED_ARTIFACT_OWNER_LABELS = {
+    "artifact:live-workspace-projection",
+    "snapshot:historical",
+}
+
+SUPPORTED_LIVE_INSPECTION_OWNER_LABELS = {
+    "workspace:git-status",
+}
 
 
 @dataclass(frozen=True)
@@ -65,6 +107,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         guard_codes=("objective_fields_present", "active_objective_phase_valid", "no_other_active_objective"),
         write_targets=("durable:objective", "control:active-objective", "control:pivot-log", "memory:transition-event"),
         side_effect_codes=("activate_objective_line", "refresh_active_objective_projection", "refresh_pivot_log_projection"),
+        durable_owners=("memory:objective",),
+        projection_owners=("control:active-objective", "control:pivot-log"),
     ),
     TransitionCommandSpec(
         "close-objective",
@@ -80,6 +124,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:objective", "control:active-objective", "control:pivot-log", "memory:transition-event"),
         side_effect_codes=("close_active_objective", "refresh_active_objective_projection", "refresh_pivot_log_projection"),
+        durable_owners=("memory:objective",),
+        projection_owners=("control:active-objective", "control:pivot-log"),
     ),
     TransitionCommandSpec(
         "record-soft-pivot",
@@ -95,6 +141,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:objective", "durable:pivot", "control:active-objective", "control:pivot-log", "memory:transition-event"),
         side_effect_codes=("rewrite_active_objective_in_place", "record_pivot_lineage", "force_explicit_round_review_path"),
+        durable_owners=("memory:objective", "memory:pivot"),
+        projection_owners=("control:active-objective", "control:pivot-log"),
     ),
     TransitionCommandSpec(
         "record-hard-pivot",
@@ -109,6 +157,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:objective", "durable:pivot", "control:active-objective", "control:pivot-log", "memory:transition-event"),
         side_effect_codes=("supersede_previous_objective", "activate_new_objective_line", "review_or_resolve_stale_exception_contracts"),
+        durable_owners=("memory:objective", "memory:pivot"),
+        projection_owners=("control:active-objective", "control:pivot-log"),
     ),
     TransitionCommandSpec(
         "set-phase",
@@ -119,6 +169,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         guard_codes=("phase_supported", "phase_transition_prerequisites_met", "execution_phase_has_or_bootstraps_round"),
         write_targets=("durable:objective", "control:active-objective", "control:active-round", "memory:transition-event"),
         side_effect_codes=("rewrite_objective_phase", "optionally_bootstrap_execution_round", "optionally_rewrite_open_rounds"),
+        durable_owners=("memory:objective",),
+        projection_owners=("control:active-objective", "control:active-round"),
     ),
     TransitionCommandSpec(
         "open-round",
@@ -134,6 +186,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("open_bounded_execution_round", "refresh_active_round_projection"),
+        durable_owners=("memory:round",),
+        projection_owners=("control:active-round",),
     ),
     TransitionCommandSpec(
         "refresh-round-scope",
@@ -150,6 +204,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("rewrite_round_scope_paths", "preserve_round_identity", "refresh_active_round_projection"),
+        durable_owners=("memory:round",),
+        projection_owners=("control:active-round",),
     ),
     TransitionCommandSpec(
         "update-round-status",
@@ -165,6 +221,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("advance_round_lifecycle_state", "record_blocker_or_validation_history", "refresh_active_round_projection"),
+        durable_owners=("memory:round",),
+        projection_owners=("control:active-round",),
     ),
     TransitionCommandSpec(
         "rewrite-open-round",
@@ -181,15 +239,19 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("rewrite_open_round_contract", "refresh_active_round_projection"),
+        durable_owners=("memory:round",),
+        projection_owners=("control:active-round",),
     ),
     TransitionCommandSpec(
         "activate-exception-contract",
         "exception-contract",
         implementation_status="implemented",
-        required_inputs=("project_id", "title", "reason", "risk", "owner_scope", "exit_condition"),
-        guard_codes=("exception_contract_required_fields_present",),
+        required_inputs=("project_id", "title", "summary", "reason", "temporary_behavior", "risk", "owner_scope", "exit_condition"),
+        guard_codes=("active_objective_available", "exception_contract_required_fields_present"),
         write_targets=("durable:exception-contract", "control:exception-ledger", "memory:transition-event"),
         side_effect_codes=("record_active_exception_contract", "refresh_exception_ledger_projection"),
+        durable_owners=("memory:exception-contract",),
+        projection_owners=("control:exception-ledger",),
     ),
     TransitionCommandSpec(
         "retire-exception-contract",
@@ -200,6 +262,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         guard_codes=("exception_contract_exists", "exception_contract_is_active"),
         write_targets=("durable:exception-contract", "control:exception-ledger", "memory:transition-event"),
         side_effect_codes=("retire_exception_contract", "refresh_exception_ledger_projection"),
+        durable_owners=("memory:exception-contract",),
+        projection_owners=("control:exception-ledger",),
     ),
     TransitionCommandSpec(
         "invalidate-exception-contract",
@@ -207,9 +271,11 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "exception_contract_id", "reason"),
-        guard_codes=("exception_contract_exists", "exception_contract_is_active"),
+        guard_codes=("exception_contract_exists", "exception_contract_is_active", "pivot_exists_when_supplied"),
         write_targets=("durable:exception-contract", "control:exception-ledger", "memory:transition-event"),
         side_effect_codes=("invalidate_exception_contract", "refresh_exception_ledger_projection"),
+        durable_owners=("memory:exception-contract",),
+        projection_owners=("control:exception-ledger",),
     ),
     TransitionCommandSpec(
         "refresh-anchor",
@@ -219,6 +285,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         guard_codes=("current_task_anchor_exists", "live_workspace_available"),
         write_targets=("current:current-task",),
         side_effect_codes=("refresh_current_task_control_locator",),
+        durable_owners=("current:current-task",),
+        live_inspection_owners=("workspace:git-status",),
         emits_transition_event=False,
     ),
     TransitionCommandSpec(
@@ -229,6 +297,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         guard_codes=("workspace_locator_available", "live_workspace_available"),
         write_targets=("artifact:live-workspace-projection",),
         side_effect_codes=("render_live_workspace_projection",),
+        artifact_owners=("artifact:live-workspace-projection",),
+        live_inspection_owners=("workspace:git-status",),
         emits_transition_event=False,
     ),
     TransitionCommandSpec(
@@ -239,6 +309,8 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         guard_codes=("project_control_state_available", "workspace_anchor_available"),
         write_targets=("snapshot:historical",),
         side_effect_codes=("capture_phase_or_handoff_snapshot",),
+        artifact_owners=("snapshot:historical",),
+        live_inspection_owners=("workspace:git-status",),
         emits_transition_event=False,
     ),
 )
@@ -282,6 +354,12 @@ PLAN_SPEC_BY_TYPE = {spec.plan_type: spec for spec in ADJUDICATION_PLAN_SPECS}
 
 def validate_transition_specs() -> None:
     valid_implementation_statuses = {"implemented", "partial", "planned"}
+    owner_label_sets = {
+        "durable": SUPPORTED_DURABLE_OWNER_LABELS,
+        "projection": SUPPORTED_PROJECTION_OWNER_LABELS,
+        "artifact": SUPPORTED_ARTIFACT_OWNER_LABELS,
+        "live inspection": SUPPORTED_LIVE_INSPECTION_OWNER_LABELS,
+    }
     if len(COMMAND_SPEC_BY_NAME) != len(TRANSITION_COMMAND_SPECS):
         raise SystemExit("duplicate transition command names found in transition registry")
     if len(PLAN_SPEC_BY_TYPE) != len(ADJUDICATION_PLAN_SPECS):
@@ -292,6 +370,17 @@ def validate_transition_specs() -> None:
             raise SystemExit(f"transition command `{spec.name}` uses unsupported implementation status `{spec.implementation_status}`")
         if spec.implementation_status in {"implemented", "partial"} and not spec.has_semantic_contract():
             raise SystemExit(f"transition command `{spec.name}` is {spec.implementation_status} but lacks semantic registry coverage")
+        for owner_kind, allowed_labels, declared_labels in [
+            ("durable", owner_label_sets["durable"], set(spec.durable_owners)),
+            ("projection", owner_label_sets["projection"], set(spec.projection_owners)),
+            ("artifact", owner_label_sets["artifact"], set(spec.artifact_owners)),
+            ("live inspection", owner_label_sets["live inspection"], set(spec.live_inspection_owners)),
+        ]:
+            unsupported_labels = sorted(declared_labels - allowed_labels)
+            if unsupported_labels:
+                raise SystemExit(
+                    f"transition command `{spec.name}` declares unsupported {owner_kind} owner labels: {', '.join(unsupported_labels)}"
+                )
         if spec.emits_transition_event and "memory:transition-event" not in spec.write_targets and spec.implementation_status == "implemented":
             raise SystemExit(f"transition command `{spec.name}` emits transition events but does not declare `memory:transition-event`")
         if not spec.emits_transition_event and "memory:transition-event" in spec.write_targets:
