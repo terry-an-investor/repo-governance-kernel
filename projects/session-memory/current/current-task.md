@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - extending the bounded adjudication plan compiler so phase-side effects can also come from durable plan contracts instead of hand-authored set-phase payload JSON
-  - compiling supported `executor_plan_contracts` against adjudication durable context and existing adjudication round bootstrap fields
-  - keeping the adjudication executor honest by reusing the existing `set-phase` contract for execution bootstrap instead of inventing a parallel schema
-  - validating that adjudication smoke now exercises execution bootstrap through the plan compiler alongside round and exception-contract bundles
+  - governing disposable smoke execution through a canonical harness owner layer instead of ad hoc script calls and oral discipline
+  - declaring fixture project ids, parallel-safety, and shared resources in one smoke manifest
+  - enforcing fixture leak checks before and after each smoke through a suite runner
+  - wiring phase-1 smoke through the suite runner so harness contamination becomes an explicit protocol failure
 
 ## Validated Facts
 
@@ -54,6 +54,14 @@ The immediate objective is:
 - `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded phase-side-effect compilation:
   - enter `execution` for one exploration objective through an adjudication plan contract
   - auto-open one bounded round from adjudication durable `round_*` bootstrap fields
+- `uv run python scripts/run_smoke_suite.py --list` now prints the canonical disposable smoke manifest:
+  - registered smoke names
+  - owned fixture project ids
+  - parallel-safety flags
+  - shared resource declarations
+- `uv run python scripts/run_smoke_suite.py --smoke adjudication_followups --smoke phase_scope_controls` now passes under one suite runner:
+  - serial execution replaces ad hoc parallel invocation
+  - fixture leak checks run before and after each smoke
 - `uv run python scripts/smoke_phase1.py` passes after the `round-close-chain` milestone landed.
 - `uv run python scripts/session_memory.py smoke` passes after the `round-close-chain` milestone landed.
 - The governed objective-close bundle round was abandoned before implementation:
@@ -242,7 +250,7 @@ The immediate objective is:
 - The active real-project round has now been durably rewritten in place:
   - same round id retained
   - round title, summary, scope, deliverable, and validation plan updated through `rewrite-open-round`
-  - sample control files now track the bounded phase-side-effect plan milestone instead of the earlier exception-contract plan milestone
+  - sample control files now track the disposable smoke harness-law milestone instead of the earlier phase-side-effect plan milestone
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -318,6 +326,9 @@ The immediate objective is:
 - Phase-side-effect planning now compiles execution bootstrap honestly, but it
   still covers only one narrow bundle; broader pause/exploration fallback and
   open-round rewrite combinations still remain outside the bounded automatic subset.
+- The new harness law now governs disposable fixture project leakage, but it
+  still only checks declared fixture paths; richer contamination classes such as
+  shared artifact collisions or index reuse policy remain outside the current suite runner.
 - The compiler/executor boundary can still drift if future changes let in-place compilation overwrite explicit payloads or execute the same payload twice.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
@@ -330,9 +341,7 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extend adjudication plan compilation beyond round, exception-contract, and
-   bundles toward the next bounded durable rewrite family without falling back
-   to hand-authored payload JSON.
-4. Decide whether phase-side-effect bundles, hard-pivot-safe replacement
-   bundles, or reviewer/orchestrator automatic checks are the next higher-leverage
-   control slice.
+3. Extend harness law beyond fixture-path leak checks toward broader contamination
+   classes and cleaner failure classification between harness protocol and product regression.
+4. After harness law is stable, move to the next higher-leverage control slice:
+   machine-readable transition spec or structured reviewer packet compilation.

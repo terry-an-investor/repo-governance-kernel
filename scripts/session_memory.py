@@ -36,6 +36,7 @@ COMMAND_MAP = {
     "set-phase": SCRIPTS / "set_phase.py",
     "refresh-current-task-anchor": SCRIPTS / "refresh_current_task_anchor.py",
     "smoke": SCRIPTS / "smoke_phase1.py",
+    "run-smoke-suite": SCRIPTS / "run_smoke_suite.py",
     "update-round-status": SCRIPTS / "update_round_status.py",
     "invalidate-exception-contract": SCRIPTS / "invalidate_exception_contract.py",
     "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",

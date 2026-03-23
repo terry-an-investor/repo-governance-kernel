@@ -45,15 +45,22 @@ def run_plain(script_name: str, *args: str) -> None:
     subprocess.run(cmd, cwd=str(ROOT), check=True)
 
 
+def run_smoke_suite(*smoke_names: str) -> dict:
+    return run_json("run_smoke_suite.py", *[item for name in smoke_names for item in ("--smoke", name)])
+
+
 def main() -> None:
     session_memory_audit = run_json("audit_control_state.py", "--project-id", "session-memory")
     wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
-    adjudication_followups_smoke = run_json("smoke_adjudication_followups.py")
-    exception_smoke = run_json("smoke_exception_contracts.py")
-    guarded_exception_enforcement_smoke = run_json("smoke_guarded_exception_enforcement.py")
-    objective_line_smoke = run_json("smoke_objective_line.py")
-    phase_scope_controls_smoke = run_json("smoke_phase_scope_controls.py")
-    transition_engine_smoke = run_json("smoke_transition_engine.py")
+    smoke_suite_result = run_smoke_suite(
+        "adjudication_followups",
+        "exception_contracts",
+        "guarded_exception_enforcement",
+        "objective_line",
+        "phase_scope_controls",
+        "transition_engine",
+    )
+    smoke_results = {str(item["name"]): item["result"] for item in smoke_suite_result.get("smokes", []) if isinstance(item, dict)}
     build_result = run_json("build_index.py")
     check_result = run_json("check_index.py")
     query_result = run_json(
@@ -133,12 +140,13 @@ def main() -> None:
                     "session-memory": session_memory_audit["status"],
                     "wind-agent": wind_agent_audit["status"],
                 },
-                "adjudication_followups": adjudication_followups_smoke,
-                "exception_contracts": exception_smoke,
-                "guarded_exception_enforcement": guarded_exception_enforcement_smoke,
-                "objective_line": objective_line_smoke,
-                "phase_scope_controls": phase_scope_controls_smoke,
-                "transition_engine": transition_engine_smoke,
+                "smoke_suite": smoke_suite_result["status"],
+                "adjudication_followups": smoke_results["adjudication_followups"],
+                "exception_contracts": smoke_results["exception_contracts"],
+                "guarded_exception_enforcement": smoke_results["guarded_exception_enforcement"],
+                "objective_line": smoke_results["objective_line"],
+                "phase_scope_controls": smoke_results["phase_scope_controls"],
+                "transition_engine": smoke_results["transition_engine"],
                 "build": build_result,
                 "check": {
                     "memory_items": check_result["memory_items"],
