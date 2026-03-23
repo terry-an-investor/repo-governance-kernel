@@ -620,6 +620,10 @@ Current implementation status:
 - can scaffold missing `control/exception-ledger.md`
 - can compile bounded higher-level adjudication plan contracts from frontmatter
   `executor_plan_contracts` into explicit executor followups before execution
+  - current supported plan-contract families include:
+    - `rewrite-open-round-then-close-chain`
+    - `retire-invalidated-exception-contracts`
+    - `invalidate-invalidated-exception-contracts`
 - can execute explicit structured follow-ups encoded in adjudication frontmatter
   `executor_followups`
 - currently supports structured execution for:
@@ -638,6 +642,9 @@ Current implementation status:
   - supports `active -> validation_pending -> captured -> closed`
   - supports resuming from `validation_pending` or `captured`
   - refuses unsupported starting statuses instead of improvising
+- bounded exception-contract plan bundles can target active exception contracts
+  through adjudication `Objects Invalidated` when the mapping stays
+  deterministic and auditable
 - can rerun control audit after those follow-ups
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly

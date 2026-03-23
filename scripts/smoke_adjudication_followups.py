@@ -228,10 +228,9 @@ def main() -> None:
             ensure_ascii=True,
             sort_keys=True,
         )
-        exception_followup = json.dumps(
+        retire_exception_plan = json.dumps(
             {
-                "command": "retire-exception-contract",
-                "exception_contract_id": exception_contract_id,
+                "plan_type": "retire-invalidated-exception-contracts",
                 "reason": "Adjudication retired the disposable workaround before opening the successor round.",
             },
             ensure_ascii=True,
@@ -257,8 +256,8 @@ def main() -> None:
             exception_contract_id,
             "--executor-plan-json",
             rewrite_then_close_plan,
-            "--executor-followup-json",
-            exception_followup,
+            "--executor-plan-json",
+            retire_exception_plan,
             "--follow-up",
             "open one bounded round for the adjudicated objective line",
             "--follow-up",
@@ -290,7 +289,7 @@ def main() -> None:
             str(adjudication_result["adjudication_id"]),
             "--in-place",
         )
-        if int(compile_result["compiled_followup_count"]) != 2:
+        if int(compile_result["compiled_followup_count"]) != 3:
             raise SystemExit("adjudication executor plan compiler did not emit the expected bounded followups")
 
         execute_result = run_json(
@@ -396,6 +395,80 @@ def main() -> None:
         if boundary_audit["summary"]["errors"] != 0:
             raise SystemExit("adjudication blocked-boundary fixture audit reported errors")
 
+        invalidated_exception_result = run_json(
+            "activate_exception_contract.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable invalidation adjudication exception contract",
+            "--summary",
+            "Temporary debt used to prove that plan-driven adjudication can invalidate an exception contract.",
+            "--reason",
+            "The fixture needs one third active exception contract so invalidation also runs through the bounded executor-plan path.",
+            "--temporary-behavior",
+            "Carry a disposable workaround that should be invalidated instead of retired.",
+            "--risk",
+            "If invalidation still requires a hand-authored payload, adjudication durable truth remains only half-compiled.",
+            "--exit-condition",
+            "Invalidate this contract through an exception plan contract compiled from adjudication durable truth.",
+            "--owner-scope",
+            "current/",
+            "--path",
+            "current/",
+        )
+        invalidated_exception_id = str(invalidated_exception_result["exception_contract_id"])
+
+        invalidate_exception_plan = json.dumps(
+            {
+                "plan_type": "invalidate-invalidated-exception-contracts",
+                "reason": "Adjudication invalidated the disposable workaround after proving the bounded exception-plan path.",
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+        invalidating_adjudication_result = run_json(
+            "adjudicate_control_state.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--allow-clean",
+            "--title",
+            "Disposable invalidating adjudication follow-up execution smoke",
+            "--question",
+            "Can adjudication invalidate an exception contract through the bounded plan compiler instead of a hand-authored payload?",
+            "--verdict",
+            "Invalidate the disposable exception contract through a bounded exception-contract plan compiled from the adjudication object set.",
+            "--retain-id",
+            objective_id,
+            "--invalidate-id",
+            invalidated_exception_id,
+            "--executor-plan-json",
+            invalidate_exception_plan,
+            "--follow-up",
+            "rerun audit-control-state",
+        )
+        invalidating_execute_result = run_json(
+            "execute_adjudication_followups.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(invalidating_adjudication_result["adjudication_id"]),
+        )
+        if invalidating_execute_result["blocked"]:
+            raise SystemExit(
+                f"exception invalidation plan execution reported blocked steps: {invalidating_execute_result['blocked']}"
+            )
+
+        invalidated_contract_path = locate_exception_contract_file(FIXTURE_PROJECT_ID, invalidated_exception_id)
+        if invalidated_contract_path is None:
+            raise SystemExit("invalidated-plan exception contract disappeared")
+        invalidated_meta, _invalidated_sections = load_exception_contract_file(invalidated_contract_path)
+        if str(invalidated_meta.get("status") or "").strip() != "invalidated":
+            raise SystemExit("exception invalidation plan did not invalidate the target contract")
+
+        final_boundary_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)
+        if final_boundary_audit["summary"]["errors"] != 0:
+            raise SystemExit("final adjudication follow-up fixture audit reported errors after invalidation plan execution")
+
         print(
             json.dumps(
                 {
@@ -405,11 +478,13 @@ def main() -> None:
                     "successor_round_id": successor_round_id,
                     "exception_contract_id": exception_contract_id,
                     "blocked_exception_contract_id": blocked_exception_id,
+                    "invalidated_exception_contract_id": invalidated_exception_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
                     "compiled_followup_count": int(compile_result["compiled_followup_count"]),
                     "applied": execute_result["applied"],
+                    "invalidated_applied": invalidating_execute_result["applied"],
                     "blocked": blocked_execute_result["blocked"],
-                    "fixture_audit": boundary_audit["status"],
+                    "fixture_audit": final_boundary_audit["status"],
                 },
                 ensure_ascii=True,
                 indent=2,

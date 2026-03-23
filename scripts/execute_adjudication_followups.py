@@ -587,7 +587,11 @@ def main() -> int:
     plan_contracts = [str(item).strip() for item in adjudication_meta.get("executor_plan_contracts", []) if str(item).strip()]
     compiled_plan_followups: list[str] = []
     if plan_contracts:
-        compiled_plan_followups = compile_plan_contracts(args.project_id, plan_contracts)
+        compiled_plan_followups = compile_plan_contracts(
+            args.project_id,
+            plan_contracts,
+            adjudication_sections=adjudication_sections,
+        )
 
     for payload_text in compiled_plan_followups:
         normalized_payload = payload_text.strip()

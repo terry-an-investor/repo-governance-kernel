@@ -5,11 +5,21 @@ import argparse
 import json
 from pathlib import Path
 
-from round_control import load_adjudication_file, load_round_file, locate_round_file, project_dir
+from round_control import (
+    load_adjudication_file,
+    load_exception_contract_file,
+    load_round_file,
+    locate_exception_contract_file,
+    locate_round_file,
+    parse_bullet_list,
+    project_dir,
+)
 
 
 SUPPORTED_PLAN_TYPES = {
     "rewrite-open-round-then-close-chain",
+    "retire-invalidated-exception-contracts",
+    "invalidate-invalidated-exception-contracts",
 }
 
 
@@ -124,7 +134,82 @@ def _compile_rewrite_then_close_chain(project_id: str, contract: dict[str, objec
     return [rewrite_payload, round_close_chain_payload]
 
 
-def compile_plan_contracts(project_id: str, plan_contracts: list[str]) -> list[str]:
+def _resolve_target_exception_contract_ids(
+    project_id: str,
+    contract: dict[str, object],
+    adjudication_sections: dict[str, str],
+) -> list[str]:
+    explicit_ids = _normalize_list(contract.get("exception_contract_id")) + _normalize_list(contract.get("exception_contract_ids"))
+    candidate_ids = explicit_ids
+    if not candidate_ids:
+        candidate_ids = parse_bullet_list(adjudication_sections.get("Objects Invalidated", ""))
+
+    if not candidate_ids:
+        raise SystemExit(
+            "executor exception-contract plan requires at least one target exception contract id, "
+            "either through `exception_contract_id`, `exception_contract_ids`, or adjudication `Objects Invalidated`"
+        )
+
+    resolved_ids: list[str] = []
+    seen: set[str] = set()
+    for object_id in candidate_ids:
+        normalized_id = str(object_id).strip()
+        if not normalized_id or normalized_id in seen:
+            continue
+        contract_path = locate_exception_contract_file(project_id, normalized_id)
+        if contract_path is None:
+            if explicit_ids:
+                raise SystemExit(f"executor exception-contract plan could not find exception contract `{normalized_id}`")
+            continue
+        contract_meta, _contract_sections = load_exception_contract_file(contract_path)
+        current_status = str(contract_meta.get("status") or "").strip()
+        if current_status != "active":
+            raise SystemExit(
+                f"executor exception-contract plan requires active contracts; `{normalized_id}` is `{current_status or 'unknown'}`"
+            )
+        seen.add(normalized_id)
+        resolved_ids.append(normalized_id)
+
+    if not resolved_ids:
+        raise SystemExit("executor exception-contract plan found no active exception contracts in the selected target set")
+    return resolved_ids
+
+
+def _compile_exception_contract_plan(
+    project_id: str,
+    contract: dict[str, object],
+    adjudication_sections: dict[str, str],
+    *,
+    command_name: str,
+) -> list[dict[str, object]]:
+    reason = str(contract.get("reason") or "").strip()
+    if not reason:
+        raise SystemExit(f"executor plan contract `{contract.get('plan_type')}` requires `reason`")
+
+    payloads: list[dict[str, object]] = []
+    evidence = _normalize_list(contract.get("evidence"))
+    pivot_id = str(contract.get("pivot_id") or "").strip()
+    for exception_contract_id in _resolve_target_exception_contract_ids(project_id, contract, adjudication_sections):
+        payload: dict[str, object] = {
+            "command": command_name,
+            "exception_contract_id": exception_contract_id,
+            "reason": reason,
+        }
+        if evidence:
+            payload["evidence"] = evidence
+        if command_name == "invalidate-exception-contract" and pivot_id:
+            payload["pivot_id"] = pivot_id
+        payloads.append(payload)
+    return payloads
+
+
+def compile_plan_contracts(
+    project_id: str,
+    plan_contracts: list[str],
+    *,
+    adjudication_sections: dict[str, str] | None = None,
+) -> list[str]:
+    adjudication_sections = adjudication_sections or {}
     compiled: list[str] = []
     for raw_contract in plan_contracts:
         try:
@@ -140,6 +225,20 @@ def compile_plan_contracts(project_id: str, plan_contracts: list[str]) -> list[s
             )
         if plan_type == "rewrite-open-round-then-close-chain":
             payloads = _compile_rewrite_then_close_chain(project_id, contract)
+        elif plan_type == "retire-invalidated-exception-contracts":
+            payloads = _compile_exception_contract_plan(
+                project_id,
+                contract,
+                adjudication_sections,
+                command_name="retire-exception-contract",
+            )
+        elif plan_type == "invalidate-invalidated-exception-contracts":
+            payloads = _compile_exception_contract_plan(
+                project_id,
+                contract,
+                adjudication_sections,
+                command_name="invalidate-exception-contract",
+            )
         else:
             raise SystemExit(f"unsupported executor plan type `{plan_type}`")
         compiled.extend(json.dumps(payload, ensure_ascii=True, sort_keys=True) for payload in payloads)
@@ -185,12 +284,16 @@ def main() -> int:
     if not project_dir(args.project_id).exists():
         raise SystemExit(f"project directory not found: {project_dir(args.project_id)}")
 
-    adjudication_path, meta, _sections = _load_adjudication_record(args.project_id, args.adjudication_id)
+    adjudication_path, meta, sections = _load_adjudication_record(args.project_id, args.adjudication_id)
     plan_contracts = [str(item).strip() for item in meta.get("executor_plan_contracts", []) if str(item).strip()]
     if not plan_contracts:
         raise SystemExit(f"adjudication `{str(meta.get('id') or adjudication_path.stem)}` has no `executor_plan_contracts`")
 
-    compiled_followups = compile_plan_contracts(args.project_id, plan_contracts)
+    compiled_followups = compile_plan_contracts(
+        args.project_id,
+        plan_contracts,
+        adjudication_sections=sections,
+    )
     merged_followups = merge_followups(
         [str(item).strip() for item in meta.get("executor_followups", []) if str(item).strip()],
         compiled_followups,

@@ -454,6 +454,9 @@ When the verdict already knows a safe rewrite pattern, the repo may carry it as
 one bounded plan contract and compile it into low-level executor payloads
 through repo-owned code instead of forcing operators to hand-author every JSON
 payload.
+Those bounded plan contracts may consume adjudication durable context such as
+the invalidated object set when target resolution remains deterministic and
+auditable.
 Prose alone is not authority to rewrite durable truth.
 
 ## Drift Detection

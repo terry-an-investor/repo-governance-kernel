@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - adding a bounded adjudication plan compiler so durable adjudication records can express rewrite intent above raw executor payload JSON
-  - compiling supported `executor_plan_contracts` into explicit `executor_followups` through repo-owned code before execution
-  - keeping the adjudication executor honest by expanding only supported bounded rewrite patterns
-  - validating that adjudication smoke now works from plan contracts rather than hand-authored low-level rewrite payloads
+  - extending the bounded adjudication plan compiler so exception-contract rewrites also come from durable plan contracts instead of hand-authored payload JSON
+  - compiling supported `executor_plan_contracts` against adjudication durable context, not only raw plan fields
+  - keeping the adjudication executor honest by resolving exception-contract targets deterministically from durable invalidated object sets
+  - validating that adjudication smoke now exercises retire and invalidate exception-contract plans without hand-authored low-level exception payloads
 
 ## Validated Facts
 
@@ -47,6 +47,10 @@ The immediate objective is:
 - `uv run python scripts/smoke_adjudication_followups.py` now passes with the first bounded multi-step bundle:
   - `round-close-chain`
   - `active -> validation_pending -> captured -> closed`
+- `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded exception-contract plan compilation:
+  - retire one invalidated exception contract from adjudication durable truth
+  - invalidate one invalidated exception contract from adjudication durable truth
+  - keep one prose-only exception follow-up blocked instead of guessing a durable rewrite
 - `uv run python scripts/smoke_phase1.py` passes after the `round-close-chain` milestone landed.
 - `uv run python scripts/session_memory.py smoke` passes after the `round-close-chain` milestone landed.
 - The governed objective-close bundle round was abandoned before implementation:
@@ -187,6 +191,9 @@ The immediate objective is:
   - adjudication frontmatter can now carry bounded higher-level `executor_plan_contracts`
     that the repo compiler expands into explicit executor payloads
   - adjudication frontmatter `executor_followups` can call bounded existing transition commands
+  - bounded exception-contract plans can now compile directly from adjudication
+    `Objects Invalidated` instead of requiring one hand-authored low-level
+    exception payload per contract
   - current supported automatic execution covers:
     - `round-close-chain`
     - `refresh-round-scope`
@@ -207,7 +214,8 @@ The immediate objective is:
   - compile a bounded adjudication rewrite plan contract into explicit executor followups
   - rewrite a predecessor round through the compiled adjudication plan before closure
   - close a pre-adjudication round through a structured close chain
-  - retire an active exception contract
+  - retire an active exception contract through a bounded exception plan contract
+  - invalidate an active exception contract through a bounded exception plan contract
   - open a successor round from adjudication bootstrap fields
   - block one prose-only follow-up instead of guessing a durable rewrite
   - finish with clean control audit
@@ -228,7 +236,7 @@ The immediate objective is:
 - The active real-project round has now been durably rewritten in place:
   - same round id retained
   - round title, summary, scope, deliverable, and validation plan updated through `rewrite-open-round`
-  - sample control files now track the current adjudication-plan milestone instead of the previous rewrite-integration milestone
+  - sample control files now track the bounded exception-contract plan milestone instead of the earlier adjudication-plan compiler milestone
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -297,6 +305,10 @@ The immediate objective is:
 - The new adjudication compiler will still be narrow at first:
   - only supported bounded plan types should compile
   - hard-pivot replacement bundles and broader multi-object verdict execution still remain outside the safe automatic subset
+- Exception-contract plan resolution is now more capable, but it still assumes
+  one adjudication object set maps deterministically to a bounded set of active
+  exception contracts; broader mixed-object verdict plans still need clearer
+  contracts before they should compile automatically.
 - The compiler/executor boundary can still drift if future changes let in-place compilation overwrite explicit payloads or execute the same payload twice.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
@@ -309,10 +321,9 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extend the adjudication plan compiler from one bounded rewrite-close pattern
-   to broader adjudication bundles and hard-pivot-safe replacement flows.
-4. Decide whether reviewer/orchestrator automatic checks or broader
-   durable adjudication execution is the next higher-leverage control slice.
-   to broader adjudication bundles and hard-pivot-safe replacement flows.
-4. Decide whether reviewer/orchestrator automatic checks or broader
-   durable adjudication execution is the next higher-leverage control slice.
+3. Extend adjudication plan compilation beyond round and exception-contract
+   bundles toward the next bounded durable rewrite family without falling back
+   to hand-authored payload JSON.
+4. Decide whether phase-side-effect bundles, hard-pivot-safe replacement
+   bundles, or reviewer/orchestrator automatic checks are the next higher-leverage
+   control slice.

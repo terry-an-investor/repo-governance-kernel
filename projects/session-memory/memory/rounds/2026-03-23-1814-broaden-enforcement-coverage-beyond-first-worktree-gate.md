@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate
 type: round-contract
-title: "Compile bounded adjudication executor plans"
+title: "Compile bounded adjudication exception-contract plans"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 41106ce5da36e0681495490949f3b18e6616dbb0
+git_sha: 66977f269575e0111cb73def17e97647cccfa526
 paths:
   - AGENTS.md
   - .githooks/
@@ -26,7 +26,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T20:02:11+08:00
+updated_at: 2026-03-23T20:16:35+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -35,26 +35,26 @@ superseded_by: []
 
 ## Summary
 
-Add a bounded adjudication plan compiler so durable adjudication records can compile supported rewrite intent into explicit executor followups.
+Extend adjudication executor plan compilation so exception-contract rewrites also come from durable plan contracts instead of hand-authored low-level payloads.
 
 ## Scope
 
-- Add executor_plan_contracts to adjudication durable records so higher-level bounded rewrite intent lives in durable truth instead of prompt text.
-- Implement compile-adjudication-executor-plan and teach execute-adjudication-followups to compile supported plan contracts before running explicit followups.
-- Validate that adjudication smoke and full phase-1 smoke pass when the fixture uses plan contracts instead of hand-authored low-level rewrite payloads.
+- Add bounded exception-contract executor plan types so adjudication can compile retire and invalidate rewrites from durable truth instead of hand-authored payload JSON.
+- Teach execute-adjudication-followups and the adjudication smoke fixture to exercise exception-contract plan compilation through adjudication invalidated object sets.
+- Validate that adjudication smoke, full phase-1 smoke, audit-control-state, and enforce-worktree all pass after the exception-contract plan compiler milestone lands.
 
 ## Deliverable
 
-A bounded adjudication plan compiler that expands supported durable plan contracts into explicit executor followups and is validated on targeted adjudication smoke plus full phase-1 smoke.
+A bounded adjudication plan compiler that covers both round rewrite-close chains and exception-contract retire/invalidate rewrites through durable plan contracts.
 
 ## Validation Plan
 
-Run adjudication followup smoke on plan-contract input, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
+Run adjudication followup smoke with retire and invalidate exception-contract plan contracts, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
 
 ## Active Risks
 
-- The compiler could quietly overwrite explicit executor payloads instead of merging and deduplicating them.
-- Plan-contract support could grow into another hidden orchestration layer unless supported shapes stay explicit and bounded.
+- Exception plan compilation could become implicit verdict interpretation if target resolution stops being deterministic and auditable.
+- Compiler and executor merge logic could regress into duplicate or conflicting followup execution as more bounded plan types are added.
 
 ## Blockers
 
@@ -89,3 +89,7 @@ Round rewritten because The previous rewrite used shell-sensitive quoting, so th
 Round rewritten because The active milestone is now adjudication plan compilation, so the open round contract must be rewritten to the current durable objective slice.
 
 The active round was rewritten again to move from raw open-round rewrite integration into bounded adjudication plan compilation.
+
+Round rewritten because The current milestone has moved from initial adjudication plan compilation to bounded exception-contract plan compilation, so the durable round contract must be rewritten to the current mainline.
+
+The active round now targets bounded exception-contract plan compilation so adjudication can compile more of its durable verdict into repo-owned execution contracts.

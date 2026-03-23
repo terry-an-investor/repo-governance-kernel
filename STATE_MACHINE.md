@@ -369,6 +369,9 @@ Current implementation already does these things:
   - scaffolds missing control surfaces
   - compiles bounded `executor_plan_contracts` into explicit command payloads
     before executing them
+  - can resolve bounded exception-contract plan targets from adjudication
+    durable `Objects Invalidated` when the selected object set maps
+    deterministically to active exception contracts
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states

@@ -6,22 +6,22 @@
 
 ## Scope
 
-- Add executor_plan_contracts to adjudication durable records so higher-level bounded rewrite intent lives in durable truth instead of prompt text.
-- Implement compile-adjudication-executor-plan and teach execute-adjudication-followups to compile supported plan contracts before running explicit followups.
-- Validate that adjudication smoke and full phase-1 smoke pass when the fixture uses plan contracts instead of hand-authored low-level rewrite payloads.
+- Add bounded exception-contract executor plan types so adjudication can compile retire and invalidate rewrites from durable truth instead of hand-authored payload JSON.
+- Teach execute-adjudication-followups and the adjudication smoke fixture to exercise exception-contract plan compilation through adjudication invalidated object sets.
+- Validate that adjudication smoke, full phase-1 smoke, audit-control-state, and enforce-worktree all pass after the exception-contract plan compiler milestone lands.
 
 ## Deliverable
 
-A bounded adjudication plan compiler that expands supported durable plan contracts into explicit executor followups and is validated on targeted adjudication smoke plus full phase-1 smoke.
+A bounded adjudication plan compiler that covers both round rewrite-close chains and exception-contract retire/invalidate rewrites through durable plan contracts.
 
 ## Validation Plan
 
-Run adjudication followup smoke on plan-contract input, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
+Run adjudication followup smoke with retire and invalidate exception-contract plan contracts, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
 
 ## Active Risks
 
-- The compiler could quietly overwrite explicit executor payloads instead of merging and deduplicating them.
-- Plan-contract support could grow into another hidden orchestration layer unless supported shapes stay explicit and bounded.
+- Exception plan compilation could become implicit verdict interpretation if target resolution stops being deterministic and auditable.
+- Compiler and executor merge logic could regress into duplicate or conflicting followup execution as more bounded plan types are added.
 
 ## Blockers
 

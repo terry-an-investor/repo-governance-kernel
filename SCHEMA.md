@@ -343,6 +343,12 @@ frontmatter:
     explicit `executor_followups`
   - use this layer when the verdict already knows the rewrite pattern but the
     repo should own the low-level command expansion
+  - supported shapes currently include:
+    - round rewrite plus close-chain bundles
+    - exception-contract retire bundles resolved from adjudication `Objects Invalidated`
+    - exception-contract invalidate bundles resolved from adjudication `Objects Invalidated`
+  - this layer may read adjudication durable context when the plan shape
+    requires deterministic target resolution; it must not guess from prose alone
 - `executor_followups`
   - list of JSON objects serialized as strings
   - each item names one supported transition command and its required arguments
