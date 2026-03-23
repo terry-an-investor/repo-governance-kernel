@@ -160,19 +160,22 @@ def current_task_anchor_value(values: dict[str, str], key: str) -> str:
     return ""
 
 
+def current_task_has_workspace_snapshot(anchor: dict[str, str]) -> bool:
+    return any(
+        anchor.get(key, "").strip()
+        for key in ["branch", "git_sha", "worktree_hint", "changed_path_count", "last_anchor_refresh"]
+    )
+
+
 def extract_current_task_anchor(current_task_sections: dict[str, str]) -> dict[str, str]:
     current_state = current_task_sections.get("Current State", "")
-    validated_facts = current_task_sections.get("Validated Facts", "")
     values = parse_keyed_bullets(current_state)
-    worktree_hint = current_task_anchor_value(values, "worktree_hint") or infer_worktree_hint(
-        "\n".join([current_state, validated_facts]).strip()
-    )
     anchor = {
         "workspace_id": current_task_anchor_value(values, "workspace_id"),
         "workspace_root": current_task_anchor_value(values, "workspace_root"),
         "branch": current_task_anchor_value(values, "branch"),
         "git_sha": current_task_anchor_value(values, "git_sha"),
-        "worktree_hint": worktree_hint,
+        "worktree_hint": current_task_anchor_value(values, "worktree_hint"),
         "changed_path_count": current_task_anchor_value(values, "changed_path_count"),
         "last_anchor_refresh": current_task_anchor_value(values, "last_anchor_refresh"),
     }
@@ -279,6 +282,51 @@ def inspect_live_workspace(anchor: dict[str, str]) -> dict[str, str]:
     }
 
 
+def render_live_workspace_projection(
+    *,
+    project_id: str,
+    live_workspace: dict[str, str],
+    workspace_id: str = "",
+    generated_at: str | None = None,
+) -> str:
+    timestamp = generated_at or datetime.now().astimezone().isoformat(timespec="seconds")
+    lines = [
+        "# Live Workspace Projection",
+        "",
+        "- Project: " + (f"`{project_id}`" if project_id else "``"),
+        "- Generated at: " + (f"`{timestamp}`" if timestamp else "``"),
+        "- Status: " + (f"`{live_workspace.get('status', '')}`" if live_workspace.get("status", "") else "``"),
+    ]
+    if workspace_id:
+        lines.append(f"- Workspace id: `{workspace_id}`")
+    if live_workspace.get("workspace_root", ""):
+        lines.append(f"- Workspace root: `{live_workspace.get('workspace_root', '')}`")
+    if live_workspace.get("branch", ""):
+        lines.append(f"- Branch: `{live_workspace.get('branch', '')}`")
+    if live_workspace.get("git_sha", ""):
+        lines.append(f"- HEAD: `{live_workspace.get('git_sha', '')}`")
+    if live_workspace.get("worktree_state", ""):
+        lines.append(f"- Worktree state: `{live_workspace.get('worktree_state', '')}`")
+    if live_workspace.get("changed_path_count", ""):
+        lines.append(f"- Changed path count: `{live_workspace.get('changed_path_count', '')}`")
+    if live_workspace.get("error", ""):
+        lines.append(f"- Error: `{live_workspace.get('error', '')}`")
+
+    status_short = str(live_workspace.get("status_short") or "").strip()
+    if status_short:
+        lines.extend(
+            [
+                "",
+                "## Git Status",
+                "",
+                "```text",
+                status_short,
+                "```",
+            ]
+        )
+    return "\n".join(lines).strip() + "\n"
+
+
 def assess_packet_freshness(
     packet_anchor: dict[str, str],
     current_task_anchor: dict[str, str],
@@ -331,13 +379,21 @@ def assess_packet_freshness(
     worktree_hint_mismatch = bool(packet_hint and live_worktree and packet_hint != live_worktree)
 
     if head_mismatch:
-        if current_refreshed_at:
+        if packet_anchor_source == "current-task" and current_refreshed_at:
             live_warnings.append(
                 f"packet HEAD anchor `{packet_head}` reflects the last current-task refresh at `{current_refreshed_at}`, while live workspace HEAD is `{live_head}`"
             )
+        elif packet_anchor_source == "latest-snapshot":
+            live_warnings.append(
+                f"packet HEAD anchor `{packet_head}` reflects the latest snapshot anchor, while live workspace HEAD is `{live_head}`"
+            )
+        elif packet_anchor_source == "current-task-locator":
+            live_warnings.append(
+                f"packet HEAD anchor `{packet_head}` was borrowed from the latest snapshot because current-task only supplied workspace locator fields, while live workspace HEAD is `{live_head}`"
+            )
         else:
             live_warnings.append(
-                f"packet HEAD anchor `{packet_head}` reflects historical current-task anchor metadata, while live workspace HEAD is `{live_head}`"
+                f"packet HEAD anchor `{packet_head}` reflects historical packet anchor metadata, while live workspace HEAD is `{live_head}`"
             )
     if branch_mismatch:
         live_warnings.append(f"packet branch `{packet_branch}` does not match live workspace branch `{live_branch}`")
@@ -355,7 +411,14 @@ def assess_packet_freshness(
         return "stale", warnings, guidance
 
     if head_mismatch or worktree_hint_mismatch:
-        guidance.append("Current-task anchor metadata is historical orientation data from the last refresh, not a self-updating live commit identity.")
+        if packet_anchor_source == "current-task":
+            guidance.append("Current-task anchor metadata is historical orientation data from the last refresh, not a self-updating live commit identity.")
+        elif packet_anchor_source == "current-task-locator":
+            guidance.append("Current-task now contributes only workspace locator fields; packet HEAD and worktree hints come from the latest snapshot until live repo inspection revalidates them.")
+        elif packet_anchor_source == "latest-snapshot":
+            guidance.append("Packet HEAD and worktree hints came from the latest snapshot, not from a live-updating current-task anchor.")
+        else:
+            guidance.append("Packet anchor metadata is historical orientation data, not a self-updating live commit identity.")
         guidance.append("Use the live workspace block as the canonical code-state truth when branch alignment still holds.")
         if snapshot_warnings:
             guidance.append("The latest snapshot is also behind the live workspace. Treat both snapshot and current-task anchors as historical.")
@@ -402,19 +465,36 @@ def append_packet_freshness(
     parts.append("## Packet Freshness\n")
     parts.append(f"- Generated at: `{generated_at}`")
     parts.append(f"- Freshness verdict: `{verdict}`")
-    parts.append(f"- Packet anchor source: `{packet_anchor.get('anchor_source', 'unknown')}`")
+    packet_anchor_source = packet_anchor.get("anchor_source", "unknown")
+    parts.append(f"- Packet anchor source: `{packet_anchor_source}`")
 
     if packet_anchor:
         parts.append("- Packet anchor:")
-        for label, key in [
+        anchor_labels = [
             ("workspace id", "workspace_id"),
             ("workspace root", "workspace_root"),
-            ("branch observed at last refresh", "branch"),
-            ("head observed at last refresh", "git_sha"),
-            ("worktree observed at last refresh", "worktree_hint"),
-            ("changed path count observed at last refresh", "changed_path_count"),
-            ("last anchor refresh", "last_anchor_refresh"),
-        ]:
+        ]
+        if packet_anchor_source == "current-task":
+            anchor_labels.extend(
+                [
+                    ("branch observed at last refresh", "branch"),
+                    ("head observed at last refresh", "git_sha"),
+                    ("worktree observed at last refresh", "worktree_hint"),
+                    ("changed path count observed at last refresh", "changed_path_count"),
+                    ("last anchor refresh", "last_anchor_refresh"),
+                ]
+            )
+        else:
+            anchor_labels.extend(
+                [
+                    ("branch", "branch"),
+                    ("head", "git_sha"),
+                    ("worktree hint", "worktree_hint"),
+                    ("changed path count", "changed_path_count"),
+                    ("last anchor refresh", "last_anchor_refresh"),
+                ]
+            )
+        for label, key in anchor_labels:
             value = packet_anchor.get(key, "")
             if value:
                 parts.append(f"  - {label}: `{value}`")
@@ -507,10 +587,12 @@ def main() -> None:
     current_task_anchor = extract_current_task_anchor(current_task_sections)
     snapshot_anchor = extract_snapshot_anchor(snapshot_path)
     packet_anchor = merge_anchor_sources(current_task_anchor, snapshot_anchor)
-    if current_task_anchor:
+    if current_task_has_workspace_snapshot(current_task_anchor):
         packet_anchor["anchor_source"] = "current-task"
     elif snapshot_anchor:
         packet_anchor["anchor_source"] = "latest-snapshot"
+    elif current_task_anchor:
+        packet_anchor["anchor_source"] = "current-task-locator"
     else:
         packet_anchor["anchor_source"] = "unknown"
     live_workspace = inspect_live_workspace(packet_anchor)

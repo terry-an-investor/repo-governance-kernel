@@ -26,6 +26,7 @@ COMMAND_MAP = {
     "open-objective": SCRIPTS / "open_objective.py",
     "prepare-role-eval": SCRIPTS / "prepare_role_eval_bundle.py",
     "open-round": SCRIPTS / "open_round.py",
+    "render-live-workspace": SCRIPTS / "render_live_workspace_projection.py",
     "activate-exception-contract": SCRIPTS / "activate_exception_contract.py",
     "record-hard-pivot": SCRIPTS / "record_hard_pivot.py",
     "record-soft-pivot": SCRIPTS / "record_soft_pivot.py",

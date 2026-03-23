@@ -475,8 +475,8 @@ Primary writes:
 
 Purpose:
 
-- refresh current-task control and workspace anchor facts without rewriting the
-  broader task narrative
+- refresh current-task control bullets and stable workspace locator fields
+  without rewriting the broader task narrative
 
 Primary writes:
 
@@ -487,17 +487,38 @@ It should refresh at least:
 - `Objective id`
 - `Active round id`
 - `Phase`
-- `Branch observed at last refresh`
-- `HEAD observed at last refresh`
-- `Worktree observed at last refresh`
-- `Changed path count observed at last refresh`
-- `Last anchor refresh`
+- `Workspace root`
 
-These workspace bullets are historical snapshot metadata from the refresh
-operation, not a claim that `current/current-task.md` self-updates after later
-commits.
+It should remove any previously committed live-workspace snapshot bullets so
+`current/current-task.md` stays a durable control-and-orientation file instead
+of pretending to be a live repo projection.
 
 This command already has partial implementation.
+
+### `render-live-workspace`
+
+Purpose:
+
+- inspect the live repo state and render a separate non-durable workspace
+  projection
+
+Primary writes:
+
+- stdout by default
+- optional artifact output such as `artifacts/<project_id>/.../live-workspace.md`
+
+It should render at least:
+
+- `Workspace root`
+- `Branch`
+- `HEAD`
+- `Worktree state`
+- `Changed path count`
+- current `git status --short --branch`
+
+This command keeps live repo truth out of committed `current/current-task.md`
+while still giving handoff and debugging flows one reusable workspace
+projection primitive.
 
 ### `capture-snapshot`
 

@@ -13,7 +13,9 @@ SCRIPTS = ROOT / "scripts"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Refresh current-task anchor, create a snapshot, and assemble a packet.")
+    parser = argparse.ArgumentParser(
+        description="Refresh current-task control state, render a live workspace projection, create a snapshot, and assemble a packet."
+    )
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--slug")
     parser.add_argument("--title")
@@ -56,6 +58,16 @@ def main() -> int:
         return refresh.returncode
     (artifact_dir / "refresh.log").write_text(refresh.stdout, encoding="utf-8")
 
+    live_workspace_path = artifact_dir / "live-workspace.md"
+    live_workspace_args = ["--project-id", args.project_id, "--output", str(live_workspace_path)]
+    if args.workspace_root:
+        live_workspace_args.extend(["--workspace-root", args.workspace_root])
+    live_workspace = run_script("render_live_workspace_projection.py", live_workspace_args)
+    if live_workspace.returncode != 0:
+        sys.stderr.write(live_workspace.stderr or live_workspace.stdout)
+        return live_workspace.returncode
+    (artifact_dir / "live-workspace.log").write_text(live_workspace.stdout, encoding="utf-8")
+
     snapshot_path = artifact_dir / "snapshot.md"
     snapshot_args = [
         "--project-id",
@@ -90,6 +102,7 @@ def main() -> int:
 
     summary_lines = [
         f"captured handoff: {artifact_dir}",
+        f"live workspace: {live_workspace_path}",
         f"snapshot: {snapshot_path}",
         f"packet: {packet_path}",
     ]

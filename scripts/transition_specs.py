@@ -218,7 +218,17 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         required_inputs=("project_id",),
         guard_codes=("current_task_anchor_exists", "live_workspace_available"),
         write_targets=("current:current-task",),
-        side_effect_codes=("refresh_live_workspace_anchor",),
+        side_effect_codes=("refresh_current_task_control_locator",),
+        emits_transition_event=False,
+    ),
+    TransitionCommandSpec(
+        "render-live-workspace",
+        "anchor-maintenance",
+        implementation_status="implemented",
+        required_inputs=("project_id",),
+        guard_codes=("workspace_locator_available", "live_workspace_available"),
+        write_targets=("artifact:live-workspace-projection",),
+        side_effect_codes=("render_live_workspace_projection",),
         emits_transition_event=False,
     ),
     TransitionCommandSpec(

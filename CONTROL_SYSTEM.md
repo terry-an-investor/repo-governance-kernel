@@ -58,8 +58,9 @@ precision that gives human review leverage.
 
 That also means committed control projections must stay honest about what they
 can know. A file such as `current/current-task.md` may record the workspace
-facts observed at its last refresh, but the live workspace inspection remains
-the canonical freshness owner layer for the current branch and worktree state.
+locator needed to re-open the project, but the live workspace inspection
+remains the canonical freshness owner layer for the current branch and worktree
+state.
 
 `current/current-task.md` should be treated as a control-plane orientation
 projection:
@@ -68,11 +69,11 @@ projection:
 - it is not a fully derivable projection like `control/active-round.md`
 - its `Objective id`, `Active round id`, and `Phase` bullets should stay
   aligned with durable control truth
-- its workspace anchor bullets should remain explicit "observed at last
-  refresh" metadata rather than pretending to be self-updating truth
-- the workspace snapshot wording should say `Branch observed at last refresh`,
-  `HEAD observed at last refresh`, `Worktree observed at last refresh`, and
-  `Changed path count observed at last refresh`
+- it should keep only stable workspace locator fields such as `Workspace id`
+  and `Workspace root`
+- live repo facts such as branch, HEAD, and dirty state should be rendered
+  through a separate non-durable live workspace projection instead of being
+  committed into `current/current-task.md`
 
 ## Operational Layers
 

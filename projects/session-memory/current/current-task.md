@@ -16,15 +16,10 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: ``
-- Phase: `paused`
+- Active round id: `round-2026-03-24-0655-separate-durable-current-task-control-from-live-workspace-projection`
+- Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
-- Branch observed at last refresh: `master`
-- HEAD observed at last refresh: `8481148a853ec840f7c5241153dfbd8f19545050`
-- Worktree observed at last refresh: `dirty`
-- Changed path count observed at last refresh: `9`
-- Last anchor refresh: `2026-03-23T23:20:45+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
