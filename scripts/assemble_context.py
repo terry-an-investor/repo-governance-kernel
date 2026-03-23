@@ -141,19 +141,40 @@ def append_control_block(parts: list[str], title: str, preface: str, sections: d
     parts.append("")
 
 
+CURRENT_TASK_ANCHOR_LABEL_ALIASES = {
+    "workspace_id": ("workspace id",),
+    "workspace_root": ("workspace root",),
+    "branch": ("branch observed at last refresh", "branch"),
+    "git_sha": ("head observed at last refresh", "head anchor"),
+    "worktree_hint": ("worktree observed at last refresh", "worktree state"),
+    "changed_path_count": ("changed path count observed at last refresh", "changed path count"),
+    "last_anchor_refresh": ("last anchor refresh",),
+}
+
+
+def current_task_anchor_value(values: dict[str, str], key: str) -> str:
+    for label in CURRENT_TASK_ANCHOR_LABEL_ALIASES.get(key, (key,)):
+        value = values.get(label, "")
+        if value:
+            return value
+    return ""
+
+
 def extract_current_task_anchor(current_task_sections: dict[str, str]) -> dict[str, str]:
     current_state = current_task_sections.get("Current State", "")
     validated_facts = current_task_sections.get("Validated Facts", "")
     values = parse_keyed_bullets(current_state)
-    worktree_hint = values.get("worktree state", "") or infer_worktree_hint("\n".join([current_state, validated_facts]).strip())
+    worktree_hint = current_task_anchor_value(values, "worktree_hint") or infer_worktree_hint(
+        "\n".join([current_state, validated_facts]).strip()
+    )
     anchor = {
-        "workspace_id": values.get("workspace id", ""),
-        "workspace_root": values.get("workspace root", ""),
-        "branch": values.get("branch", ""),
-        "git_sha": values.get("head anchor", ""),
+        "workspace_id": current_task_anchor_value(values, "workspace_id"),
+        "workspace_root": current_task_anchor_value(values, "workspace_root"),
+        "branch": current_task_anchor_value(values, "branch"),
+        "git_sha": current_task_anchor_value(values, "git_sha"),
         "worktree_hint": worktree_hint,
-        "changed_path_count": values.get("changed path count", ""),
-        "last_anchor_refresh": values.get("last anchor refresh", ""),
+        "changed_path_count": current_task_anchor_value(values, "changed_path_count"),
+        "last_anchor_refresh": current_task_anchor_value(values, "last_anchor_refresh"),
     }
     return {key: value for key, value in anchor.items() if value}
 
@@ -388,9 +409,10 @@ def append_packet_freshness(
         for label, key in [
             ("workspace id", "workspace_id"),
             ("workspace root", "workspace_root"),
-            ("branch", "branch"),
-            ("head anchor", "git_sha"),
-            ("worktree hint", "worktree_hint"),
+            ("branch observed at last refresh", "branch"),
+            ("head observed at last refresh", "git_sha"),
+            ("worktree observed at last refresh", "worktree_hint"),
+            ("changed path count observed at last refresh", "changed_path_count"),
             ("last anchor refresh", "last_anchor_refresh"),
         ]:
             value = packet_anchor.get(key, "")

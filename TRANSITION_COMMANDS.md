@@ -487,11 +487,15 @@ It should refresh at least:
 - `Objective id`
 - `Active round id`
 - `Phase`
-- `Branch`
-- `HEAD anchor`
-- `Worktree state`
-- `Changed path count`
+- `Branch observed at last refresh`
+- `HEAD observed at last refresh`
+- `Worktree observed at last refresh`
+- `Changed path count observed at last refresh`
 - `Last anchor refresh`
+
+These workspace bullets are historical snapshot metadata from the refresh
+operation, not a claim that `current/current-task.md` self-updates after later
+commits.
 
 This command already has partial implementation.
 

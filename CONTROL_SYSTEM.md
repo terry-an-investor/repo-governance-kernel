@@ -70,6 +70,9 @@ projection:
   aligned with durable control truth
 - its workspace anchor bullets should remain explicit "observed at last
   refresh" metadata rather than pretending to be self-updating truth
+- the workspace snapshot wording should say `Branch observed at last refresh`,
+  `HEAD observed at last refresh`, `Worktree observed at last refresh`, and
+  `Changed path count observed at last refresh`
 
 ## Operational Layers
 

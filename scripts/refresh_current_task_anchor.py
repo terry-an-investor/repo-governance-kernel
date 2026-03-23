@@ -19,7 +19,9 @@ BULLET_RE = re.compile(r"^(\s*-\s*)([^:]+):\s*(.+?)\s*$")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Refresh the current-task anchor bullets from the live workspace.")
+    parser = argparse.ArgumentParser(
+        description="Refresh the current-task control bullets and workspace snapshot metadata from the live workspace."
+    )
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--workspace-root")
     return parser.parse_args()
@@ -42,14 +44,22 @@ def format_code(value: str) -> str:
     return f"`{value}`" if value else "``"
 
 
-def update_or_insert_bullet(lines: list[str], label: str, value: str, *, insert_after: str | None = None) -> list[str]:
+def update_or_insert_bullet(
+    lines: list[str],
+    label: str,
+    value: str,
+    *,
+    insert_after: str | None = None,
+    aliases: tuple[str, ...] = (),
+) -> list[str]:
     rendered = f"- {label}: {format_code(value)}"
+    accepted_labels = {label.lower(), *(alias.lower() for alias in aliases)}
     for index, line in enumerate(lines):
         match = BULLET_RE.match(line)
         if not match:
             continue
         current_label = match.group(2).strip().lower()
-        if current_label == label.lower():
+        if current_label in accepted_labels:
             lines[index] = rendered
             return lines
 
@@ -89,25 +99,39 @@ def refresh_current_state_section(
     )
     lines = update_or_insert_bullet(lines, "Phase", control_values.get("phase", ""), insert_after="Active round id")
     lines = update_or_insert_bullet(lines, "Workspace root", workspace_root, insert_after="Workspace id")
-    lines = update_or_insert_bullet(lines, "Branch", live_workspace.get("branch", ""), insert_after="Workspace root")
-    lines = update_or_insert_bullet(lines, "HEAD anchor", live_workspace.get("git_sha", ""), insert_after="Branch")
     lines = update_or_insert_bullet(
         lines,
-        "Worktree state",
-        live_workspace.get("worktree_state", ""),
-        insert_after="HEAD anchor",
+        "Branch observed at last refresh",
+        live_workspace.get("branch", ""),
+        insert_after="Workspace root",
+        aliases=("Branch",),
     )
     lines = update_or_insert_bullet(
         lines,
-        "Changed path count",
+        "HEAD observed at last refresh",
+        live_workspace.get("git_sha", ""),
+        insert_after="Branch observed at last refresh",
+        aliases=("HEAD anchor",),
+    )
+    lines = update_or_insert_bullet(
+        lines,
+        "Worktree observed at last refresh",
+        live_workspace.get("worktree_state", ""),
+        insert_after="HEAD observed at last refresh",
+        aliases=("Worktree state",),
+    )
+    lines = update_or_insert_bullet(
+        lines,
+        "Changed path count observed at last refresh",
         live_workspace.get("changed_path_count", ""),
-        insert_after="Worktree state",
+        insert_after="Worktree observed at last refresh",
+        aliases=("Changed path count",),
     )
     lines = update_or_insert_bullet(
         lines,
         "Last anchor refresh",
         refreshed_at,
-        insert_after="Changed path count",
+        insert_after="Changed path count observed at last refresh",
     )
     return "\n".join(lines).strip()
 
@@ -138,11 +162,26 @@ def main() -> int:
     updated_text = replace_h2_section(text, CURRENT_STATE_SECTION, refreshed_current_state)
     current_task_path.write_text(updated_text, encoding="utf-8")
 
+    post_write_anchor = dict(anchor)
+    post_write_anchor["workspace_root"] = workspace_root
+    post_write_workspace = inspect_live_workspace(post_write_anchor)
+    if post_write_workspace.get("status") != "available":
+        raise SystemExit(f"live workspace unavailable after refresh write: {post_write_workspace}")
+
+    refreshed_current_state = refresh_current_state_section(
+        current_state,
+        post_write_workspace,
+        workspace_root,
+        control_values,
+    )
+    updated_text = replace_h2_section(text, CURRENT_STATE_SECTION, refreshed_current_state)
+    current_task_path.write_text(updated_text, encoding="utf-8")
+
     print(f"refreshed current-task anchor: {current_task_path}")
-    print(f"branch={live_workspace.get('branch', '')}")
-    print(f"git_sha={live_workspace.get('git_sha', '')}")
-    print(f"worktree_state={live_workspace.get('worktree_state', '')}")
-    print(f"changed_path_count={live_workspace.get('changed_path_count', '')}")
+    print(f"branch={post_write_workspace.get('branch', '')}")
+    print(f"git_sha={post_write_workspace.get('git_sha', '')}")
+    print(f"worktree_state={post_write_workspace.get('worktree_state', '')}")
+    print(f"changed_path_count={post_write_workspace.get('changed_path_count', '')}")
     return 0
 
 
