@@ -322,15 +322,20 @@ Current implementation already does these things:
   - projection drift
   - execution without a bounded round
   - missing control surfaces such as constitution or exception ledger
+  - placeholder constitution files that still lack real invariants
 - can record adjudication verdicts through:
   - `adjudicate-control-state`
   - stores explicit adjudication records from the current audit/conflict set
+- can execute the safe automatic subset of adjudication follow-ups through:
+  - `execute-adjudication-followups`
+  - scaffolds missing control surfaces
+  - leaves underspecified round follow-ups blocked until explicit inputs exist
 - records transition-event files for round operations
 
 Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
-- apply adjudication verdicts as automatic durable follow-up rewrites
+- apply adjudication verdicts as a fully general automatic rewrite engine
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots
 - enforce guards before phase changes

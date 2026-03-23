@@ -57,7 +57,8 @@ cheap to consume.
 
 Current implementation has durable truth and projected control state. It now
 also gains a first control-audit path and a first durable adjudication record
-path. It still lacks automatic adjudication-driven state rewrites.
+path. It now also gains a narrow follow-up executor for safe scaffolding. It
+still lacks general adjudication-driven state rewrites.
 
 ## Layer 1: Raw Event Store
 

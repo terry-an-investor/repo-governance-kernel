@@ -435,6 +435,7 @@ It should report at least:
 - execution phase without one bounded open round
 - blocked rounds without blockers
 - missing control surfaces such as constitution or exception ledger
+- placeholder control surfaces that still do not restore real project law
 
 ### `adjudicate-control-state`
 
@@ -463,6 +464,22 @@ Current implementation status:
 
 This design still matters because refusing ambiguous repair is not the same
 thing as resolving ambiguous durable truth.
+
+### `execute-adjudication-followups`
+
+Purpose:
+
+- execute the safe automatic subset of an adjudication's required follow-up
+  transitions
+
+Current implementation status:
+
+- can scaffold missing `control/constitution.md`
+- can scaffold missing `control/exception-ledger.md`
+- can rerun control audit after those follow-ups
+- can open a bounded round only when explicit round bootstrap inputs are passed
+- reports unsupported or underspecified follow-ups as blocked instead of
+  pretending they were executed
 
 ## Minimal First Implementation Set
 

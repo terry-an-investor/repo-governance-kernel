@@ -99,9 +99,13 @@ verdict is recorded.
   - `adjudicate-control-state`
   - records durable adjudication verdicts from the live audit result
   - does not yet perform follow-up rewrites automatically
+- first adjudication follow-up executor now exists:
+  - `execute-adjudication-followups`
+  - can scaffold safe missing control surfaces
+  - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
   - exception-contract commands
-  - adjudication-driven follow-up rewrites
+  - adjudication-driven round and objective rewrites
   - or a shared transition engine
 
 ### `scripts/build_index.py`

@@ -5,6 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
+from assemble_context import clean_section_text, parse_h2_sections
 from round_control import (
     active_objective_path,
     active_round_path,
@@ -51,6 +52,34 @@ def add_issue(
             "evidence": evidence or [],
         }
     )
+
+
+def is_placeholder_text(text: str) -> bool:
+    normalized = " ".join(text.strip().lower().split())
+    return normalized in {
+        "",
+        "_none recorded_",
+        "_pending authoring_",
+        "pending authoring",
+        "none recorded yet.",
+        "- none recorded yet.",
+    }
+
+
+def constitution_has_substance(path: Path) -> bool:
+    if not path.exists():
+        return False
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=True, strip_yaml=False))
+    for name in [
+        "Product Boundaries",
+        "Architecture Invariants",
+        "Quality Bar",
+        "Validation Rules",
+        "Forbidden Shortcuts",
+    ]:
+        if not is_placeholder_text(sections.get(name, "")):
+            return True
+    return False
 
 
 def audit_project_control_state(project_id: str) -> dict[str, object]:
@@ -246,6 +275,15 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             domain="constitution",
             code="missing_constitution_file",
             message="control/constitution.md is missing, so project-specific invariants cannot be compiled explicitly",
+            evidence=[str(constitution_path)],
+        )
+    elif not constitution_has_substance(constitution_path):
+        add_issue(
+            issues,
+            severity="warning",
+            domain="constitution",
+            code="constitution_placeholder",
+            message="control/constitution.md exists, but it is still a placeholder and does not restore real project invariants yet",
             evidence=[str(constitution_path)],
         )
 

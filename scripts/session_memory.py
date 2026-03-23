@@ -30,6 +30,7 @@ COMMAND_MAP = {
     "smoke": SCRIPTS / "smoke_phase1.py",
     "update-round-status": SCRIPTS / "update_round_status.py",
     "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",
+    "execute-adjudication-followups": SCRIPTS / "execute_adjudication_followups.py",
 }
 
 

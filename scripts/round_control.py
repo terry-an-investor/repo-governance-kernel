@@ -820,6 +820,44 @@ def load_pivot_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     return meta, sections
 
 
+def load_adjudication_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
+    text = read_text(path)
+    frontmatter_text, _body = split_frontmatter(text)
+    meta = parse_frontmatter(frontmatter_text)
+    for key in [
+        "id",
+        "title",
+        "status",
+        "project_id",
+        "workspace_id",
+        "workspace_root",
+        "branch",
+        "git_sha",
+        "created_at",
+        "confidence",
+        "phase",
+        "objective_id",
+    ]:
+        if key in meta:
+            meta[key] = normalize_scalar_metadata(meta[key])
+    meta["paths"] = parse_string_list(meta.get("paths"))
+    meta["tags"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("tags")) if normalize_scalar_metadata(item)]
+    normalized_evidence_refs: list[dict[str, str]] = []
+    for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
+        normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))
+        if not normalized_ref:
+            continue
+        normalized_evidence_refs.append(
+            {
+                "type": normalize_scalar_metadata(entry.get("type", "")),
+                "ref": normalized_ref,
+            }
+        )
+    meta["evidence_refs"] = normalized_evidence_refs
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
+    return meta, sections
+
+
 def load_all_objectives(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
     directory = objectives_dir(project_id)
     if not directory.exists():
@@ -851,6 +889,18 @@ def load_all_pivots(project_id: str) -> list[tuple[Path, dict[str, object], dict
     records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
     for path in sorted(directory.glob("*.md")):
         meta, sections = load_pivot_file(path)
+        records.append((path, meta, sections))
+    records.sort(key=lambda record: str(record[1].get("created_at") or record[0].name), reverse=True)
+    return records
+
+
+def load_all_adjudications(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    directory = adjudications_dir(project_id)
+    if not directory.exists():
+        return []
+    records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for path in sorted(directory.glob("*.md")):
+        meta, sections = load_adjudication_file(path)
         records.append((path, meta, sections))
     records.sort(key=lambda record: str(record[1].get("created_at") or record[0].name), reverse=True)
     return records
