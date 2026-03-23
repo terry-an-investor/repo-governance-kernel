@@ -496,7 +496,9 @@ Current implementation status:
 - records a durable adjudication verdict from the current audit result
 - can optionally embed structured round bootstrap fields in the adjudication
   record
-- does not yet apply the follow-up durable object rewrites automatically
+- can carry explicit machine-executable follow-up entries in `Required Follow-Up Transitions`
+  using `executor: {...}` JSON payloads
+- still does not decide those follow-up rewrites automatically from verdict text alone
 
 This design still matters because refusing ambiguous repair is not the same
 thing as resolving ambiguous durable truth.
@@ -512,6 +514,13 @@ Current implementation status:
 
 - can scaffold missing `control/constitution.md`
 - can scaffold missing `control/exception-ledger.md`
+- can execute explicit structured follow-ups encoded as `executor: {...}` JSON payloads
+  inside `Required Follow-Up Transitions`
+- currently supports structured execution for:
+  - `close-objective`
+  - `update-round-status`
+  - `retire-exception-contract`
+  - `invalidate-exception-contract`
 - can rerun control audit after those follow-ups
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly

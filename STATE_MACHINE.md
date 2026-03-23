@@ -353,6 +353,8 @@ Current implementation already does these things:
 - can execute the safe automatic subset of adjudication follow-ups through:
   - `execute-adjudication-followups`
   - scaffolds missing control surfaces
+  - executes explicit structured follow-up contracts for a bounded subset of existing transition commands
+  - can abandon one round, retire or invalidate one exception contract, and then open one successor round when the adjudication record is structured enough
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - records transition-event files for round operations
 
@@ -360,6 +362,7 @@ Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
 - apply adjudication verdicts as a fully general automatic rewrite engine
+- infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots or soft pivots
 - enforce guards before phase changes

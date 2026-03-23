@@ -369,6 +369,12 @@ The smallest honest lifecycle is:
 6. refresh round control under the new objective line
 7. capture snapshot and handoff
 
+For conflicting durable truth, the lifecycle needs one extra control step:
+
+8. record an adjudication verdict
+9. execute only the explicit, structured subset of follow-up rewrites that the
+   system can map onto existing transition commands without guessing intent
+
 ## Drift Detection
 
 The system should detect at least three different failure modes:

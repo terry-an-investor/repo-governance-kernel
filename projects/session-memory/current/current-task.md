@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-1619-implement-adjudication-follow-up-rewrite-slice`
+- Active round id: `round-2026-03-23-1638-broaden-adjudication-executor-coverage`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `d7af73f203cc6011b645485368685954b2876164`
+- HEAD anchor: `76bea946dd7920915a34c0def4894f74b383a0cc`
 - Worktree state: `dirty`
-- Changed path count: `18`
-- Last anchor refresh: `2026-03-23T16:20:10+08:00`
+- Changed path count: `14`
+- Last anchor refresh: `2026-03-23T16:38:22+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,15 +34,15 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - turning adjudication follow-ups from scaffold behavior into real durable control rewrites for supported verdicts
-  - keeping adjudication, repair, and transition execution as separate layers instead of collapsing them into one workaround script
-  - validating the new adjudication path on disposable fixtures and the live `session-memory` control state
+  - broadening adjudication execution beyond the first structured subset without letting executor logic guess intent
+  - deciding whether structured follow-up schema should stay as `executor: {...}` bullet payloads or move into richer adjudication fields
+  - validating one more supported path or one explicit blocked boundary so executor limits stay honest
 
 ## Validated Facts
 
 - The latest committed baseline is:
-  - `d7af73f Extract shared transition engine primitive`
-- `uv run python scripts/session_memory.py smoke` passes on the current working tree after the remaining objective-line slice landed.
+  - `76bea94 Implement remaining objective-line transitions`
+- `uv run python scripts/session_memory.py smoke` passes on the current working tree after the first adjudication follow-up rewrite slice landed.
 - Current index baseline before adding this project sample was:
   - `memory_items = 6`
   - `memory_paths = 17`
@@ -138,6 +138,19 @@ The immediate objective is:
   - objective, round, exception, and hard-pivot commands now delegate shared
     write/projection/event work through `apply-transition-transaction`
 - The shared transition-engine milestone round is now closed.
+- Adjudication follow-up execution now has its first real durable rewrite slice:
+  - explicit `executor: {...}` follow-ups can call bounded existing transition commands
+  - current supported automatic execution covers:
+    - `update-round-status`
+    - `retire-exception-contract`
+    - `invalidate-exception-contract`
+    - `close-objective`
+  - structured round bootstrap can still open one successor round after those rewrites
+- Disposable adjudication-followup fixture validation now exercises:
+  - abandon a pre-adjudication round
+  - retire an active exception contract
+  - open a successor round from adjudication bootstrap fields
+  - finish with clean control audit
 - The remaining objective-line round is now closed after validation.
 - Disposable fixture validation now exercises:
   - `activate -> retire`
@@ -147,8 +160,9 @@ The immediate objective is:
   - open objective -> open round -> soft pivot with the same objective id
   - round closure before objective close
   - explicit objective close with zero active objectives and clean audit
-- A successor round is now active for adjudication follow-up rewrites:
-  - `round-2026-03-23-1619-implement-adjudication-follow-up-rewrite-slice`
+- The first adjudication follow-up rewrite round is now closed after validation.
+- A successor round is now active to broaden adjudication executor coverage:
+  - `round-2026-03-23-1638-broaden-adjudication-executor-coverage`
 
 ## Important Files
 
@@ -181,6 +195,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/reconcile_control_state.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_adjudication_followups.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_exception_contracts.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_objective_line.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
@@ -199,22 +214,23 @@ The immediate objective is:
   implementation fails to ground it in concrete files and evidence.
 - The evaluation protocol is still a biased pilot because the evaluator already
   knows the project context.
-- Adjudication follow-ups are still mostly scaffold-level, so durable conflict
-  resolution cannot yet execute meaningful object rewrites end to end.
+- Adjudication follow-ups now execute a bounded structured subset, but they
+  still cannot infer rewrites from verdict prose or handle broader multi-object
+  rewrite plans automatically.
 - Phase transitions are still implicit in objective rewrites because `set-phase`
   does not exist yet as a first-class guarded command.
 
 ## Next Steps
 
-1. Implement the new active round:
-   turn adjudication follow-ups into real durable rewrites for at least one
-   supported verdict shape.
-2. Add a disposable adjudication smoke fixture and wire it into the unified
-   smoke path.
+1. Expand the adjudication executor beyond its first structured subset:
+   decide the next safe supported rewrites such as round close/capture chains,
+   objective close paths, or explicit invalidation bundles.
+2. Decide whether adjudication records should grow more structured follow-up
+   schema beyond `executor: {...}` JSON bullet payloads.
 3. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 4. Run the first serious external-target role-eval bundle for `wind-agent`.
 5. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
-6. After adjudication follow-ups are real, choose the next command gap:
+6. After the adjudication executor is broader, choose the next command gap:
    explicit phase transitions or reviewer/orchestrator automatic checks.

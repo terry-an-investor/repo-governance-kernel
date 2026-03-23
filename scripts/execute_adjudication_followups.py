@@ -13,6 +13,12 @@ from round_control import load_all_adjudications, parse_bullet_list, project_dir
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
+SUPPORTED_EXECUTOR_COMMANDS = {
+    "close-objective",
+    "update-round-status",
+    "retire-exception-contract",
+    "invalidate-exception-contract",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -120,6 +126,118 @@ def resolve_round_bootstrap(
     }
 
 
+def parse_executor_followup(followup: str) -> dict[str, object] | None:
+    stripped = followup.strip()
+    if not stripped.lower().startswith("executor:"):
+        return None
+    payload_text = stripped[len("executor:") :].strip()
+    if not payload_text:
+        raise SystemExit(f"executor follow-up is missing JSON payload: `{followup}`")
+    try:
+        payload = json.loads(payload_text)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid executor follow-up JSON `{followup}`: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise SystemExit(f"executor follow-up payload must be a JSON object: `{followup}`")
+    command_name = str(payload.get("command") or "").strip()
+    if not command_name:
+        raise SystemExit(f"executor follow-up is missing `command`: `{followup}`")
+    if command_name not in SUPPORTED_EXECUTOR_COMMANDS:
+        raise SystemExit(
+            f"executor follow-up command `{command_name}` is not supported; "
+            f"supported commands: {', '.join(sorted(SUPPORTED_EXECUTOR_COMMANDS))}"
+        )
+    return payload
+
+
+def _string_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str) and value.strip():
+        return [value.strip()]
+    return []
+
+
+def build_executor_command(project_id: str, payload: dict[str, object]) -> list[str]:
+    command_name = str(payload.get("command") or "").strip()
+    cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
+
+    if command_name == "close-objective":
+        objective_id = str(payload.get("objective_id") or "").strip()
+        closing_status = str(payload.get("closing_status") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not closing_status or not reason:
+            raise SystemExit("executor close-objective requires `closing_status` and `reason`")
+        if objective_id:
+            cmd.extend(["--objective-id", objective_id])
+        cmd.extend(["--closing-status", closing_status, "--reason", reason])
+        for item in _string_list(payload.get("evidence")):
+            cmd.extend(["--evidence", item])
+        supersession_note = str(payload.get("supersession_note") or "").strip()
+        if supersession_note:
+            cmd.extend(["--supersession-note", supersession_note])
+        return cmd
+
+    if command_name == "update-round-status":
+        round_id = str(payload.get("round_id") or "").strip()
+        status = str(payload.get("status") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not round_id or not status or not reason:
+            raise SystemExit("executor update-round-status requires `round_id`, `status`, and `reason`")
+        cmd.extend(["--round-id", round_id, "--status", status, "--reason", reason])
+        for item in _string_list(payload.get("validated_by")):
+            cmd.extend(["--validated-by", item])
+        for item in _string_list(payload.get("blocker")):
+            cmd.extend(["--blocker", item])
+        for item in _string_list(payload.get("risk")):
+            cmd.extend(["--risk", item])
+        if bool(payload.get("clear_blockers")):
+            cmd.append("--clear-blockers")
+        return cmd
+
+    if command_name == "retire-exception-contract":
+        contract_id = str(payload.get("exception_contract_id") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not contract_id or not reason:
+            raise SystemExit("executor retire-exception-contract requires `exception_contract_id` and `reason`")
+        cmd.extend(["--exception-contract-id", contract_id, "--reason", reason])
+        for item in _string_list(payload.get("evidence")):
+            cmd.extend(["--evidence", item])
+        return cmd
+
+    if command_name == "invalidate-exception-contract":
+        contract_id = str(payload.get("exception_contract_id") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not contract_id or not reason:
+            raise SystemExit("executor invalidate-exception-contract requires `exception_contract_id` and `reason`")
+        cmd.extend(["--exception-contract-id", contract_id, "--reason", reason])
+        pivot_id = str(payload.get("pivot_id") or "").strip()
+        if pivot_id:
+            cmd.extend(["--pivot-id", pivot_id])
+        for item in _string_list(payload.get("evidence")):
+            cmd.extend(["--evidence", item])
+        return cmd
+
+    raise SystemExit(f"unsupported executor command `{command_name}`")
+
+
+def maybe_execute_structured_followup(project_id: str, followup: str) -> tuple[bool, str]:
+    payload = parse_executor_followup(followup)
+    if payload is None:
+        return False, ""
+    completed = subprocess.run(
+        build_executor_command(project_id, payload),
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return False, completed.stderr.strip() or completed.stdout.strip() or "executor follow-up failed"
+    command_name = str(payload.get("command") or "").strip()
+    return True, f"executed {command_name}"
+
+
 def maybe_execute_open_round(args: argparse.Namespace, adjudication_meta: dict[str, object]) -> tuple[bool, str]:
     bootstrap = resolve_round_bootstrap(args, adjudication_meta)
     open_round_record, open_round_issues = select_open_round_record(args.project_id)
@@ -202,6 +320,14 @@ def main() -> int:
 
     for followup in followups:
         normalized = " ".join(followup.strip().lower().split())
+        structured_success, structured_detail = maybe_execute_structured_followup(args.project_id, followup)
+        if structured_success:
+            applied.append(f"`{followup}` -> {structured_detail}")
+            continue
+        if followup.strip().lower().startswith("executor:") and structured_detail:
+            blocked.append(f"`{followup}` -> {structured_detail}")
+            continue
+
         if "control/constitution.md" in normalized:
             constitution_path = project_path / "control" / "constitution.md"
             if constitution_path.exists():
