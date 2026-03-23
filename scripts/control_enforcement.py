@@ -5,8 +5,16 @@ import json
 from pathlib import Path
 
 from assemble_context import inspect_live_workspace
-from audit_control_state import audit_project_control_state, parse_changed_paths, path_is_covered, read_if_exists
+from audit_control_state import (
+    audit_project_control_state,
+    constitution_guarded_exception_paths,
+    parse_changed_paths,
+    path_is_covered,
+    relativize_changed_paths,
+    read_if_exists,
+)
 from round_control import (
+    active_exception_contract_records,
     ROOT,
     active_objective_path,
     active_round_path,
@@ -145,7 +153,10 @@ def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "") -> dic
             evidence=[str(live_workspace.get("workspace_root") or ""), str(live_workspace.get("error") or "")],
         )
     else:
-        changed_paths = parse_changed_paths(str(live_workspace.get("status_short") or ""))
+        changed_paths = relativize_changed_paths(
+            parse_changed_paths(str(live_workspace.get("status_short") or "")),
+            workspace_root=str(live_workspace.get("workspace_root") or ""),
+        )
     checks.append("live workspace inspection for enforcement")
 
     scope_record, round_issues, scope_round_id = resolve_scope_record(project_id, round_id=round_id)
@@ -200,6 +211,37 @@ def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "") -> dic
             evidence=projection_drift_paths,
         )
     checks.append("dirty projected control files remain aligned to durable truth")
+
+    guarded_exception_paths = constitution_guarded_exception_paths(project_path / "control" / "constitution.md")
+    guarded_dirty_paths = [path for path in changed_paths if path_is_covered(path, guarded_exception_paths)]
+    if guarded_dirty_paths:
+        objective_record, _objective_issues = select_active_objective_record(project_id)
+        objective_id = ""
+        if objective_record is not None:
+            objective_id = str(objective_record[1].get("id") or "").strip()
+        active_contracts = active_exception_contract_records(project_id, objective_id=objective_id)
+        covered_guarded_paths: set[str] = set()
+        for _contract_path, contract_meta, contract_sections in active_contracts:
+            contract_paths = [str(item).strip() for item in contract_meta.get("paths", []) if str(item).strip()]
+            owner_scope_paths = [
+                item.strip()
+                for item in parse_bullet_list(str(contract_sections.get("Owner Scope", "")))
+                if item.strip()
+            ]
+            for dirty_path in guarded_dirty_paths:
+                if any(path_is_covered(dirty_path, [scope]) for scope in [*contract_paths, *owner_scope_paths]):
+                    covered_guarded_paths.add(dirty_path)
+        uncovered_guarded_paths = [path for path in guarded_dirty_paths if path not in covered_guarded_paths]
+        if uncovered_guarded_paths:
+            add_issue(
+                issues,
+                severity="error",
+                domain="enforcement",
+                code="guarded_exception_paths_without_active_contract",
+                message="dirty guarded-exception paths are blocked unless one active exception contract explicitly covers them",
+                evidence=uncovered_guarded_paths,
+            )
+    checks.append("guarded exception paths require active contract coverage")
 
     audit_result = audit_project_control_state(project_id)
     if int(audit_result["summary"]["errors"]):

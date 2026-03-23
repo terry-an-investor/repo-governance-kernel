@@ -49,6 +49,7 @@ def main() -> None:
     wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
     adjudication_followups_smoke = run_json("smoke_adjudication_followups.py")
     exception_smoke = run_json("smoke_exception_contracts.py")
+    guarded_exception_enforcement_smoke = run_json("smoke_guarded_exception_enforcement.py")
     objective_line_smoke = run_json("smoke_objective_line.py")
     transition_engine_smoke = run_json("smoke_transition_engine.py")
     build_result = run_json("build_index.py")
@@ -132,6 +133,7 @@ def main() -> None:
                 },
                 "adjudication_followups": adjudication_followups_smoke,
                 "exception_contracts": exception_smoke,
+                "guarded_exception_enforcement": guarded_exception_enforcement_smoke,
                 "objective_line": objective_line_smoke,
                 "transition_engine": transition_engine_smoke,
                 "build": build_result,

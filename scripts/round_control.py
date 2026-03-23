@@ -1298,6 +1298,14 @@ def find_exception_contracts(
     return matches
 
 
+def active_exception_contract_records(
+    project_id: str,
+    *,
+    objective_id: str = "",
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    return find_exception_contracts(project_id, objective_id=objective_id, statuses={"active"})
+
+
 def select_active_objective_record(
     project_id: str,
 ) -> tuple[tuple[Path, dict[str, object], dict[str, str]] | None, list[str]]:

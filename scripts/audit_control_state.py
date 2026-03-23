@@ -8,6 +8,8 @@ from pathlib import Path
 
 from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections
 from round_control import (
+    ROOT,
+    active_exception_contract_records,
     active_objective_path,
     active_round_path,
     exception_ledger_path,
@@ -105,6 +107,11 @@ def constitution_audit_hooks(path: Path) -> set[str]:
     }
 
 
+def constitution_guarded_exception_paths(path: Path) -> list[str]:
+    sections = load_constitution_sections(path)
+    return [item.strip() for item in parse_bullet_list(sections.get("Guarded Exception Paths", "")) if item.strip()]
+
+
 def parse_changed_paths(status_short: str) -> list[str]:
     changed_paths: list[str] = []
     for raw_line in status_short.splitlines():
@@ -120,6 +127,35 @@ def parse_changed_paths(status_short: str) -> list[str]:
         if normalized:
             changed_paths.append(normalized)
     return changed_paths
+
+
+def relativize_changed_paths(
+    changed_paths: list[str],
+    *,
+    workspace_root: str,
+) -> list[str]:
+    if not workspace_root.strip():
+        return changed_paths
+    try:
+        workspace_path = Path(workspace_root).resolve()
+    except OSError:
+        return changed_paths
+    try:
+        relative_workspace = workspace_path.relative_to(ROOT.resolve()).as_posix().rstrip("/")
+    except ValueError:
+        return changed_paths
+    if not relative_workspace:
+        return changed_paths
+    relativized: list[str] = []
+    for path in changed_paths:
+        normalized = path.replace("\\", "/").lstrip("./")
+        if normalized == relative_workspace or normalized.startswith(relative_workspace + "/"):
+            trimmed = normalized[len(relative_workspace) :].lstrip("/")
+            if trimmed:
+                relativized.append(trimmed)
+            continue
+        relativized.append(normalized)
+    return relativized
 
 
 def path_is_covered(path: str, scope_paths: list[str]) -> bool:
@@ -154,7 +190,10 @@ def run_hook_round_paths_cover_live_dirty_paths(
     round_scope_paths = [str(item).strip() for item in round_meta.get("paths", []) if str(item).strip()]
     live_workspace = inspect_live_workspace(resolve_anchor(project_id))
     if live_workspace.get("status") == "available":
-        changed_paths = parse_changed_paths(str(live_workspace.get("status_short") or ""))
+        changed_paths = relativize_changed_paths(
+            parse_changed_paths(str(live_workspace.get("status_short") or "")),
+            workspace_root=str(live_workspace.get("workspace_root") or ""),
+        )
         uncovered_paths = [path for path in changed_paths if not path_is_covered(path, round_scope_paths)]
         if uncovered_paths:
             add_issue(
@@ -216,10 +255,69 @@ def run_hook_current_task_mentions_active_round(
     checks.append("current-task active round anchor")
 
 
+def run_hook_guarded_exception_paths_require_active_contract(
+    *,
+    issues: list[dict[str, object]],
+    checks: list[str],
+    project_id: str,
+    constitution_path: Path,
+    active_objective_record: tuple[Path, dict[str, object], dict[str, str]] | None,
+    **_: object,
+) -> None:
+    guarded_paths = constitution_guarded_exception_paths(constitution_path)
+    if not guarded_paths:
+        return
+
+    live_workspace = inspect_live_workspace(resolve_anchor(project_id))
+    if live_workspace.get("status") != "available":
+        checks.append("guarded exception paths require active contract coverage")
+        return
+
+    changed_paths = parse_changed_paths(str(live_workspace.get("status_short") or ""))
+    changed_paths = relativize_changed_paths(
+        changed_paths,
+        workspace_root=str(live_workspace.get("workspace_root") or ""),
+    )
+    matching_dirty_paths = [path for path in changed_paths if path_is_covered(path, guarded_paths)]
+    if not matching_dirty_paths:
+        checks.append("guarded exception paths require active contract coverage")
+        return
+
+    objective_id = ""
+    if active_objective_record is not None:
+        objective_id = str(active_objective_record[1].get("id") or "").strip()
+
+    active_contracts = active_exception_contract_records(project_id, objective_id=objective_id)
+    covered_paths: set[str] = set()
+    for _contract_path, contract_meta, _contract_sections in active_contracts:
+        contract_paths = [str(item).strip() for item in contract_meta.get("paths", []) if str(item).strip()]
+        owner_scope_paths = [
+            item.strip()
+            for item in parse_bullet_list(_contract_sections.get("Owner Scope", ""))
+            if item.strip()
+        ]
+        for dirty_path in matching_dirty_paths:
+            if any(path_is_covered(dirty_path, [scope]) for scope in [*contract_paths, *owner_scope_paths]):
+                covered_paths.add(dirty_path)
+
+    uncovered_paths = [path for path in matching_dirty_paths if path not in covered_paths]
+    if uncovered_paths:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="exception-contract",
+            code="guarded_exception_paths_without_active_contract",
+            message="dirty guarded-exception paths exist without one active exception contract that explicitly covers them",
+            evidence=uncovered_paths,
+        )
+    checks.append("guarded exception paths require active contract coverage")
+
+
 HOOK_RUNNERS = {
     "round_paths_cover_live_dirty_paths": run_hook_round_paths_cover_live_dirty_paths,
     "current_task_mentions_active_objective": run_hook_current_task_mentions_active_objective,
     "current_task_mentions_active_round": run_hook_current_task_mentions_active_round,
+    "guarded_exception_paths_require_active_contract": run_hook_guarded_exception_paths_require_active_contract,
 }
 
 
@@ -486,6 +584,7 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             checks=checks,
             project_id=project_id,
             current_task_path=current_task_path,
+            constitution_path=constitution_path,
             active_objective_record=active_objective_record,
             open_round_record=open_round_record,
         )

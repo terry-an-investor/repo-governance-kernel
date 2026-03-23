@@ -345,6 +345,7 @@ Current implementation already does these things:
   - `enforce-worktree`
   - dirty non-control paths outside the active round scope become an explicit blocked state
   - dirty projected control files that drift from durable truth become an explicit blocked state
+  - constitution-declared guarded exception paths now require one active exception contract to cover them before promotion stays honest
   - blocked control audit prevents round promotion from pretending the worktree is honest
   - repo-local git hooks reuse the same enforcement owner layer before commit or push
   - this enforcement is harness-agnostic rather than dependent on native Claude-style `PreToolUse` or `PostToolUse` hooks

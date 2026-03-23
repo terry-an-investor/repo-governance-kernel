@@ -47,6 +47,8 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 - Direct manual edits to projected control files such as `control/active-round.md`
   are a blocked state unless the file still exactly matches the durable
   projection rebuilt by commands.
+- Dirty paths under constitution-declared guarded exception zones are a blocked
+  state unless one active exception contract explicitly covers them.
 - `captured` and `closed` round transitions must pass automatic worktree
   enforcement before promotion is allowed.
 - Treat repository-local enforcement as the canonical owner layer.

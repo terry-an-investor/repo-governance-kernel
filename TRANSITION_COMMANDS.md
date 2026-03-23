@@ -492,6 +492,7 @@ Primary checks:
 
 - dirty non-control paths are covered by active round `paths`
 - dirty projected control files still equal the projection implied by durable truth
+- dirty constitution-guarded exception paths are covered by one active exception contract
 - control audit is not already blocked
 
 Primary users:

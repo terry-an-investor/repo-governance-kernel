@@ -36,3 +36,9 @@
 - Do not silently overwrite old objectives without a pivot record.
 - Do not let project-specific workflow fields become mandatory global schema.
 - Do not treat stale handoff packets as current truth.
+
+## Audit Hooks
+
+- current_task_mentions_active_objective
+- current_task_mentions_active_round
+- guarded_exception_paths_require_active_contract

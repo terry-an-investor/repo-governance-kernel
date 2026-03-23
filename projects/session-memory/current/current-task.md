@@ -36,6 +36,7 @@ The immediate objective is:
 - Current work is focused on:
   - broadening automatic enforcement beyond the first worktree gate
   - defining a durable blocked-state class for workaround or exception-contract dishonesty
+  - using constitution-declared guarded exception paths for selected temporary-deviation zones instead of heuristics
   - unifying commit-time and future CI-time enforcement around the same owner-layer checks
 
 ## Validated Facts
@@ -99,6 +100,10 @@ The immediate objective is:
   - `scripts/install_hooks.py` installs `.githooks/` through `git config core.hooksPath`
   - `.githooks/pre-commit` runs worktree enforcement before commit
   - `.githooks/pre-push` runs worktree enforcement plus control-state audit before push
+- Automatic enforcement now has a second real blocked-state class:
+  - constitution-declared guarded exception paths can be marked as temporary-deviation zones
+  - dirty paths inside those zones are blocked unless one active exception contract explicitly covers them
+  - the path matching is now workspace-aware instead of assuming the repo root is always the project workspace
 - Round promotion is now partially punitive instead of advisory:
   - `update_round_status.py` blocks `captured` and `closed` when worktree enforcement fails
   - enforcement can validate against an explicit `round_id`, so honest `captured -> closed` still works after the active round is projected away
@@ -109,6 +114,11 @@ The immediate objective is:
     - `active -> validation_pending`
     - `validation_pending -> captured`
     - `captured -> closed`
+- Disposable guarded-exception fixture validation now exercises:
+  - blocked enforcement when one guarded dirty path exists without any active exception contract
+  - allowed enforcement once one active exception contract explicitly covers the same guarded path
+  - `validation_pending -> captured -> closed` while the covering contract remains active
+  - retirement of the covering contract after round closure
 - The project now has durable round history across multiple real control slices:
   - `projects/session-memory/memory/rounds/2026-03-23-1213-implement-first-transition-slice.md`
   - `projects/session-memory/memory/rounds/2026-03-23-1516-implement-exception-contract-transition-slice.md`

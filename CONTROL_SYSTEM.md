@@ -146,6 +146,14 @@ The first enforcement slice should block at least these failures:
 - direct manual edits to projected control files that drift from durable truth
 - promotion or closure while control audit is already blocked
 
+The next honest slice should also allow projects to declare guarded exception
+zones in the constitution:
+
+- when dirty paths enter those guarded zones, one active exception contract
+  must explicitly cover them
+- this keeps temporary deviation explicit instead of letting workaround debt
+  silently merge into architecture truth
+
 These gates are not advisory lint. They are transition blockers.
 
 ## Control Model

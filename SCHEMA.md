@@ -523,8 +523,18 @@ Suggested shape:
 
 ## Forbidden Shortcuts
 
+## Guarded Exception Paths
+
 ## Audit Hooks
 ```
+
+`Guarded Exception Paths` is optional.
+Use it only for path prefixes that the project wants to treat as controlled
+temporary-deviation zones.
+
+When dirty paths match this section, the project may require one active
+exception contract to cover those paths before promotion, commit, or push is
+considered honest.
 
 `Audit Hooks` is optional.
 Use it only for explicit machine-checkable rules that should become part of
