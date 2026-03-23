@@ -19,6 +19,7 @@ COMMAND_MAP = {
     "compile-role-context": SCRIPTS / "compile_role_context.py",
     "capture-handoff": SCRIPTS / "capture_handoff.py",
     "create-snapshot": SCRIPTS / "create_snapshot.py",
+    "prepare-role-eval": SCRIPTS / "prepare_role_eval_bundle.py",
     "refresh-current-task-anchor": SCRIPTS / "refresh_current_task_anchor.py",
     "smoke": SCRIPTS / "smoke_phase1.py",
     "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",

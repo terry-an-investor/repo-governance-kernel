@@ -36,6 +36,8 @@ frozen design:
   signals rather than raw recency alone
 - add role-context compilation so reviewer / architect / orchestrator can read
   project control state instead of relying on prompt text alone
+- add frozen role-eval bundle preparation so role-context quality can be judged
+  with a fixed rubric instead of prose preference
 
 ## Phase 1 Out Of Scope
 

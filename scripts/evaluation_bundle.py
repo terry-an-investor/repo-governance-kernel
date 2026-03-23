@@ -82,6 +82,35 @@ def classify_evaluation_scope(system_root: Path, source_repo: Path) -> dict[str,
     }
 
 
+def source_git_output(source_repo: Path, *args: str) -> str:
+    completed = run_subprocess(["git", "-C", str(source_repo), *args], cwd=source_repo.parent)
+    if completed.returncode != 0:
+        raise RuntimeError(f"git command failed on source repo: {' '.join(args)}\n{completed.stderr}")
+    return completed.stdout.strip()
+
+
+def should_exclude_top_level_path(source_repo: Path, relative_path: str) -> bool:
+    output = source_git_output(source_repo, "ls-files", "--", relative_path)
+    return output.strip() == ""
+
+
+def resolve_snapshot_exclusions(
+    source_repo: Path,
+    *,
+    optional_excluded_names: set[str] | None = None,
+    optional_excluded_files: set[str] | None = None,
+) -> tuple[set[str], set[str]]:
+    excluded_names = set()
+    excluded_files = set()
+    for name in optional_excluded_names or set():
+        if should_exclude_top_level_path(source_repo, name):
+            excluded_names.add(name)
+    for name in optional_excluded_files or set():
+        if should_exclude_top_level_path(source_repo, name):
+            excluded_files.add(name)
+    return excluded_names, excluded_files
+
+
 def copy_repo_snapshot(
     source_repo: Path,
     snapshot_dir: Path,

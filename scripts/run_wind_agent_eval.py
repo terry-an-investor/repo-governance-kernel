@@ -12,6 +12,7 @@ from evaluation_bundle import (
     copy_repo_snapshot,
     make_run_id,
     normalize_repo_text,
+    resolve_snapshot_exclusions,
     run_codex_exec,
     run_subprocess,
     write_json,
@@ -78,30 +79,6 @@ def git_output(snapshot_dir: Path, *args: str) -> str:
     if completed.returncode != 0:
         raise RuntimeError(f"git command failed: {' '.join(args)}\n{completed.stderr}")
     return completed.stdout.strip()
-
-
-def source_git_output(source_repo: Path, *args: str) -> str:
-    completed = run_subprocess(["git", "-C", str(source_repo), *args], cwd=ROOT)
-    if completed.returncode != 0:
-        raise RuntimeError(f"git command failed on source repo: {' '.join(args)}\n{completed.stderr}")
-    return completed.stdout.strip()
-
-
-def should_exclude_top_level_path(source_repo: Path, relative_path: str) -> bool:
-    output = source_git_output(source_repo, "ls-files", "--", relative_path)
-    return output.strip() == ""
-
-
-def resolve_snapshot_exclusions(source_repo: Path) -> tuple[set[str], set[str]]:
-    excluded_names = set()
-    excluded_files = set()
-    for name in OPTIONAL_EXCLUDE_NAMES:
-        if should_exclude_top_level_path(source_repo, name):
-            excluded_names.add(name)
-    for name in OPTIONAL_EXCLUDE_FILES:
-        if should_exclude_top_level_path(source_repo, name):
-            excluded_files.add(name)
-    return excluded_names, excluded_files
 
 
 def freeze_task(bundle_dir: Path) -> str:
@@ -552,7 +529,11 @@ def main() -> int:
     run_dir.mkdir(parents=True, exist_ok=False)
     bundle_dir.mkdir(parents=True, exist_ok=False)
 
-    excluded_names, excluded_files = resolve_snapshot_exclusions(source_repo)
+    excluded_names, excluded_files = resolve_snapshot_exclusions(
+        source_repo,
+        optional_excluded_names=OPTIONAL_EXCLUDE_NAMES,
+        optional_excluded_files=OPTIONAL_EXCLUDE_FILES,
+    )
     snapshot_meta = copy_repo_snapshot(
         source_repo,
         snapshot_dir,

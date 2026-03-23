@@ -63,6 +63,14 @@ The immediate objective is:
 - Role-context compilation also degrades cleanly on `wind-agent`:
   - no `control/` directory required
   - current-task, blockers, snapshot, and durable memory still compile
+- `prepare_role_eval_bundle.py` now prepares frozen role-eval bundles with:
+  - snapshot
+  - task
+  - role-context
+  - score template
+  - run config
+- The first external-target reviewer bundle was prepared successfully for
+  `wind-agent`.
 
 ## Important Files
 
@@ -72,11 +80,14 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
 - `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
 - `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
+- `C:/Users/terryzzb/Desktop/session-memory/ROLE_CONTEXT_EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-objective.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/pivot-log.md`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/build_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_role_context.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/prepare_role_eval_bundle.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-22-project-scoped-scope.md`
@@ -95,9 +106,10 @@ The immediate objective is:
 
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-2. Decide what evaluator rubric should judge reviewer/orchestrator context
-   quality beyond generic orientation.
-3. Run and record the first bootstrap control-vs-treatment experiment against
+2. Run the first serious external-target role-eval bundle for `wind-agent`.
+3. Decide whether reviewer/orchestrator scoring should stay manual or gain
+   partial automatic checks.
+4. Run and record the first bootstrap control-vs-treatment experiment against
    live project state.
-4. Add a first real workaround or validation-report sample only when a live
+5. Add a first real workaround or validation-report sample only when a live
    implementation round creates one honestly.

@@ -89,6 +89,10 @@ The main capability questions are:
 - retrieval usefulness
   - does the indexed memory help locate the right durable items quickly
 
+Role-specific compiled contexts use a separate rubric.
+
+See [`ROLE_CONTEXT_EVALUATION.md`](./ROLE_CONTEXT_EVALUATION.md).
+
 ## Experiment Shape
 
 ### Frozen Evaluation Bundle
