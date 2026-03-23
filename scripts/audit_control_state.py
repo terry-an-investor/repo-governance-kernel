@@ -6,7 +6,7 @@ import json
 import re
 from pathlib import Path
 
-from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections
+from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections, parse_keyed_bullets
 from round_control import (
     ROOT,
     active_exception_contract_records,
@@ -210,11 +210,11 @@ def path_is_covered(path: str, scope_paths: list[str]) -> bool:
     return False
 
 
-def current_task_contains(path: Path, needle: str) -> bool:
-    if not needle.strip() or not path.exists():
-        return False
-    text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
-    return needle.strip() in text
+def current_task_state_values(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=True, strip_yaml=False))
+    return parse_keyed_bullets(sections.get("Current State", ""))
 
 
 def run_hook_round_paths_cover_live_dirty_paths(
@@ -256,18 +256,19 @@ def run_hook_current_task_mentions_active_objective(
     active_objective_record: tuple[Path, dict[str, object], dict[str, str]] | None,
     **_: object,
 ) -> None:
-    if active_objective_record is None:
-        return
-    _objective_path, objective_meta, _objective_sections = active_objective_record
-    active_objective_id = str(objective_meta.get("id") or "").strip()
-    if active_objective_id and not current_task_contains(current_task_path, active_objective_id):
+    active_objective_id = ""
+    if active_objective_record is not None:
+        _objective_path, objective_meta, _objective_sections = active_objective_record
+        active_objective_id = str(objective_meta.get("id") or "").strip()
+    observed_objective_id = current_task_state_values(current_task_path).get("objective id", "").strip()
+    if observed_objective_id != active_objective_id:
         add_issue(
             issues,
             severity="warning",
             domain="current-task",
-            code="current_task_missing_active_objective",
-            message="current/current-task.md does not mention the durable active objective id, so orientation can anchor on stale project direction",
-            evidence=[str(current_task_path), active_objective_id],
+            code="current_task_active_objective_mismatch",
+            message="current/current-task.md objective anchor does not match the durable active objective truth",
+            evidence=[str(current_task_path), f"expected objective id: {active_objective_id}", f"observed objective id: {observed_objective_id}"],
         )
     checks.append("current-task active objective anchor")
 
@@ -280,20 +281,46 @@ def run_hook_current_task_mentions_active_round(
     open_round_record: tuple[Path, dict[str, object], dict[str, str]] | None,
     **_: object,
 ) -> None:
-    if open_round_record is None:
-        return
-    _round_path, round_meta, _round_sections = open_round_record
-    round_id = str(round_meta.get("id") or "").strip()
-    if round_id and not current_task_contains(current_task_path, round_id):
+    round_id = ""
+    if open_round_record is not None:
+        _round_path, round_meta, _round_sections = open_round_record
+        round_id = str(round_meta.get("id") or "").strip()
+    observed_round_id = current_task_state_values(current_task_path).get("active round id", "").strip()
+    if observed_round_id != round_id:
         add_issue(
             issues,
             severity="warning",
             domain="current-task",
-            code="current_task_missing_active_round",
-            message="current/current-task.md does not mention the durable active round id, so orientation can anchor on stale execution control",
-            evidence=[str(current_task_path), round_id],
+            code="current_task_active_round_mismatch",
+            message="current/current-task.md active round anchor does not match the durable open-round truth",
+            evidence=[str(current_task_path), f"expected round id: {round_id}", f"observed round id: {observed_round_id}"],
         )
     checks.append("current-task active round anchor")
+
+
+def run_hook_current_task_phase_matches_active_objective(
+    *,
+    issues: list[dict[str, object]],
+    checks: list[str],
+    current_task_path: Path,
+    active_objective_record: tuple[Path, dict[str, object], dict[str, str]] | None,
+    **_: object,
+) -> None:
+    expected_phase = ""
+    if active_objective_record is not None:
+        _objective_path, objective_meta, _objective_sections = active_objective_record
+        expected_phase = str(objective_meta.get("phase") or "").strip()
+    observed_phase = current_task_state_values(current_task_path).get("phase", "").strip()
+    if observed_phase != expected_phase:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="current-task",
+            code="current_task_phase_mismatch",
+            message="current/current-task.md phase anchor does not match the durable active objective phase",
+            evidence=[str(current_task_path), f"expected phase: {expected_phase}", f"observed phase: {observed_phase}"],
+        )
+    checks.append("current-task phase anchor")
 
 
 def run_hook_guarded_exception_paths_require_active_contract(
@@ -358,6 +385,7 @@ HOOK_RUNNERS = {
     "round_paths_cover_live_dirty_paths": run_hook_round_paths_cover_live_dirty_paths,
     "current_task_mentions_active_objective": run_hook_current_task_mentions_active_objective,
     "current_task_mentions_active_round": run_hook_current_task_mentions_active_round,
+    "current_task_phase_matches_active_objective": run_hook_current_task_phase_matches_active_objective,
     "guarded_exception_paths_require_active_contract": run_hook_guarded_exception_paths_require_active_contract,
 }
 
@@ -537,6 +565,12 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
         current_task_path=current_task_path,
         open_round_record=open_round_record,
     )
+    run_hook_current_task_phase_matches_active_objective(
+        issues=issues,
+        checks=checks,
+        current_task_path=current_task_path,
+        active_objective_record=active_objective_record,
+    )
 
     pivot_control_path = pivot_log_path(project_id)
     expected_pivot_log = render_pivot_log_file(project_id).strip()
@@ -605,7 +639,11 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
     checks.append("constitution and exception-contract control presence")
 
     hooks = constitution_audit_hooks(constitution_path)
-    core_hook_names = {"current_task_mentions_active_objective", "current_task_mentions_active_round"}
+    core_hook_names = {
+        "current_task_mentions_active_objective",
+        "current_task_mentions_active_round",
+        "current_task_phase_matches_active_objective",
+    }
     for hook_name in sorted(hooks):
         if hook_name in core_hook_names:
             continue

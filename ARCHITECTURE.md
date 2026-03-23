@@ -212,6 +212,15 @@ anchor metadata should be treated as the workspace facts observed at the last
 refresh, not as a self-updating guarantee that the file already names the exact
 commit that contains it.
 
+That file is best understood as a control-plane orientation projection:
+
+- the narrative is hand-maintained and not fully derivable from durable truth
+- the workspace anchor remains historical metadata until explicitly refreshed
+- the durable-control subset should still stay aligned:
+  - `Objective id`
+  - `Active round id`
+  - `Phase`
+
 That means live workspace inspection remains the canonical freshness check for
 the current branch, while current-task anchor fields remain useful orientation
 metadata.

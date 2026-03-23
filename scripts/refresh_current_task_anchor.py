@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from assemble_context import extract_current_task_anchor, inspect_live_workspace, parse_h2_sections, read_text
+from round_control import expected_current_task_control_values
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,10 +71,23 @@ def update_or_insert_bullet(lines: list[str], label: str, value: str, *, insert_
     return lines
 
 
-def refresh_current_state_section(section_text: str, live_workspace: dict[str, str], workspace_root: str) -> str:
+def refresh_current_state_section(
+    section_text: str,
+    live_workspace: dict[str, str],
+    workspace_root: str,
+    control_values: dict[str, str],
+) -> str:
     lines = section_text.splitlines()
     refreshed_at = datetime.now().astimezone().isoformat(timespec="seconds")
 
+    lines = update_or_insert_bullet(lines, "Objective id", control_values.get("objective id", ""), insert_after="Project")
+    lines = update_or_insert_bullet(
+        lines,
+        "Active round id",
+        control_values.get("active round id", ""),
+        insert_after="Objective id",
+    )
+    lines = update_or_insert_bullet(lines, "Phase", control_values.get("phase", ""), insert_after="Active round id")
     lines = update_or_insert_bullet(lines, "Workspace root", workspace_root, insert_after="Workspace id")
     lines = update_or_insert_bullet(lines, "Branch", live_workspace.get("branch", ""), insert_after="Workspace root")
     lines = update_or_insert_bullet(lines, "HEAD anchor", live_workspace.get("git_sha", ""), insert_after="Branch")
@@ -119,7 +133,8 @@ def main() -> int:
         raise SystemExit(f"live workspace unavailable: {live_workspace}")
 
     workspace_root = args.workspace_root or anchor.get("workspace_root") or live_workspace.get("workspace_root", "")
-    refreshed_current_state = refresh_current_state_section(current_state, live_workspace, workspace_root)
+    control_values = expected_current_task_control_values(args.project_id)
+    refreshed_current_state = refresh_current_state_section(current_state, live_workspace, workspace_root, control_values)
     updated_text = replace_h2_section(text, CURRENT_STATE_SECTION, refreshed_current_state)
     current_task_path.write_text(updated_text, encoding="utf-8")
 

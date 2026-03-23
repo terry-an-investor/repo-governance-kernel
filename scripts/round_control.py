@@ -127,6 +127,10 @@ def project_dir(project_id: str) -> Path:
     return ROOT / "projects" / project_id
 
 
+def current_task_path(project_id: str) -> Path:
+    return project_dir(project_id) / "current" / "current-task.md"
+
+
 def active_objective_path(project_id: str) -> Path:
     return project_dir(project_id) / "control" / "active-objective.md"
 
@@ -167,11 +171,42 @@ def adjudications_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "adjudications"
 
 
-def load_current_task_anchor(project_id: str) -> dict[str, str]:
-    current_task_path = project_dir(project_id) / "current" / "current-task.md"
-    if not current_task_path.exists():
+def load_current_task_state_values(project_id: str) -> dict[str, str]:
+    path = current_task_path(project_id)
+    if not path.exists():
         return {}
-    sections = parse_h2_sections(clean_section_text(current_task_path, strip_heading=True, strip_yaml=False))
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=True, strip_yaml=False))
+    return parse_keyed_bullets(sections.get("Current State", ""))
+
+
+def expected_current_task_control_values(project_id: str) -> dict[str, str]:
+    active_objective_record, _objective_issues = select_active_objective_record(project_id)
+    open_round_record, _round_issues = select_open_round_record(project_id)
+
+    objective_id = ""
+    phase = ""
+    if active_objective_record is not None:
+        _objective_path, objective_meta, _objective_sections = active_objective_record
+        objective_id = str(objective_meta.get("id") or "").strip()
+        phase = str(objective_meta.get("phase") or "").strip()
+
+    round_id = ""
+    if open_round_record is not None:
+        _round_path, round_meta, _round_sections = open_round_record
+        round_id = str(round_meta.get("id") or "").strip()
+
+    return {
+        "objective id": objective_id,
+        "active round id": round_id,
+        "phase": phase,
+    }
+
+
+def load_current_task_anchor(project_id: str) -> dict[str, str]:
+    path = current_task_path(project_id)
+    if not path.exists():
+        return {}
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=True, strip_yaml=False))
     return extract_current_task_anchor(sections)
 
 

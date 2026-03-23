@@ -561,6 +561,7 @@ Suggested initial hook names:
 - `round_paths_cover_live_dirty_paths`
 - `current_task_mentions_active_objective`
 - `current_task_mentions_active_round`
+- `current_task_phase_matches_active_objective`
 
 ### `projects/<project_id>/control/active-objective.md`
 
@@ -703,12 +704,20 @@ Recommended maintenance path:
 
 - refresh these anchor bullets from the live workspace without rewriting the
   whole task narrative
-- keep active objective and active round ids aligned with the durable control
-  state
+- keep active objective id, active round id, and phase aligned with the durable
+  control state
 - treat these bullets as the workspace facts observed at the last refresh, not
   as a self-updating promise that the file already names the commit that
   contains the projection itself
-  files so fresh sessions do not anchor on stale execution contracts
+- treat `current/current-task.md` as a control-plane orientation projection,
+  but not as a fully derivable projection like `control/active-round.md`
+- enforce only the owner-layer subset that can be checked honestly from durable
+  truth:
+  - `Objective id`
+  - `Active round id`
+  - `Phase`
+- keep the broader task narrative editable without requiring full projection
+  reconciliation so fresh sessions do not anchor on stale execution contracts
 
 ### `projects/<project_id>/current/blockers.md`
 

@@ -475,11 +475,23 @@ Primary writes:
 
 Purpose:
 
-- refresh live workspace anchor facts without rewriting narrative state
+- refresh current-task control and workspace anchor facts without rewriting the
+  broader task narrative
 
 Primary writes:
 
 - `projects/<project_id>/current/current-task.md`
+
+It should refresh at least:
+
+- `Objective id`
+- `Active round id`
+- `Phase`
+- `Branch`
+- `HEAD anchor`
+- `Worktree state`
+- `Changed path count`
+- `Last anchor refresh`
 
 This command already has partial implementation.
 
@@ -546,8 +558,9 @@ It should report at least:
 
 - durable objective or round ambiguity
 - projection drift between durable truth and control files
-- current-task drift where the main orientation file no longer mentions the
-  active durable objective or active durable round
+- current-task drift where the main orientation file no longer aligns its
+  `Objective id`, `Active round id`, or `Phase` bullets with durable control
+  truth
 - exception-ledger projection drift against durable exception-contract records
 - execution phase without one bounded open round
 - blocked rounds without blockers
@@ -567,6 +580,8 @@ Primary checks:
 
 - dirty non-control paths are covered by active round `paths`
 - dirty projected control files still equal the projection implied by durable truth
+- dirty `current/current-task.md` still keeps its `Objective id`, `Active round id`,
+  and `Phase` bullets aligned with durable control truth
 - dirty constitution-guarded exception paths are covered by one active exception contract
 - control audit is not already blocked
 

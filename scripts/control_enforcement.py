@@ -18,8 +18,11 @@ from round_control import (
     ROOT,
     active_objective_path,
     active_round_path,
+    current_task_path,
+    expected_current_task_control_values,
     exception_ledger_path,
     load_round_file,
+    load_current_task_state_values,
     locate_round_file,
     parse_bullet_list,
     pivot_log_path,
@@ -68,7 +71,20 @@ def is_control_plane_path(project_id: str, path: str) -> bool:
     if not normalized.startswith(prefix):
         return False
     suffix = normalized[len(prefix) :]
-    return suffix.startswith("control/") or suffix.startswith("memory/")
+    return suffix.startswith("control/") or suffix.startswith("memory/") or suffix == "current/current-task.md"
+
+
+def current_task_control_mismatches(project_id: str) -> list[str]:
+    expected = expected_current_task_control_values(project_id)
+    observed = load_current_task_state_values(project_id)
+    mismatches: list[str] = []
+    for label in ["objective id", "active round id", "phase"]:
+        expected_value = expected.get(label, "").strip()
+        observed_value = observed.get(label, "").strip()
+        if expected_value == observed_value:
+            continue
+        mismatches.append(f"{label}: expected `{expected_value}` observed `{observed_value}`")
+    return mismatches
 
 
 def expected_projection_texts(project_id: str) -> dict[str, str]:
@@ -211,6 +227,20 @@ def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "") -> dic
             evidence=projection_drift_paths,
         )
     checks.append("dirty projected control files remain aligned to durable truth")
+
+    current_task_relative = normalize_repo_path(current_task_path(project_id))
+    if current_task_relative in changed_paths:
+        current_task_mismatches = current_task_control_mismatches(project_id)
+        if current_task_mismatches:
+            add_issue(
+                issues,
+                severity="error",
+                domain="enforcement",
+                code="dirty_current_task_control_drift",
+                message="dirty current/current-task.md must keep objective, active-round, and phase anchors aligned with durable control truth",
+                evidence=current_task_mismatches,
+            )
+    checks.append("dirty current-task control bullets remain aligned to durable truth")
 
     guarded_exception_paths = constitution_guarded_exception_paths(project_path / "control" / "constitution.md")
     guarded_dirty_paths = [path for path in changed_paths if path_is_covered(path, guarded_exception_paths)]

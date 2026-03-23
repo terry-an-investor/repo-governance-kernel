@@ -61,6 +61,16 @@ can know. A file such as `current/current-task.md` may record the workspace
 facts observed at its last refresh, but the live workspace inspection remains
 the canonical freshness owner layer for the current branch and worktree state.
 
+`current/current-task.md` should be treated as a control-plane orientation
+projection:
+
+- it is not just an arbitrary scratch note
+- it is not a fully derivable projection like `control/active-round.md`
+- its `Objective id`, `Active round id`, and `Phase` bullets should stay
+  aligned with durable control truth
+- its workspace anchor bullets should remain explicit "observed at last
+  refresh" metadata rather than pretending to be self-updating truth
+
 ## Operational Layers
 
 The control plane should be understood as five operational layers:
