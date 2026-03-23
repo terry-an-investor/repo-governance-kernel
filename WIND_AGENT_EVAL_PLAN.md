@@ -57,6 +57,13 @@ In particular, `wind-agent` already has:
 
 That makes it a credible test of session continuity.
 
+It also fixes the "judge and athlete are the same repo" problem:
+
+- `session-memory` remains the evaluation machinery
+- `wind-agent` is the target being judged
+- the scoring claim can therefore count as external-target evidence if the
+  bundle stays frozen
+
 ## Fairness Standard
 
 The experiment is only fair if control and treatment differ in one thing only:
@@ -97,6 +104,12 @@ artifacts/evaluation/wind-agent/<run-id>/
 
 This layout matters because it keeps the frozen evaluation object separate from
 the run outputs derived from it.
+
+`run-config.json` should also declare:
+
+- `target_kind: external-project`
+- `agent_separation: fresh-headless-instance`
+- `certification_scope: external-target`
 
 ## Snapshot Rule
 
@@ -315,6 +328,9 @@ Record:
 task_id:
 run_id:
 repo_snapshot:
+target_kind: external-project
+agent_separation: fresh-headless-instance
+certification_scope: external-target
 arm: control | treatment
 time_to_orientation:
 state_recall_accuracy:

@@ -20,6 +20,8 @@ alone.
 
 Use controlled comparisons.
 
+Separate bootstrap from certification.
+
 The default comparison is:
 
 - control:
@@ -27,6 +29,49 @@ The default comparison is:
 - treatment:
   - a fresh session starts by reading the assembled `session-memory` handoff
     packet first, then may inspect the repo
+
+## Evaluation Tiers
+
+Use three different labels for three different kinds of evidence.
+
+### 1. Bootstrap Evaluation
+
+Use when the target project is `session-memory` itself.
+
+Purpose:
+
+- pressure-test schema and workflow design
+- prove that control objects can be expressed in real files
+- expose missing primitives early
+
+Limits:
+
+- useful for product iteration only
+- does not count as serious evidence that the system helps other projects
+
+### 2. External-Target Evaluation
+
+Use when the target project is a different real repo such as `wind-agent`.
+
+Purpose:
+
+- test recovery quality on a project the memory system does not own
+- reduce self-referential scoring bias
+- generate the first serious evidence of benefit
+
+Limits:
+
+- still not global proof
+- still depends on frozen-bundle fairness and honest scoring
+
+### 3. Cross-Run Validation
+
+Use only after multiple external-target runs exist.
+
+Purpose:
+
+- check whether benefit repeats across tasks and projects
+- distinguish one-off packet luck from a stable design gain
 
 ## Primary Capability Under Test
 
@@ -183,6 +228,9 @@ For each arm, capture:
 ```text
 task_id:
 project_id:
+evaluation_target_kind: self-project | external-project
+agent_separation: fresh-headless-instance | other
+certification_scope: bootstrap-only | external-target
 arm: control | treatment
 time_to_orientation:
 time_to_first_valid_change:
@@ -207,6 +255,11 @@ It is not enough for treatment to feel nicer.
 
 It should measurably improve recovery while preserving correctness.
 
+Only external-target runs may be cited as serious validation evidence.
+
+Bootstrap runs may shape the product, but they must not be used as the main
+proof that the system works.
+
 ## Known Evaluation Biases
 
 Watch for these failure modes:
@@ -218,7 +271,7 @@ Watch for these failure modes:
 - the treatment arm gets a different task than control
 - schema or retrieval rules change during the experiment
 
-## Current Default Experiment
+## Current Bootstrap Experiment
 
 Recommended near-term experiment:
 
@@ -239,6 +292,9 @@ This experiment is good because:
 - it requires locating the right schema and builder files
 - it is easy to score for correctness
 
+But it remains bootstrap-only evidence because the target project is the same
+repo that defines the system.
+
 ## External Project Evaluation
 
 For serious validation, prefer an external actively changing project rather than
@@ -253,6 +309,9 @@ Recommended shape:
 `wind-agent` is the first target because it has real scope drift, live
 validation history, and durable architecture debt that a fresh session must
 recover correctly.
+
+This is the first evaluation tier that may count as serious evidence rather
+than bootstrap-only dogfooding.
 
 ## Result Handling
 

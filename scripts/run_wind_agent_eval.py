@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from evaluation_bundle import (
+    classify_evaluation_scope,
     copy_repo_snapshot,
     make_run_id,
     normalize_repo_text,
@@ -179,7 +180,7 @@ def parse_status_paths(status_text: str) -> list[str]:
     return paths
 
 
-def build_ground_truth(bundle_dir: Path, snapshot_dir: Path) -> dict[str, object]:
+def build_ground_truth(bundle_dir: Path, snapshot_dir: Path, source_repo: Path) -> dict[str, object]:
     active = load_json(snapshot_dir / ".round" / "active.json")
     validation = load_json(snapshot_dir / ".round" / "last_live_validation.json")
     progress = load_json(snapshot_dir / ".round" / "progress.json")
@@ -235,6 +236,7 @@ def build_ground_truth(bundle_dir: Path, snapshot_dir: Path) -> dict[str, object
     else:
         recommended_next_steps.append("keep round governance artifacts aligned with the actual validation state")
 
+    evaluation_scope = classify_evaluation_scope(ROOT, source_repo)
     ground_truth = {
         "task_id": TASK_ID,
         "project_id": PROJECT_ID,
@@ -251,6 +253,7 @@ def build_ground_truth(bundle_dir: Path, snapshot_dir: Path) -> dict[str, object
         "expected_first_files": expected_first_files[:5],
         "top_risks": top_risks,
         "recommended_next_steps": recommended_next_steps,
+        "evaluation_scope": evaluation_scope,
     }
 
     ground_truth_text = render_ground_truth(ground_truth)
@@ -270,6 +273,13 @@ def render_ground_truth(ground_truth: dict[str, object]) -> str:
         f"Task id: `{ground_truth['task_id']}`",
         f"Project id: `{ground_truth['project_id']}`",
         f"HEAD: `{ground_truth['head']}`",
+        "",
+        "## Evaluation Scope",
+        "",
+        f"- Target kind: `{ground_truth['evaluation_scope']['target_kind']}`",
+        f"- Agent separation: `{ground_truth['evaluation_scope']['agent_separation']}`",
+        f"- Certification scope: `{ground_truth['evaluation_scope']['certification_scope']}`",
+        f"- Warning: {ground_truth['evaluation_scope']['warning']}",
         "",
         "## Required Facts",
         "",
@@ -411,6 +421,7 @@ def count_wrong_inferences(last_message: str, ground_truth: dict[str, object]) -
 
 
 def render_score_markdown(run_id: str, ground_truth: dict[str, object], results: dict[str, dict[str, object]]) -> str:
+    evaluation_scope = ground_truth["evaluation_scope"]
     lines = [
         "# Score",
         "",
@@ -418,6 +429,13 @@ def render_score_markdown(run_id: str, ground_truth: dict[str, object], results:
         f"Task id: `{ground_truth['task_id']}`",
         f"Project id: `{ground_truth['project_id']}`",
         f"Snapshot HEAD: `{ground_truth['head']}`",
+        "",
+        "## Evaluation Scope",
+        "",
+        f"- Target kind: `{evaluation_scope['target_kind']}`",
+        f"- Agent separation: `{evaluation_scope['agent_separation']}`",
+        f"- Certification scope: `{evaluation_scope['certification_scope']}`",
+        f"- Warning: {evaluation_scope['warning']}",
         "",
     ]
     for arm_name in ("control", "treatment"):
@@ -470,24 +488,27 @@ def render_score_markdown(run_id: str, ground_truth: dict[str, object], results:
         [
             "## Decision",
             "",
-            render_decision(results),
+            render_decision(ground_truth, results),
             "",
         ]
     )
     return "\n".join(lines)
 
 
-def render_decision(results: dict[str, dict[str, object]]) -> str:
+def render_decision(ground_truth: dict[str, object], results: dict[str, dict[str, object]]) -> str:
     control = results["control"]
     treatment = results["treatment"]
+    certification_scope = str(ground_truth["evaluation_scope"]["certification_scope"])
     treatment_better = (
         treatment["state_recall_accuracy"] >= control["state_recall_accuracy"]
         and treatment["wrong_inference_count"] <= control["wrong_inference_count"]
         and treatment["time_to_orientation"] <= control["time_to_orientation"]
     )
     if treatment_better:
-        return "Treatment is a provisional win on this run because it preserved or improved recall while not increasing wrong inference count."
-    return "Treatment is not yet a clear win on this run. Inspect the packet, prompt, and scoring notes before claiming benefit."
+        if certification_scope == "bootstrap-only":
+            return "Treatment is a bootstrap-only win on this run. It can guide product iteration, but it does not count as serious external validation."
+        return "Treatment is a provisional external-target win on this run because it preserved or improved recall while not increasing wrong inference count."
+    return "Treatment is not yet a clear win on this run. Inspect the packet, prompt, scoring notes, and evaluation-scope classification before claiming benefit."
 
 
 def summarize_arm(exec_result, ground_truth: dict[str, object]) -> dict[str, object]:
@@ -540,13 +561,14 @@ def main() -> int:
     )
     task_text = freeze_task(bundle_dir)
     packet_text = build_treatment_packet(bundle_dir, source_repo, args.memory_limit)
-    ground_truth = build_ground_truth(bundle_dir, snapshot_dir)
+    ground_truth = build_ground_truth(bundle_dir, snapshot_dir, source_repo)
 
     run_config = {
         "run_id": run_id,
         "project_id": PROJECT_ID,
         "task_id": TASK_ID,
         "source_repo": str(source_repo),
+        "evaluation_scope": classify_evaluation_scope(ROOT, source_repo),
         "snapshot_dir": str(snapshot_dir),
         "sandbox": args.sandbox,
         "model": args.model,

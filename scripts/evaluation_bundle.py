@@ -57,6 +57,31 @@ def write_json(path: Path, payload: object) -> None:
     write_text(path, json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
 
 
+def classify_evaluation_scope(system_root: Path, source_repo: Path) -> dict[str, object]:
+    system_root = system_root.resolve()
+    source_repo = source_repo.resolve()
+    target_kind = "self-project" if source_repo == system_root else "external-project"
+    certification_scope = "bootstrap-only" if target_kind == "self-project" else "external-target"
+    if target_kind == "self-project":
+        warning = (
+            "This run is suitable for dogfooding and bootstrap only. "
+            "Do not treat it as serious external evidence of product benefit."
+        )
+    else:
+        warning = (
+            "This run targets an external project, so it is eligible to count as "
+            "serious evaluation evidence if the frozen bundle and scoring rules stay fixed."
+        )
+    return {
+        "system_root": str(system_root),
+        "source_repo": str(source_repo),
+        "target_kind": target_kind,
+        "agent_separation": "fresh-headless-instance",
+        "certification_scope": certification_scope,
+        "warning": warning,
+    }
+
+
 def copy_repo_snapshot(
     source_repo: Path,
     snapshot_dir: Path,
