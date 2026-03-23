@@ -213,6 +213,7 @@ Watch for these failure modes:
 
 - the task is too easy, so memory does not matter
 - the packet is bloated, so success only comes from copying large source text
+- the packet is plausible but stale, so recall stays high while recovery cost gets worse
 - the evaluator already knows the expected answer
 - the treatment arm gets a different task than control
 - schema or retrieval rules change during the experiment

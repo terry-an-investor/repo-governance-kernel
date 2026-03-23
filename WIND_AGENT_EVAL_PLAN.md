@@ -119,6 +119,10 @@ The snapshot should be created once, then mounted read-only for both arms.
 Do not point `codex exec` at the live `C:/Users/terryzzb/Desktop/wind-agent`
 tree after the bundle is frozen.
 
+Do not create synthetic drift while freezing the snapshot.
+If top-level paths are excluded for size or secrecy reasons, exclude only paths
+that are not tracked by git in the source repo.
+
 ## Recommended First Experiment
 
 Start with an orientation-only task.
@@ -221,6 +225,12 @@ The harness should also capture:
 - non-zero exit status
 - last assistant answer
 - total command/search/file-open counts derivable from JSON events
+
+Current harness entrypoint:
+
+```bash
+uv run python scripts/session_memory.py eval-wind-agent --run-id <run-id>
+```
 
 ## Output Capture
 

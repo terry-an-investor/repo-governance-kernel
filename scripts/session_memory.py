@@ -17,6 +17,7 @@ COMMAND_MAP = {
     "query": SCRIPTS / "query_index.py",
     "assemble": SCRIPTS / "assemble_context.py",
     "smoke": SCRIPTS / "smoke_phase1.py",
+    "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",
 }
 
 
