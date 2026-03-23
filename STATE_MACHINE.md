@@ -292,7 +292,8 @@ Current implementation already does these things:
 - enforces a first objective-line slice through:
   - `open-objective`
   - `record-hard-pivot`
-  - hard pivots reject still-open rounds tied to the previous objective
+  - only one durable active objective is allowed
+  - hard pivots reject durable still-open rounds tied to the previous objective
 - enforces one first round slice through:
   - `open-round`
   - `update-round-status`

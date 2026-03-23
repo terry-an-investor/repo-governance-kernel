@@ -7,8 +7,9 @@ import json
 from round_control import (
     active_objective_path,
     build_transition_event_file,
+    find_objectives_by_status,
+    find_rounds,
     load_active_objective,
-    load_active_round,
     load_objective_file,
     locate_objective_file,
     objectives_dir,
@@ -84,9 +85,34 @@ def main() -> int:
         raise SystemExit(f"project directory not found: {project_path}")
 
     active_objective_preface, _active_objective_sections = load_active_objective(args.project_id)
-    previous_objective_id = args.previous_objective_id or active_objective_preface.get("objective id", "")
+    control_active_objective_id = active_objective_preface.get("objective id", "")
+    previous_objective_id = args.previous_objective_id or control_active_objective_id
     if not previous_objective_id:
         raise SystemExit("missing previous objective id; pass --previous-objective-id or maintain control/active-objective.md")
+    if not control_active_objective_id:
+        raise SystemExit(
+            f"missing active objective control state in `{active_objective_path(args.project_id)}`; "
+            "repair control state before recording a hard pivot"
+        )
+    if previous_objective_id != control_active_objective_id:
+        raise SystemExit(
+            f"hard pivot previous objective must match the control active objective; "
+            f"got `{previous_objective_id}` but control declares `{control_active_objective_id}`"
+        )
+
+    durable_active_objectives = find_objectives_by_status(args.project_id, statuses={"active"})
+    durable_active_ids = [str(meta.get("id") or path.stem).strip() for path, meta, _sections in durable_active_objectives]
+    if len(durable_active_ids) != 1:
+        rendered_ids = ", ".join(f"`{objective_id}`" for objective_id in durable_active_ids) or "_none_"
+        raise SystemExit(
+            "hard pivot requires exactly one durable active objective before transition; "
+            f"found {len(durable_active_ids)}: {rendered_ids}"
+        )
+    if durable_active_ids[0] != previous_objective_id:
+        raise SystemExit(
+            f"hard pivot previous objective must match the durable active objective; "
+            f"got `{previous_objective_id}` but durable active objective is `{durable_active_ids[0]}`"
+        )
 
     objective_path = locate_objective_file(args.project_id, previous_objective_id)
     if objective_path is None:
@@ -97,18 +123,19 @@ def main() -> int:
     if previous_status != "active":
         raise SystemExit(f"hard pivot requires an active previous objective; `{previous_objective_id}` is `{previous_status or 'unknown'}`")
 
-    active_round_preface, _active_round_sections = load_active_round(args.project_id)
-    active_round_id = active_round_preface.get("round id", "")
-    active_round_status = active_round_preface.get("status", "")
-    active_round_objective_id = active_round_preface.get("objective id", "")
-    if (
-        active_round_id
-        and active_round_objective_id == previous_objective_id
-        and active_round_status in BLOCKING_ROUND_STATUSES
-    ):
+    blocking_round_records = find_rounds(
+        args.project_id,
+        objective_id=previous_objective_id,
+        statuses=BLOCKING_ROUND_STATUSES,
+    )
+    if blocking_round_records:
+        rendered_rounds = ", ".join(
+            f"`{str(meta.get('id') or path.stem)}` ({str(meta.get('status') or 'unknown').strip()})"
+            for path, meta, _sections in blocking_round_records
+        )
         raise SystemExit(
-            f"cannot hard-pivot while round `{active_round_id}` is still `{active_round_status}` against "
-            f"objective `{previous_objective_id}`; close, capture, abandon, or explicitly re-scope the round first"
+            f"cannot hard-pivot while durable blocking rounds remain against objective `{previous_objective_id}`: "
+            f"{rendered_rounds}; close, capture, abandon, or explicitly re-scope them first"
         )
 
     timestamp = timestamp_now()
@@ -244,9 +271,11 @@ def main() -> int:
         previous_state=f"objective `{previous_objective_id}` was active",
         next_state=f"objective `{objective_id}` is now active and pivot `{pivot_id}` is recorded",
         guards=[
+            f"control active objective is `{previous_objective_id}`",
+            f"durable active objective is `{previous_objective_id}`",
             f"objective `{previous_objective_id}` exists and is active",
             "new objective fields are present",
-            "no still-active round remains tied to the previous objective",
+            "no durable still-open round remains tied to the previous objective",
         ],
         side_effects=[
             f"updated superseded objective `{objective_path.relative_to(project_path.parent).as_posix()}`",

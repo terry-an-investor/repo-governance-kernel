@@ -63,6 +63,7 @@ Guards:
 
 - objective must have problem, success criteria, and non-goals
 - if marked active, it must have a valid phase
+- no other durable active objective may already exist
 
 Side effects:
 
@@ -154,6 +155,9 @@ Guards:
 
 - previous objective must exist and be active
 - new objective must satisfy the same minimum fields as `open-objective`
+- previous objective must match the control and durable active objective line
+- no durable `active`, `blocked`, or `validation_pending` round may remain tied
+  to the previous objective
 
 Side effects:
 
@@ -427,7 +431,8 @@ These slices already do these things:
 - write durable `objective`, `pivot`, and `round-contract` files
 - update `control/active-objective.md`, `control/pivot-log.md`, and `control/active-round.md`
 - reject illegal round-status transitions
-- refuse hard pivots that would silently outrun a still-open round tied to the old objective
+- refuse hard pivots that would silently outrun a durable still-open round tied to the old objective
+- refuse opening a second active objective when a durable active objective already exists
 - preserve existing round metadata when rewriting status
 - record `transition-event` files for both objective-line and round operations
 

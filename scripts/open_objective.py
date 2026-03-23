@@ -7,6 +7,7 @@ import json
 from round_control import (
     active_objective_path,
     build_transition_event_file,
+    find_objectives_by_status,
     load_active_objective,
     objectives_dir,
     pivot_log_path,
@@ -54,6 +55,17 @@ def main() -> int:
             f"cannot open a new objective while `{existing_objective_id}` is still present in "
             f"`{active_objective_path(args.project_id)}` with status `{existing_status or 'unknown'}`; "
             "use a pivot or explicit close path instead"
+        )
+
+    durable_active_objectives = find_objectives_by_status(args.project_id, statuses={"active"})
+    if durable_active_objectives:
+        durable_ids = ", ".join(
+            f"`{str(meta.get('id') or path.stem)}`"
+            for path, meta, _sections in durable_active_objectives
+        )
+        raise SystemExit(
+            f"cannot open a new objective because durable active objective records already exist: {durable_ids}; "
+            "repair or pivot the active line instead of creating a second active objective"
         )
 
     timestamp = timestamp_now()
@@ -118,6 +130,7 @@ def main() -> int:
         guards=[
             "project directory exists",
             "no active objective control file entry is present",
+            "no durable active objective record already exists",
             "problem, success criteria, non-goals, and phase are present",
         ],
         side_effects=[

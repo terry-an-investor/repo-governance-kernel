@@ -736,6 +736,18 @@ def load_all_objectives(project_id: str) -> list[tuple[Path, dict[str, object], 
     return records
 
 
+def load_all_rounds(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    directory = rounds_dir(project_id)
+    if not directory.exists():
+        return []
+    records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for path in sorted(directory.glob("*.md")):
+        meta, sections = load_round_file(path)
+        records.append((path, meta, sections))
+    records.sort(key=lambda record: str(record[1].get("created_at") or record[0].name))
+    return records
+
+
 def load_all_pivots(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
     directory = pivots_dir(project_id)
     if not directory.exists():
@@ -746,6 +758,43 @@ def load_all_pivots(project_id: str) -> list[tuple[Path, dict[str, object], dict
         records.append((path, meta, sections))
     records.sort(key=lambda record: str(record[1].get("created_at") or record[0].name), reverse=True)
     return records
+
+
+def find_objectives_by_status(
+    project_id: str,
+    *,
+    statuses: set[str] | None = None,
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    allowed_statuses = {status.strip() for status in (statuses or set()) if status.strip()}
+    matches: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for record in load_all_objectives(project_id):
+        _path, meta, _sections = record
+        status = str(meta.get("status") or "").strip()
+        if allowed_statuses and status not in allowed_statuses:
+            continue
+        matches.append(record)
+    return matches
+
+
+def find_rounds(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    statuses: set[str] | None = None,
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    target_objective_id = objective_id.strip()
+    allowed_statuses = {status.strip() for status in (statuses or set()) if status.strip()}
+    matches: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for record in load_all_rounds(project_id):
+        _path, meta, _sections = record
+        round_objective_id = str(meta.get("objective_id") or "").strip()
+        status = str(meta.get("status") or "").strip()
+        if target_objective_id and round_objective_id != target_objective_id:
+            continue
+        if allowed_statuses and status not in allowed_statuses:
+            continue
+        matches.append(record)
+    return matches
 
 
 def extract_first_inline_id(text: str) -> str:

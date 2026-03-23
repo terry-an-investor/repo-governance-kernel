@@ -76,7 +76,8 @@ It is not yet a unified transition engine across every domain.
 - first objective/pivot transition slice is now real:
   - `open-objective`
   - `record-hard-pivot`
-  - hard pivots now refuse to outrun an active round still tied to the old objective
+  - only one durable active objective is allowed at a time
+  - hard pivots now scan durable rounds and refuse to outrun still-open work tied to the old objective
 - first round transition slice is now real:
   - `open-round`
   - `update-round-status`

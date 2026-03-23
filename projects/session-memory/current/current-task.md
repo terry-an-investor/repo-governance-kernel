@@ -96,6 +96,9 @@ The immediate objective is:
   - guarded hard pivot recorded on `wind-agent`
 - Hard pivots now have one explicit honesty guard:
   - reject pivot when an active round is still tied to the previous objective
+- Objective-line guards are now anchored to durable truth, not only control files:
+  - reject opening a second active objective from orphaned durable state
+  - reject hard pivot when durable still-open rounds remain on the old objective
 - The first real round lifecycle has been exercised:
   - `active -> validation_pending -> captured -> closed`
   - successor round opened with transition-event records
