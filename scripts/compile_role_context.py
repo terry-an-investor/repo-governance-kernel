@@ -5,6 +5,7 @@ import argparse
 import sqlite3
 from pathlib import Path
 
+from audit_control_state import audit_project_control_state
 from assemble_context import (
     DB_PATH,
     ROOT,
@@ -74,9 +75,47 @@ def append_memory(parts: list[str], title: str, rows: list[sqlite3.Row]) -> None
     parts.append("")
 
 
+def append_control_status(parts: list[str], audit_result: dict[str, object]) -> None:
+    summary = dict(audit_result.get("summary") or {})
+    checks = [str(item).strip() for item in summary.get("checks", []) if str(item).strip()]
+    parts.append("## Current Control Status\n")
+    parts.append(f"- Audit status: `{audit_result.get('status', 'unknown')}`")
+    parts.append(f"- Errors: `{summary.get('errors', 0)}`")
+    parts.append(f"- Warnings: `{summary.get('warnings', 0)}`")
+    if checks:
+        parts.append(f"- Checks: {'; '.join(checks)}")
+    parts.append("")
+
+
+def append_control_violations(parts: list[str], audit_result: dict[str, object]) -> None:
+    issues = list(audit_result.get("issues") or [])
+    parts.append("## Current Control Violations\n")
+    if not issues:
+        parts.append("- No active audit violations.")
+        parts.append("")
+        return
+
+    sorted_issues = sorted(
+        issues,
+        key=lambda issue: (0 if str(issue.get("severity")) == "error" else 1, str(issue.get("domain") or ""), str(issue.get("code") or "")),
+    )
+    for issue in sorted_issues:
+        severity = str(issue.get("severity") or "warning").strip()
+        domain = str(issue.get("domain") or "unknown").strip()
+        code = str(issue.get("code") or "unspecified").strip()
+        message = str(issue.get("message") or "").strip()
+        parts.append(f"- `{severity}` `{domain}` `{code}`: {message}")
+        evidence = [str(item).strip() for item in issue.get("evidence", []) if str(item).strip()]
+        if evidence:
+            parts.append(f"  Evidence: {', '.join(evidence)}")
+    parts.append("")
+
+
 def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> str:
+    audit_result = audit_project_control_state(project_id)
     constitution_preface, constitution_sections = load_control_sections(project_dir / "control" / "constitution.md")
     objective_preface, objective_sections = load_control_sections(project_dir / "control" / "active-objective.md")
+    round_preface, round_sections = load_control_sections(project_dir / "control" / "active-round.md")
     pivot_preface, pivot_sections = load_control_sections(project_dir / "control" / "pivot-log.md")
     exception_preface, exception_sections = load_control_sections(project_dir / "control" / "exception-ledger.md")
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
@@ -84,6 +123,8 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
     review_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "adjudication"), limit)
 
     parts = [f"# Reviewer Context\n", f"Project: `{project_id}`\n"]
+    append_control_status(parts, audit_result)
+    append_control_violations(parts, audit_result)
     append_control_sections(
         parts,
         "Project Constitution",
@@ -97,6 +138,13 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
         objective_preface,
         objective_sections,
         ["Problem", "Success Criteria", "Non-Goals", "Current Risks"],
+    )
+    append_control_sections(
+        parts,
+        "Active Round",
+        round_preface,
+        round_sections,
+        ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
     )
     append_control_sections(
         parts,
@@ -125,8 +173,10 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
 
 
 def compile_architect_context(project_dir: Path, project_id: str, limit: int) -> str:
+    audit_result = audit_project_control_state(project_id)
     constitution_preface, constitution_sections = load_control_sections(project_dir / "control" / "constitution.md")
     objective_preface, objective_sections = load_control_sections(project_dir / "control" / "active-objective.md")
+    round_preface, round_sections = load_control_sections(project_dir / "control" / "active-round.md")
     pivot_preface, pivot_sections = load_control_sections(project_dir / "control" / "pivot-log.md")
     snapshot_path = latest_snapshot(project_dir)
     snapshot_sections: dict[str, str] = {}
@@ -135,6 +185,8 @@ def compile_architect_context(project_dir: Path, project_id: str, limit: int) ->
     architecture_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern", "adjudication"), limit)
 
     parts = [f"# Architect Context\n", f"Project: `{project_id}`\n"]
+    append_control_status(parts, audit_result)
+    append_control_violations(parts, audit_result)
     append_control_sections(
         parts,
         "Project Constitution",
@@ -148,6 +200,13 @@ def compile_architect_context(project_dir: Path, project_id: str, limit: int) ->
         objective_preface,
         objective_sections,
         ["Problem", "Success Criteria", "Non-Goals", "Current Risks"],
+    )
+    append_control_sections(
+        parts,
+        "Active Round",
+        round_preface,
+        round_sections,
+        ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
     )
     append_control_sections(
         parts,
@@ -168,8 +227,10 @@ def compile_architect_context(project_dir: Path, project_id: str, limit: int) ->
 
 
 def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int) -> str:
+    audit_result = audit_project_control_state(project_id)
     constitution_preface, constitution_sections = load_control_sections(project_dir / "control" / "constitution.md")
     objective_preface, objective_sections = load_control_sections(project_dir / "control" / "active-objective.md")
+    round_preface, round_sections = load_control_sections(project_dir / "control" / "active-round.md")
     pivot_preface, pivot_sections = load_control_sections(project_dir / "control" / "pivot-log.md")
     exception_preface, exception_sections = load_control_sections(project_dir / "control" / "exception-ledger.md")
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
@@ -177,6 +238,8 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
     orchestration_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern", "adjudication"), limit)
 
     parts = [f"# Orchestrator Context\n", f"Project: `{project_id}`\n"]
+    append_control_status(parts, audit_result)
+    append_control_violations(parts, audit_result)
     append_control_sections(
         parts,
         "Project Constitution",
@@ -190,6 +253,13 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
         objective_preface,
         objective_sections,
         ["Problem", "Success Criteria", "Non-Goals", "Current Risks"],
+    )
+    append_control_sections(
+        parts,
+        "Active Round",
+        round_preface,
+        round_sections,
+        ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
     )
     append_control_sections(
         parts,

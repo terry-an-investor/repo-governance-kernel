@@ -432,6 +432,8 @@ It should report at least:
 
 - durable objective or round ambiguity
 - projection drift between durable truth and control files
+- current-task drift where the main orientation file no longer mentions the
+  active durable objective or active durable round
 - execution phase without one bounded open round
 - blocked rounds without blockers
 - missing control surfaces such as constitution or exception ledger

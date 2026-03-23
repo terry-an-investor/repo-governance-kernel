@@ -516,6 +516,12 @@ Suggested shape:
 Use it only for explicit machine-checkable rules that should become part of
 control audit.
 
+Suggested initial hook names:
+
+- `round_paths_cover_live_dirty_paths`
+- `current_task_mentions_active_objective`
+- `current_task_mentions_active_round`
+
 ### `projects/<project_id>/control/active-objective.md`
 
 Purpose:
@@ -637,6 +643,7 @@ Suggested shape:
 Recommended `Current State` anchor bullets:
 
 - `Objective id`
+- `Active round id`
 - `Phase`
 - `Workspace id`
 - `Workspace root`
@@ -653,6 +660,8 @@ Recommended maintenance path:
 
 - refresh these anchor bullets from the live workspace without rewriting the
   whole task narrative
+- keep active objective and active round ids aligned with the durable control
+  files so fresh sessions do not anchor on stale execution contracts
 
 ### `projects/<project_id>/current/blockers.md`
 

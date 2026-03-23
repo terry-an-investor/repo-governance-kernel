@@ -5,23 +5,30 @@
 Anchor the current `wind-agent` mainline so a fresh coding session can recover the real
 state of work without replaying the entire transcript.
 
-For the repo itself, the current explicit round goal is still:
+For the repo itself:
 
-- close query transient-surface producer-consumer debt at the Wind access layer
-- keep prepared query context reusable through the public `query_surface` consumer path
-- prevent pre-commit re-observation drift
+- the last fully proved repo-local round was the narrow query prepared-context path
+- the current durable control round is broader and now covers query-surface plus
+  substrate/native/CLI convergence governance
+- the immediate task is to keep those two truths separate instead of letting the
+  old narrow proof masquerade as current full-round coverage
 
 ## Current State
 
 - Project: `wind-agent`
+- Objective id: `obj-2026-03-23-1243-split-proven-query-surface-recovery-from-broader-convergence-governance`
+- Active round id: `round-2026-03-23-1431-bootstrap-broadened-wind-agent-execution-round`
 - Workspace id: `ws-8c2176c3`
 - Workspace root: `C:/Users/terryzzb/Desktop/wind-agent`
 - Branch: `master`
 - HEAD anchor: `765c444c9dcd04ba09c58cd7e637ccd7a4669cca`
+- Canonical control surface now lives in `session-memory/projects/wind-agent/control/`.
 - Active round contract: `.round/active.json`
   - `round_id`: `query-surface-producer-consumer-contract`
   - declared owner layer: `src/wind/`
   - declared validation mode: `real_required`
+  - status: historical repo-local governance artifact, not the current durable
+    control contract
 - Real validation already passed for the narrow query prepared-context path on
   `2026-03-22`.
 - The working tree has expanded beyond that narrow round:
@@ -30,7 +37,8 @@ For the repo itself, the current explicit round goal is still:
   - `src/native/` and `native/` changed
   - new CLI seam-check entrypoint exists
   - many owner tests changed
-- Current uncommitted mainline is therefore broader than the active round contract.
+- Current uncommitted mainline is broader than the repo-local `.round/active.json`
+  contract and is now represented by the durable active round in session-memory.
 
 The practical state is:
 
@@ -73,9 +81,11 @@ The practical state is:
 
 ## Active Risks
 
-- Round contract drift:
-  the active round allows `src/wind/`, `docs/`, and `tests/`, but the current worktree also
-  touches `src/native/`, `native/`, and `src/cli/`.
+- Legacy governance drift:
+  repo-local `.round/*` artifacts still describe the older narrow query round,
+  while the durable active round already covers the broadened
+  `docs/`, `src/wind/`, `src/native/`, `native/`, `src/cli/`, and `tests/cli/`
+  surface.
 - Validation coverage drift:
   the live pass proves the prepared-query consumer path only; it does not prove the broader
   native/substrate/state-machine changes.
@@ -91,9 +101,9 @@ The practical state is:
 
 ## Next Steps
 
-1. Reconcile round scope with the real worktree.
-   Either narrow the diff back to the declared query-surface round or amend/split the round so
-   governance matches the actual owner layers being changed.
+1. Keep repo-local governance artifacts from being mistaken for current durable control.
+   Treat `.round/active.json` as historical evidence for the narrow proved lane, not as the
+   active execution contract for the broader mainline.
 2. Validate the broadened mainline in small slices.
    Start with changed owner seams around query surface, wind actions, workspace actions, dispatch
    proof, sink registry, and seam-check enforcement.

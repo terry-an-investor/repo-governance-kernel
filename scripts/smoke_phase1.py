@@ -109,6 +109,11 @@ def main() -> None:
         raise SystemExit("session-memory assemble output missing")
     if not ROLE_ARTIFACT_PATH.exists():
         raise SystemExit("session-memory reviewer context output missing")
+    role_context_text = ROLE_ARTIFACT_PATH.read_text(encoding="utf-8")
+    if "## Current Control Status" not in role_context_text:
+        raise SystemExit("session-memory reviewer context missing control status section")
+    if "## Current Control Violations" not in role_context_text:
+        raise SystemExit("session-memory reviewer context missing control violations section")
     if session_memory_audit["summary"]["errors"] != 0:
         raise SystemExit("session-memory control audit reported errors")
     if wind_agent_audit["summary"]["errors"] != 0:

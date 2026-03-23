@@ -385,6 +385,23 @@ That means:
 Historical memory still matters, but it should be loaded through the active
 objective line so obsolete context does not dominate the session.
 
+## Role Context Consequence
+
+Role contexts should not compile only trusted durable memory.
+
+They should also surface the current control failures that make the project
+unsafe to reason about naively.
+
+At minimum, role contexts should expose:
+
+- current audit status
+- active control violations
+- the evidence paths or ids attached to those violations
+
+Without that layer, a fresh reviewer, architect, or orchestrator can inherit a
+clean-looking memory packet while the actual project control plane is already
+dishonest.
+
 ## Constitution Routing
 
 The constitution should not be injected into every default handoff packet.

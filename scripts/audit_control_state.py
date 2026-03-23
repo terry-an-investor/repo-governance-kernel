@@ -131,6 +131,96 @@ def path_is_covered(path: str, scope_paths: list[str]) -> bool:
     return False
 
 
+def current_task_contains(path: Path, needle: str) -> bool:
+    if not needle.strip() or not path.exists():
+        return False
+    text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+    return needle.strip() in text
+
+
+def run_hook_round_paths_cover_live_dirty_paths(
+    *,
+    issues: list[dict[str, object]],
+    checks: list[str],
+    project_id: str,
+    open_round_record: tuple[Path, dict[str, object], dict[str, str]] | None,
+    **_: object,
+) -> None:
+    if open_round_record is None:
+        return
+    _round_path, round_meta, _round_sections = open_round_record
+    round_scope_paths = [str(item).strip() for item in round_meta.get("paths", []) if str(item).strip()]
+    live_workspace = inspect_live_workspace(resolve_anchor(project_id))
+    if live_workspace.get("status") == "available":
+        changed_paths = parse_changed_paths(str(live_workspace.get("status_short") or ""))
+        uncovered_paths = [path for path in changed_paths if not path_is_covered(path, round_scope_paths)]
+        if uncovered_paths:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="constitution",
+                code="round_scope_excludes_live_dirty_paths",
+                message="the active round paths do not cover every live dirty path required by constitution audit hooks",
+                evidence=uncovered_paths,
+            )
+    checks.append("constitution-derived live round scope coverage")
+
+
+def run_hook_current_task_mentions_active_objective(
+    *,
+    issues: list[dict[str, object]],
+    checks: list[str],
+    current_task_path: Path,
+    active_objective_record: tuple[Path, dict[str, object], dict[str, str]] | None,
+    **_: object,
+) -> None:
+    if active_objective_record is None:
+        return
+    _objective_path, objective_meta, _objective_sections = active_objective_record
+    active_objective_id = str(objective_meta.get("id") or "").strip()
+    if active_objective_id and not current_task_contains(current_task_path, active_objective_id):
+        add_issue(
+            issues,
+            severity="warning",
+            domain="current-task",
+            code="current_task_missing_active_objective",
+            message="current/current-task.md does not mention the durable active objective id, so orientation can anchor on stale project direction",
+            evidence=[str(current_task_path), active_objective_id],
+        )
+    checks.append("current-task active objective anchor")
+
+
+def run_hook_current_task_mentions_active_round(
+    *,
+    issues: list[dict[str, object]],
+    checks: list[str],
+    current_task_path: Path,
+    open_round_record: tuple[Path, dict[str, object], dict[str, str]] | None,
+    **_: object,
+) -> None:
+    if open_round_record is None:
+        return
+    _round_path, round_meta, _round_sections = open_round_record
+    round_id = str(round_meta.get("id") or "").strip()
+    if round_id and not current_task_contains(current_task_path, round_id):
+        add_issue(
+            issues,
+            severity="warning",
+            domain="current-task",
+            code="current_task_missing_active_round",
+            message="current/current-task.md does not mention the durable active round id, so orientation can anchor on stale execution control",
+            evidence=[str(current_task_path), round_id],
+        )
+    checks.append("current-task active round anchor")
+
+
+HOOK_RUNNERS = {
+    "round_paths_cover_live_dirty_paths": run_hook_round_paths_cover_live_dirty_paths,
+    "current_task_mentions_active_objective": run_hook_current_task_mentions_active_objective,
+    "current_task_mentions_active_round": run_hook_current_task_mentions_active_round,
+}
+
+
 def audit_project_control_state(project_id: str) -> dict[str, object]:
     project_path = project_dir(project_id)
     if not project_path.exists():
@@ -138,6 +228,7 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
 
     issues: list[dict[str, object]] = []
     checks: list[str] = []
+    current_task_path = project_path / "current" / "current-task.md"
 
     active_objective_record, objective_issues = select_active_objective_record(project_id)
     for issue in objective_issues:
@@ -293,6 +384,19 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             )
     checks.append("active round projection and round honesty")
 
+    run_hook_current_task_mentions_active_objective(
+        issues=issues,
+        checks=checks,
+        current_task_path=current_task_path,
+        active_objective_record=active_objective_record,
+    )
+    run_hook_current_task_mentions_active_round(
+        issues=issues,
+        checks=checks,
+        current_task_path=current_task_path,
+        open_round_record=open_round_record,
+    )
+
     pivot_control_path = pivot_log_path(project_id)
     expected_pivot_log = render_pivot_log_file(project_id).strip()
     actual_pivot_log = read_if_exists(pivot_control_path)
@@ -349,23 +453,29 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
     checks.append("constitution and exception-contract control presence")
 
     hooks = constitution_audit_hooks(constitution_path)
-    if "round_paths_cover_live_dirty_paths" in hooks and open_round_record is not None:
-        _round_path, round_meta, _round_sections = open_round_record
-        round_scope_paths = [str(item).strip() for item in round_meta.get("paths", []) if str(item).strip()]
-        live_workspace = inspect_live_workspace(resolve_anchor(project_id))
-        if live_workspace.get("status") == "available":
-            changed_paths = parse_changed_paths(str(live_workspace.get("status_short") or ""))
-            uncovered_paths = [path for path in changed_paths if not path_is_covered(path, round_scope_paths)]
-            if uncovered_paths:
-                add_issue(
-                    issues,
-                    severity="warning",
-                    domain="constitution",
-                    code="round_scope_excludes_live_dirty_paths",
-                    message="the active round paths do not cover every live dirty path required by constitution audit hooks",
-                    evidence=uncovered_paths,
-                )
-        checks.append("constitution-derived live round scope coverage")
+    core_hook_names = {"current_task_mentions_active_objective", "current_task_mentions_active_round"}
+    for hook_name in sorted(hooks):
+        if hook_name in core_hook_names:
+            continue
+        runner = HOOK_RUNNERS.get(hook_name)
+        if runner is None:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="constitution",
+                code="unknown_constitution_audit_hook",
+                message=f"constitution declares unsupported audit hook `{hook_name}`",
+                evidence=[str(constitution_path)],
+            )
+            continue
+        runner(
+            issues=issues,
+            checks=checks,
+            project_id=project_id,
+            current_task_path=current_task_path,
+            active_objective_record=active_objective_record,
+            open_round_record=open_round_record,
+        )
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")
     warning_count = sum(1 for issue in issues if issue["severity"] == "warning")

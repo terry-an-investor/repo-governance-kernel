@@ -81,4 +81,6 @@ It is not a backlog, roadmap, or prose summary.
 
 ## Audit Hooks
 
+- `current_task_mentions_active_objective`
+- `current_task_mentions_active_round`
 - `round_paths_cover_live_dirty_paths`
