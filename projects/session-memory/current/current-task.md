@@ -21,10 +21,10 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `5fbca66e6b19b61067dc18543c68ebaa2a4770fb`
-- Worktree state: `dirty`
-- Changed path count: `17`
-- Last anchor refresh: `2026-03-23T21:55:34+08:00`
+- HEAD anchor: `32c0f9bd5270932e32f84468a3e2953c9c6ce11f`
+- Worktree state: `clean`
+- Changed path count: `0`
+- Last anchor refresh: `2026-03-23T21:59:37+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
