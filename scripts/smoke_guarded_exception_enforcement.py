@@ -2,69 +2,24 @@
 from __future__ import annotations
 
 import json
-import os
-import shutil
 import subprocess
 import sys
-import stat
 from pathlib import Path
 
+from smoke_fixture_lib import (
+    ROOT,
+    init_fixture_repo,
+    on_rm_error,
+    reset_fixture_repo,
+    run_json,
+    run_plain,
+    run_git,
+)
 
-ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = ROOT / "scripts"
+
 FIXTURE_PROJECT_ID = "__guarded_exception_enforcement_smoke__"
 FIXTURE_PROJECT_DIR = ROOT / "projects" / FIXTURE_PROJECT_ID
 FIXTURE_GUARDED_FILE = FIXTURE_PROJECT_DIR / "src" / "guarded-runtime.txt"
-
-
-def run_json(script_name: str, *args: str, expect_failure: bool = False) -> dict:
-    cmd = [sys.executable, str(SCRIPTS / script_name), *args]
-    completed = subprocess.run(
-        cmd,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if completed.returncode != 0 and not expect_failure:
-        raise SystemExit(
-            json.dumps(
-                {
-                    "script": script_name,
-                    "args": list(args),
-                    "returncode": completed.returncode,
-                    "stdout": completed.stdout,
-                    "stderr": completed.stderr,
-                },
-                ensure_ascii=True,
-                indent=2,
-            )
-        )
-    if completed.returncode == 0 and expect_failure:
-        raise SystemExit(f"{script_name} unexpectedly succeeded")
-    payload = completed.stdout if completed.stdout.strip() else completed.stderr
-    try:
-        return json.loads(payload)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(
-            json.dumps(
-                {
-                    "script": script_name,
-                    "args": list(args),
-                    "returncode": completed.returncode,
-                    "stdout": completed.stdout,
-                    "stderr": completed.stderr,
-                    "decode_error": str(exc),
-                },
-                ensure_ascii=True,
-                indent=2,
-            )
-        )
-
-
-def run_plain(script_name: str, *args: str) -> None:
-    cmd = [sys.executable, str(SCRIPTS / script_name), *args]
-    subprocess.run(cmd, cwd=str(ROOT), check=True)
 
 
 def run_python_snippet(code: str) -> str:
@@ -89,15 +44,6 @@ def run_python_snippet(code: str) -> str:
             )
         )
     return completed.stdout
-
-
-def run_git(*args: str) -> None:
-    subprocess.run(["git", "-C", str(FIXTURE_PROJECT_DIR), *args], cwd=str(ROOT), check=True)
-
-
-def on_rm_error(func, path, exc_info) -> None:
-    os.chmod(path, stat.S_IWRITE)
-    func(path)
 
 
 def write_fixture_files() -> None:
@@ -192,11 +138,7 @@ def write_fixture_files() -> None:
         encoding="utf-8",
     )
     FIXTURE_GUARDED_FILE.write_text("guarded fixture baseline\n", encoding="utf-8")
-    run_git("init")
-    run_git("config", "user.email", "fixture@example.com")
-    run_git("config", "user.name", "Fixture Smoke")
-    run_git("add", ".")
-    run_git("commit", "-m", "Initialize guarded exception enforcement fixture")
+    init_fixture_repo(FIXTURE_PROJECT_DIR, commit_message="Initialize guarded exception enforcement fixture")
 
 
 def patch_fixture_current_task(objective_id: str, round_id: str) -> None:
@@ -210,8 +152,7 @@ def patch_fixture_current_task(objective_id: str, round_id: str) -> None:
 
 
 def main() -> None:
-    if FIXTURE_PROJECT_DIR.exists():
-        shutil.rmtree(FIXTURE_PROJECT_DIR, onexc=on_rm_error)
+    reset_fixture_repo(FIXTURE_PROJECT_DIR)
 
     try:
         write_fixture_files()
@@ -408,7 +349,7 @@ def main() -> None:
         )
     finally:
         if FIXTURE_PROJECT_DIR.exists():
-            shutil.rmtree(FIXTURE_PROJECT_DIR, onexc=on_rm_error)
+            reset_fixture_repo(FIXTURE_PROJECT_DIR)
 
 
 if __name__ == "__main__":

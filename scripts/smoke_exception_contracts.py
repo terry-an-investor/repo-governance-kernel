@@ -2,42 +2,13 @@
 from __future__ import annotations
 
 import json
-import shutil
-import subprocess
-import sys
 from pathlib import Path
 
+from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_json
 
-ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = ROOT / "scripts"
+
 FIXTURE_PROJECT_ID = "__exception_contract_smoke__"
 FIXTURE_PROJECT_DIR = ROOT / "projects" / FIXTURE_PROJECT_ID
-
-
-def run_json(script_name: str, *args: str) -> dict:
-    cmd = [sys.executable, str(SCRIPTS / script_name), *args]
-    completed = subprocess.run(
-        cmd,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if completed.returncode != 0:
-        raise SystemExit(
-            json.dumps(
-                {
-                    "script": script_name,
-                    "args": list(args),
-                    "returncode": completed.returncode,
-                    "stdout": completed.stdout,
-                    "stderr": completed.stderr,
-                },
-                ensure_ascii=True,
-                indent=2,
-            )
-        )
-    return json.loads(completed.stdout)
 
 
 def write_fixture_current_task() -> None:
@@ -56,7 +27,7 @@ def write_fixture_current_task() -> None:
                 "",
                 f"- Project: `{FIXTURE_PROJECT_ID}`",
                 f"- Workspace id: `ws-exception-smoke`",
-                f"- Workspace root: `{ROOT.as_posix()}`",
+                f"- Workspace root: `{FIXTURE_PROJECT_DIR.as_posix()}`",
                 "- Branch: `master`",
                 "- HEAD anchor: `smoke-fixture`",
                 "",
@@ -132,11 +103,11 @@ def patch_fixture_objective_anchor(objective_id: str) -> None:
 
 
 def main() -> None:
-    if FIXTURE_PROJECT_DIR.exists():
-        shutil.rmtree(FIXTURE_PROJECT_DIR)
+    reset_fixture_repo(FIXTURE_PROJECT_DIR)
 
     try:
         write_fixture_current_task()
+        init_fixture_repo(FIXTURE_PROJECT_DIR, commit_message="Initialize exception contract fixture")
 
         objective_result = run_json(
             "open_objective.py",
@@ -181,9 +152,9 @@ def main() -> None:
             "--exit-condition",
             "The retire-exception-contract command moves the contract into the retired ledger section.",
             "--owner-scope",
-            "projects/__exception_contract_smoke__/control/exception-ledger.md",
+            "control/exception-ledger.md",
             "--path",
-            "projects/__exception_contract_smoke__/control/exception-ledger.md",
+            "control/exception-ledger.md",
         )
         first_contract_id = str(first_contract["exception_contract_id"])
 
@@ -216,9 +187,9 @@ def main() -> None:
             "--exit-condition",
             "The invalidate-exception-contract command moves the contract into the invalidated ledger section.",
             "--owner-scope",
-            "projects/__exception_contract_smoke__/control/exception-ledger.md",
+            "control/exception-ledger.md",
             "--path",
-            "projects/__exception_contract_smoke__/control/exception-ledger.md",
+            "control/exception-ledger.md",
         )
         second_contract_id = str(second_contract["exception_contract_id"])
 
@@ -260,8 +231,7 @@ def main() -> None:
             )
         )
     finally:
-        if FIXTURE_PROJECT_DIR.exists():
-            shutil.rmtree(FIXTURE_PROJECT_DIR)
+        reset_fixture_repo(FIXTURE_PROJECT_DIR)
 
 
 if __name__ == "__main__":

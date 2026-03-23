@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from smoke_fixture_lib import parse_last_json_object
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
@@ -36,7 +37,7 @@ def run_json(script_name: str, *args: str) -> dict:
                 indent=2,
             )
         )
-    return json.loads(completed.stdout)
+    return parse_last_json_object(completed.stdout)
 
 
 def run_plain(script_name: str, *args: str) -> None:
