@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-2315-make-current-task-workspace-anchor-semantics-explicitly-snapshot-based`
-- Phase: `execution`
+- Active round id: ``
+- Phase: `paused`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch observed at last refresh: `master`
-- HEAD observed at last refresh: `3df662f331779f6c363aca5fa96ce5cb94257b66`
+- HEAD observed at last refresh: `8481148a853ec840f7c5241153dfbd8f19545050`
 - Worktree observed at last refresh: `dirty`
-- Changed path count observed at last refresh: `11`
-- Last anchor refresh: `2026-03-23T23:18:51+08:00`
+- Changed path count observed at last refresh: `9`
+- Last anchor refresh: `2026-03-23T23:20:45+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
