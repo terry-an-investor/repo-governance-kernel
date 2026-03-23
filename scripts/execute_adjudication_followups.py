@@ -126,22 +126,18 @@ def resolve_round_bootstrap(
     }
 
 
-def parse_executor_followup(followup: str) -> dict[str, object] | None:
-    stripped = followup.strip()
-    if not stripped.lower().startswith("executor:"):
-        return None
-    payload_text = stripped[len("executor:") :].strip()
-    if not payload_text:
-        raise SystemExit(f"executor follow-up is missing JSON payload: `{followup}`")
+def parse_executor_followup_payload(payload_text: str, *, source_label: str) -> dict[str, object]:
+    if not payload_text.strip():
+        raise SystemExit(f"executor follow-up is missing JSON payload: {source_label}")
     try:
         payload = json.loads(payload_text)
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"invalid executor follow-up JSON `{followup}`: {exc}") from exc
+        raise SystemExit(f"invalid executor follow-up JSON {source_label}: {exc}") from exc
     if not isinstance(payload, dict):
-        raise SystemExit(f"executor follow-up payload must be a JSON object: `{followup}`")
+        raise SystemExit(f"executor follow-up payload must be a JSON object: {source_label}")
     command_name = str(payload.get("command") or "").strip()
     if not command_name:
-        raise SystemExit(f"executor follow-up is missing `command`: `{followup}`")
+        raise SystemExit(f"executor follow-up is missing `command`: {source_label}")
     if command_name not in SUPPORTED_EXECUTOR_COMMANDS:
         raise SystemExit(
             f"executor follow-up command `{command_name}` is not supported; "
@@ -221,10 +217,8 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
     raise SystemExit(f"unsupported executor command `{command_name}`")
 
 
-def maybe_execute_structured_followup(project_id: str, followup: str) -> tuple[bool, str]:
-    payload = parse_executor_followup(followup)
-    if payload is None:
-        return False, ""
+def maybe_execute_structured_payload(project_id: str, payload_text: str) -> tuple[bool, str]:
+    payload = parse_executor_followup_payload(payload_text, source_label="from adjudication frontmatter `executor_followups`")
     completed = subprocess.run(
         build_executor_command(project_id, payload),
         cwd=str(ROOT),
@@ -318,16 +312,15 @@ def main() -> int:
     noop: list[str] = []
     blocked: list[str] = []
 
+    for payload_text in [str(item).strip() for item in adjudication_meta.get("executor_followups", []) if str(item).strip()]:
+        success, detail = maybe_execute_structured_payload(args.project_id, payload_text)
+        if success:
+            applied.append(f"`executor payload` -> {detail}")
+        else:
+            blocked.append(f"`executor payload` -> {detail}")
+
     for followup in followups:
         normalized = " ".join(followup.strip().lower().split())
-        structured_success, structured_detail = maybe_execute_structured_followup(args.project_id, followup)
-        if structured_success:
-            applied.append(f"`{followup}` -> {structured_detail}")
-            continue
-        if followup.strip().lower().startswith("executor:") and structured_detail:
-            blocked.append(f"`{followup}` -> {structured_detail}")
-            continue
-
         if "control/constitution.md" in normalized:
             constitution_path = project_path / "control" / "constitution.md"
             if constitution_path.exists():

@@ -331,6 +331,15 @@ be opened:
 - `round_blockers`
 - `round_status_note`
 
+Adjudication records may also carry structured executable follow-up contracts in
+frontmatter:
+
+- `executor_followups`
+  - list of JSON objects serialized as strings
+  - each item names one supported transition command and its required arguments
+  - use this only for machine-executable follow-ups the system is explicitly
+    allowed to run without guessing intent
+
 ### Exception Contract
 
 Use for temporary deviations that are intentionally not the target design.

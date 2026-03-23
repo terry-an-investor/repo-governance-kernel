@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--retain-id", action="append", default=[])
     parser.add_argument("--invalidate-id", action="append", default=[])
     parser.add_argument("--follow-up", action="append", default=[])
+    parser.add_argument("--executor-followup-json", action="append", default=[])
     parser.add_argument("--evidence", action="append", default=[])
     parser.add_argument("--path", action="append", default=[])
     parser.add_argument("--round-title", default="")
@@ -53,6 +54,25 @@ def render_issue_line(issue: dict[str, object]) -> str:
 
 def normalize_items(values: list[str]) -> list[str]:
     return [value.strip() for value in values if value.strip()]
+
+
+def normalize_executor_followups(values: list[str]) -> list[str]:
+    normalized: list[str] = []
+    for value in values:
+        raw = value.strip()
+        if not raw:
+            continue
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"invalid --executor-followup-json payload: {exc}") from exc
+        if not isinstance(payload, dict):
+            raise SystemExit("--executor-followup-json payload must be one JSON object")
+        command_name = str(payload.get("command") or "").strip()
+        if not command_name:
+            raise SystemExit("--executor-followup-json payload is missing `command`")
+        normalized.append(json.dumps(payload, ensure_ascii=True, sort_keys=True))
+    return normalized
 
 
 def main() -> int:
@@ -126,6 +146,7 @@ def main() -> int:
         objects_retained=normalize_items(args.retain_id),
         objects_invalidated=normalize_items(args.invalidate_id),
         required_follow_up_transitions=normalize_items(args.follow_up),
+        executor_followups=normalize_executor_followups(args.executor_followup_json),
         evidence=evidence,
         round_title=args.round_title.strip(),
         round_scope_items=normalize_items(args.round_scope_item),

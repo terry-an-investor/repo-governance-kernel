@@ -44,6 +44,12 @@ def parse_scalar(value: str):
         return lowered == "true"
     stripped = value.strip()
     if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in {'"', "'"}:
+        if stripped[0] == '"':
+            try:
+                loaded = json.loads(stripped)
+            except json.JSONDecodeError:
+                return stripped[1:-1]
+            return loaded
         return stripped[1:-1]
     return value
 
@@ -64,6 +70,10 @@ def parse_frontmatter(block: str | None) -> dict:
             if not isinstance(data.get(current_key), list):
                 data[current_key] = []
             item_text = line[4:].strip()
+            if len(item_text) >= 2 and item_text[0] == item_text[-1] and item_text[0] in {'"', "'"}:
+                current_list_item = None
+                data[current_key].append(parse_scalar(item_text))
+                continue
             if ":" in item_text:
                 item_key, item_value = item_text.split(":", 1)
                 current_list_item = {item_key.strip(): item_value.strip()}
@@ -76,6 +86,10 @@ def parse_frontmatter(block: str | None) -> dict:
             if not isinstance(data.get(current_key), list):
                 data[current_key] = []
             item_text = line[2:].strip()
+            if len(item_text) >= 2 and item_text[0] == item_text[-1] and item_text[0] in {'"', "'"}:
+                current_list_item = None
+                data[current_key].append(parse_scalar(item_text))
+                continue
             if ":" in item_text:
                 item_key, item_value = item_text.split(":", 1)
                 current_list_item = {item_key.strip(): item_value.strip()}

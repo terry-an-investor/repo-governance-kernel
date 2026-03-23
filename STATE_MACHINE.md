@@ -353,8 +353,10 @@ Current implementation already does these things:
 - can execute the safe automatic subset of adjudication follow-ups through:
   - `execute-adjudication-followups`
   - scaffolds missing control surfaces
-  - executes explicit structured follow-up contracts for a bounded subset of existing transition commands
+  - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
+    for a bounded subset of existing transition commands
   - can abandon one round, retire or invalidate one exception contract, and then open one successor round when the adjudication record is structured enough
+  - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - records transition-event files for round operations
 

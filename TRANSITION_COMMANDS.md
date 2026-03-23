@@ -496,8 +496,8 @@ Current implementation status:
 - records a durable adjudication verdict from the current audit result
 - can optionally embed structured round bootstrap fields in the adjudication
   record
-- can carry explicit machine-executable follow-up entries in `Required Follow-Up Transitions`
-  using `executor: {...}` JSON payloads
+- can carry explicit machine-executable follow-up entries in adjudication frontmatter
+  `executor_followups`
 - still does not decide those follow-up rewrites automatically from verdict text alone
 
 This design still matters because refusing ambiguous repair is not the same
@@ -514,8 +514,8 @@ Current implementation status:
 
 - can scaffold missing `control/constitution.md`
 - can scaffold missing `control/exception-ledger.md`
-- can execute explicit structured follow-ups encoded as `executor: {...}` JSON payloads
-  inside `Required Follow-Up Transitions`
+- can execute explicit structured follow-ups encoded in adjudication frontmatter
+  `executor_followups`
 - currently supports structured execution for:
   - `close-objective`
   - `update-round-status`
@@ -525,7 +525,7 @@ Current implementation status:
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly
 - treats an already-open aligned round as `noop` instead of reopening it
-- reports unsupported or underspecified follow-ups as blocked instead of
+- reports prose-only, unsupported, or underspecified follow-ups as blocked instead of
   pretending they were executed
 
 ## Minimal First Implementation Set

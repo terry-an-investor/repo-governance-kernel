@@ -375,6 +375,14 @@ For conflicting durable truth, the lifecycle needs one extra control step:
 9. execute only the explicit, structured subset of follow-up rewrites that the
    system can map onto existing transition commands without guessing intent
 
+That means adjudication should separate:
+
+- human-readable follow-up intent
+- machine-executable follow-up contracts
+
+The machine-executable subset must stay explicit and bounded.
+Prose alone is not authority to rewrite durable truth.
+
 ## Drift Detection
 
 The system should detect at least three different failure modes:

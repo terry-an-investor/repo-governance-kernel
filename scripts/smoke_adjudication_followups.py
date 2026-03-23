@@ -7,7 +7,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from round_control import active_round_path, exception_ledger_path, load_active_round
+from round_control import (
+    active_round_path,
+    exception_ledger_path,
+    load_active_round,
+    load_exception_contract_file,
+    locate_exception_contract_file,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -225,7 +231,7 @@ def main() -> None:
         )
         exception_contract_id = str(exception_result["exception_contract_id"])
 
-        round_followup = "executor: " + json.dumps(
+        round_followup = json.dumps(
             {
                 "command": "update-round-status",
                 "round_id": initial_round_id,
@@ -233,14 +239,16 @@ def main() -> None:
                 "reason": "Adjudication selected a narrower successor round and retired the broader disposable slice.",
             },
             ensure_ascii=True,
+            sort_keys=True,
         )
-        exception_followup = "executor: " + json.dumps(
+        exception_followup = json.dumps(
             {
                 "command": "retire-exception-contract",
                 "exception_contract_id": exception_contract_id,
                 "reason": "Adjudication retired the disposable workaround before opening the successor round.",
             },
             ensure_ascii=True,
+            sort_keys=True,
         )
 
         adjudication_result = run_json(
@@ -260,9 +268,9 @@ def main() -> None:
             initial_round_id,
             "--invalidate-id",
             exception_contract_id,
-            "--follow-up",
+            "--executor-followup-json",
             round_followup,
-            "--follow-up",
+            "--executor-followup-json",
             exception_followup,
             "--follow-up",
             "open one bounded round for the adjudicated objective line",
@@ -312,6 +320,72 @@ def main() -> None:
         if not active_round_path(FIXTURE_PROJECT_ID).exists():
             raise SystemExit("successor active-round projection missing after adjudication execution")
 
+        blocked_exception_result = run_json(
+            "activate_exception_contract.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable prose-only adjudication exception contract",
+            "--summary",
+            "Temporary debt used to prove that prose-only adjudication follow-ups stay blocked.",
+            "--reason",
+            "The fixture needs one second active exception contract so the blocked boundary is exercised explicitly.",
+            "--temporary-behavior",
+            "Carry a disposable workaround that should not be retired from prose alone.",
+            "--risk",
+            "If prose-only follow-ups execute automatically, adjudication stops being rule-bound.",
+            "--exit-condition",
+            "Retire this contract only through a structured follow-up contract.",
+            "--owner-scope",
+            "projects/__adjudication_followups_smoke__/",
+            "--path",
+            "projects/__adjudication_followups_smoke__/",
+        )
+        blocked_exception_id = str(blocked_exception_result["exception_contract_id"])
+
+        blocked_adjudication_result = run_json(
+            "adjudicate_control_state.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--allow-clean",
+            "--title",
+            "Disposable blocked adjudication follow-up boundary",
+            "--question",
+            "Will the executor refuse prose-only follow-up requests that lack a structured contract?",
+            "--verdict",
+            "The prose requests retirement of the temporary contract, but the system must block because no structured executor follow-up was recorded.",
+            "--retain-id",
+            objective_id,
+            "--invalidate-id",
+            blocked_exception_id,
+            "--follow-up",
+            f"retire exception contract `{blocked_exception_id}` because the workaround should end now",
+            "--follow-up",
+            "rerun audit-control-state",
+        )
+        blocked_execute_result = run_json(
+            "execute_adjudication_followups.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(blocked_adjudication_result["adjudication_id"]),
+        )
+        if not blocked_execute_result["blocked"]:
+            raise SystemExit("prose-only adjudication follow-up unexpectedly executed instead of blocking")
+        if blocked_execute_result["applied"]:
+            raise SystemExit("blocked adjudication unexpectedly applied a prose-only durable rewrite")
+
+        blocked_contract_path = locate_exception_contract_file(FIXTURE_PROJECT_ID, blocked_exception_id)
+        if blocked_contract_path is None:
+            raise SystemExit("blocked-boundary exception contract disappeared")
+        blocked_meta, _blocked_sections = load_exception_contract_file(blocked_contract_path)
+        if str(blocked_meta.get("status") or "").strip() != "active":
+            raise SystemExit("prose-only blocked boundary mutated exception contract status")
+
+        boundary_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)
+        if boundary_audit["summary"]["errors"] != 0:
+            raise SystemExit("adjudication blocked-boundary fixture audit reported errors")
+
         print(
             json.dumps(
                 {
@@ -320,9 +394,11 @@ def main() -> None:
                     "initial_round_id": initial_round_id,
                     "successor_round_id": successor_round_id,
                     "exception_contract_id": exception_contract_id,
+                    "blocked_exception_contract_id": blocked_exception_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
                     "applied": execute_result["applied"],
-                    "fixture_audit": final_audit["status"],
+                    "blocked": blocked_execute_result["blocked"],
+                    "fixture_audit": boundary_audit["status"],
                 },
                 ensure_ascii=True,
                 indent=2,
