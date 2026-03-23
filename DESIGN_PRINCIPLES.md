@@ -243,6 +243,79 @@ That means:
 - schema and directory semantics second
 - implementation after those decisions are explicit
 
+### 10. Precision must be front-loaded
+
+Coding agents do not fail only by being weak.
+
+They also fail by helpfully inventing missing reality:
+
+- made-up data
+- hand-waved mocks
+- hidden requirement changes
+- silent scope expansion
+- fake completion based on indirect signals
+
+So "be precise" is not enough. The key question is which precision must be
+front-loaded before implementation starts so human review has leverage.
+
+The most important precision surfaces are:
+
+- objective precision
+  - what outcome is actually being pursued
+  - what does not count as success
+- state precision
+  - which states exist
+  - which combinations are legal
+- transition precision
+  - which inputs authorize which state changes
+- evidence precision
+  - what counts as observed success
+  - what does not count as proof
+- harness precision
+  - which checks block dishonest advancement automatically
+- review precision
+  - which structured objects humans should inspect instead of re-deriving intent
+    from a pile of code diffs
+
+Without this front-loaded precision, review degrades into post-hoc archaeology.
+
+### 11. Human review needs structured leverage
+
+Human review is strongest when it inspects a decision structure, not only a
+natural-language explanation and not only a final code diff.
+
+High-leverage review surfaces include:
+
+- control objects with explicit status and provenance
+- transition commands with declared guards and side effects
+- bounded adjudication plans
+- harness outputs tied to observed state change
+
+The goal is to let reviewers ask:
+
+- is the state model complete
+- is this branch legal
+- is this transition missing a guard
+- is this evidence sufficient
+- did the harness observe the claimed effect
+
+instead of forcing them to reverse-engineer hidden assumptions from agent-written code.
+
+### 12. Harness is part of the product, not only validation
+
+Spec without harness becomes advisory prose.
+
+Harness without spec becomes unprincipled scripting.
+
+This project should treat spec and harness as co-owned product surfaces:
+
+- spec defines what the agent is not allowed to invent
+- harness defines what the system refuses to accept without evidence
+
+That is why real progress here is not only more memory or better retrieval.
+It is better control over what agents may claim, what reviewers inspect, and
+what the repo accepts as honest state.
+
 ## What the system is
 
 The system is:

@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 89b42b6ee1244f2dcade5cdf438ca5ca239b63f1
+git_sha: 26c4b9480805cd80ec6e2ddf1a2af6e1c9162be3
 paths:
   - AGENTS.md
   - .githooks/
@@ -19,6 +19,7 @@ paths:
   - TRANSITION_COMMANDS.md
   - projects/session-memory/control/
   - projects/session-memory/current/
+  - DESIGN_PRINCIPLES.md
 thread_ids: []
 evidence_refs: []
 tags:
@@ -26,7 +27,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T20:30:10+08:00
+updated_at: 2026-03-23T20:40:04+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -97,3 +98,5 @@ The active round now targets bounded exception-contract plan compilation so adju
 Round rewritten because The exception-contract plan milestone is complete, and the next bounded durable rewrite family is adjudication-driven phase-side-effect bundling through existing round bootstrap fields.
 
 The active round now targets bounded phase-side-effect plan compilation so adjudication can drive execution bootstrap through repo-owned plan expansion instead of hand-authored payloads.
+
+Round rewritten because The active phase-side-effect plan milestone now includes canonical design-principle updates about front-loaded precision, so the round scope must include that canonical doc honestly.

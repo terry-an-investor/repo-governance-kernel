@@ -41,6 +41,21 @@ The system still needs one layer that remains only partially implemented in code
 
 Rejecting ambiguity is only a guard. It is not the control system's final job.
 
+Another way to say this:
+
+- spec defines what must already be explicit before implementation is trusted
+- harness defines what must already be observed before progress is accepted
+
+If those two layers are weak, an agent will often "help" by filling gaps with:
+
+- fabricated intermediate facts
+- hand-waved mocks
+- silent requirement edits
+- accidental scope shifts
+
+So the control system should not only preserve memory. It should front-load the
+precision that gives human review leverage.
+
 ## Operational Layers
 
 The control plane should be understood as five operational layers:
@@ -181,6 +196,58 @@ manual edits:
 - `rewrite-open-round` rewrites one open round contract durably while preserving
   round identity, so pivots and adjudication can mutate round truth through a
   bounded owner-layer primitive instead of ad hoc file edits
+
+## Precision Surfaces
+
+The control system should make a small number of precision surfaces explicit
+before implementation broadens.
+
+These are the surfaces that reduce agent improvisation and increase human
+review leverage:
+
+- objective precision
+  - goal, success criteria, non-goals, current phase
+- state precision
+  - objective, round, exception-contract, and freshness states
+- transition precision
+  - guards, legal status moves, and bounded side effects
+- evidence precision
+  - what counts as a real observed effect versus a weak proxy
+- harness precision
+  - which audits, smokes, and enforcement gates block dishonest advancement
+
+This is why this project keeps moving work out of prompts and into:
+
+- control objects
+- transition commands
+- bounded executor plan contracts
+- owner-layer enforcement commands
+
+That shift is not ceremony. It is where review becomes tractable.
+
+## Review Leverage
+
+Human review should not depend on reading an entire session transcript or
+mentally simulating every agent improvisation.
+
+The system should instead present reviewers with structured surfaces:
+
+- durable truth objects
+- projected control state
+- explicit adjudication verdicts
+- bounded executable plans
+- harness outputs tied to observed state change
+
+This allows reviewers to ask higher-value questions:
+
+- is the chosen mainline actually justified
+- is the state transition legal
+- is a workaround explicitly temporary
+- did the repo observe the claimed effect
+- did the implementation bypass the declared control surface
+
+When those surfaces are missing, review collapses into archaeology after the
+code is already written.
 
 ### 1. Constitution
 
