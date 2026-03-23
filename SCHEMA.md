@@ -324,6 +324,17 @@ Suggested shape:
 ## Next Steps
 ```
 
+Recommended `Current State` anchor bullets:
+
+- `Workspace id`
+- `Workspace root`
+- `Branch`
+- `HEAD anchor`
+
+Optional but useful:
+
+- one explicit worktree hint such as `clean` or `dirty`
+
 ### `projects/<project_id>/current/blockers.md`
 
 Purpose:
@@ -399,6 +410,41 @@ Suggested body:
 - blockers
 - important files
 - next steps
+
+## Assembled Packet Freshness Block
+
+The assembled fresh-session packet should synthesize a `Packet Freshness` block
+from:
+
+- `current/current-task.md`
+- the latest snapshot frontmatter
+- the live workspace when it is reachable
+
+Suggested fields:
+
+- `generated_at`
+- `freshness_verdict`
+- `packet_anchor_source`
+- packet anchor:
+  - `workspace_id`
+  - `workspace_root`
+  - `branch`
+  - `git_sha`
+  - optional worktree hint
+- latest snapshot anchor:
+  - `source`
+  - `updated_at`
+  - `branch`
+  - `git_sha`
+- live workspace check:
+  - branch
+  - git sha
+  - clean or dirty state
+- anchor warnings
+- operator guidance
+
+The verdict should tell a fresh session whether the packet still matches the
+live workspace or should only be treated as orientation context.
 
 ## File Naming
 

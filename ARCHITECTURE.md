@@ -118,6 +118,14 @@ This layer should answer:
 - what memory matters for the current task topic
 - what handoff summary should a fresh session read first
 
+Before a handoff packet is trusted as current state, this layer should also
+answer:
+
+- which workspace / branch / git sha the packet claims to describe
+- whether current-task and latest snapshot agree on that anchor
+- whether the live workspace still matches that anchor
+- whether the packet should be treated as current truth or orientation-only
+
 Retrieval priority:
 
 1. structured filters
@@ -126,6 +134,18 @@ Retrieval priority:
 4. reranking
 
 This keeps the system grounded in explicit work state.
+
+Context injection should surface freshness explicitly.
+
+An assembled packet should include:
+
+- packet generation time
+- packet anchor source
+- packet anchor metadata
+- latest snapshot anchor metadata
+- live workspace check
+- freshness verdict
+- operator guidance when the packet is stale
 
 ## Memory Types
 
