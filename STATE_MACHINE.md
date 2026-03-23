@@ -355,7 +355,8 @@ Current implementation already does these things:
   - scaffolds missing control surfaces
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
-  - can abandon one round, retire or invalidate one exception contract, and then open one successor round when the adjudication record is structured enough
+  - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states
+  - can retire or invalidate one exception contract, and then open one successor round when the adjudication record is structured enough
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - records transition-event files for round operations

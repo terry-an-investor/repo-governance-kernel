@@ -337,6 +337,8 @@ frontmatter:
 - `executor_followups`
   - list of JSON objects serialized as strings
   - each item names one supported transition command and its required arguments
+  - items may also name one bounded multi-step bundle such as `round-close-chain`
+    when the executor is still only allowed to sequence already-legal primitive transitions
   - use this only for machine-executable follow-ups the system is explicitly
     allowed to run without guessing intent
 

@@ -8,13 +8,21 @@ import sys
 from pathlib import Path
 
 from audit_control_state import audit_project_control_state
-from round_control import load_all_adjudications, parse_bullet_list, project_dir, select_open_round_record
+from round_control import (
+    load_all_adjudications,
+    load_round_file,
+    locate_round_file,
+    parse_bullet_list,
+    project_dir,
+    select_open_round_record,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 SUPPORTED_EXECUTOR_COMMANDS = {
     "close-objective",
+    "round-close-chain",
     "update-round-status",
     "retire-exception-contract",
     "invalidate-exception-contract",
@@ -154,6 +162,161 @@ def _string_list(value: object) -> list[str]:
     return []
 
 
+def require_payload_text(payload: dict[str, object], field_name: str) -> str:
+    value = str(payload.get(field_name) or "").strip()
+    if not value:
+        raise SystemExit(f"executor {payload.get('command')} requires `{field_name}`")
+    return value
+
+
+def build_update_round_status_command(
+    project_id: str,
+    *,
+    round_id: str,
+    status: str,
+    reason: str,
+    validated_by: list[str] | None = None,
+    blockers: list[str] | None = None,
+    risks: list[str] | None = None,
+    clear_blockers: bool = False,
+) -> list[str]:
+    cmd = [
+        sys.executable,
+        str(SCRIPTS / "update_round_status.py"),
+        "--project-id",
+        project_id,
+        "--round-id",
+        round_id,
+        "--status",
+        status,
+        "--reason",
+        reason,
+    ]
+    for item in validated_by or []:
+        if item.strip():
+            cmd.extend(["--validated-by", item.strip()])
+    for item in blockers or []:
+        if item.strip():
+            cmd.extend(["--blocker", item.strip()])
+    for item in risks or []:
+        if item.strip():
+            cmd.extend(["--risk", item.strip()])
+    if clear_blockers:
+        cmd.append("--clear-blockers")
+    return cmd
+
+
+def run_executor_command(cmd: list[str]) -> tuple[bool, str]:
+    completed = subprocess.run(
+        cmd,
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return False, completed.stderr.strip() or completed.stdout.strip() or "executor follow-up failed"
+    return True, completed.stdout.strip()
+
+
+def build_round_close_chain_commands(project_id: str, payload: dict[str, object]) -> tuple[str, list[tuple[str, list[str]]]]:
+    round_id = require_payload_text(payload, "round_id")
+    round_path = locate_round_file(project_id, round_id)
+    if round_path is None:
+        raise SystemExit(f"executor round-close-chain could not find round `{round_id}`")
+
+    round_meta, _sections = load_round_file(round_path)
+    current_status = str(round_meta.get("status") or "").strip()
+    if not current_status:
+        raise SystemExit(f"executor round-close-chain found round `{round_id}` without a status")
+
+    validated_by = _string_list(payload.get("validated_by"))
+    blockers = _string_list(payload.get("blocker"))
+    risks = _string_list(payload.get("risk"))
+    clear_blockers = bool(payload.get("clear_blockers"))
+
+    if current_status == "closed":
+        return round_id, []
+    if current_status == "captured":
+        return round_id, [
+            (
+                "captured -> closed",
+                build_update_round_status_command(
+                    project_id,
+                    round_id=round_id,
+                    status="closed",
+                    reason=require_payload_text(payload, "closed_reason"),
+                ),
+            )
+        ]
+    if current_status == "validation_pending":
+        if not validated_by:
+            raise SystemExit("executor round-close-chain requires `validated_by` when round is not yet captured")
+        return round_id, [
+            (
+                "validation_pending -> captured",
+                build_update_round_status_command(
+                    project_id,
+                    round_id=round_id,
+                    status="captured",
+                    reason=require_payload_text(payload, "captured_reason"),
+                    validated_by=validated_by,
+                    blockers=blockers,
+                    risks=risks,
+                    clear_blockers=clear_blockers,
+                ),
+            ),
+            (
+                "captured -> closed",
+                build_update_round_status_command(
+                    project_id,
+                    round_id=round_id,
+                    status="closed",
+                    reason=require_payload_text(payload, "closed_reason"),
+                ),
+            ),
+        ]
+    if current_status == "active":
+        if not validated_by:
+            raise SystemExit("executor round-close-chain requires `validated_by` when round is not yet captured")
+        return round_id, [
+            (
+                "active -> validation_pending",
+                build_update_round_status_command(
+                    project_id,
+                    round_id=round_id,
+                    status="validation_pending",
+                    reason=require_payload_text(payload, "validation_pending_reason"),
+                ),
+            ),
+            (
+                "validation_pending -> captured",
+                build_update_round_status_command(
+                    project_id,
+                    round_id=round_id,
+                    status="captured",
+                    reason=require_payload_text(payload, "captured_reason"),
+                    validated_by=validated_by,
+                    blockers=blockers,
+                    risks=risks,
+                    clear_blockers=clear_blockers,
+                ),
+            ),
+            (
+                "captured -> closed",
+                build_update_round_status_command(
+                    project_id,
+                    round_id=round_id,
+                    status="closed",
+                    reason=require_payload_text(payload, "closed_reason"),
+                ),
+            ),
+        ]
+    raise SystemExit(
+        f"executor round-close-chain only supports rounds currently in `active`, `validation_pending`, `captured`, or `closed`; found `{current_status}`"
+    )
+
+
 def build_executor_command(project_id: str, payload: dict[str, object]) -> list[str]:
     command_name = str(payload.get("command") or "").strip()
     cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
@@ -219,16 +382,22 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
 
 def maybe_execute_structured_payload(project_id: str, payload_text: str) -> tuple[bool, str]:
     payload = parse_executor_followup_payload(payload_text, source_label="from adjudication frontmatter `executor_followups`")
-    completed = subprocess.run(
-        build_executor_command(project_id, payload),
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if completed.returncode != 0:
-        return False, completed.stderr.strip() or completed.stdout.strip() or "executor follow-up failed"
     command_name = str(payload.get("command") or "").strip()
+    if command_name == "round-close-chain":
+        round_id, commands = build_round_close_chain_commands(project_id, payload)
+        if not commands:
+            return True, f"round `{round_id}` already closed"
+        executed_steps: list[str] = []
+        for step_label, cmd in commands:
+            success, detail = run_executor_command(cmd)
+            if not success:
+                return False, f"round `{round_id}` {step_label} failed: {detail}"
+            executed_steps.append(step_label)
+        return True, f"executed round-close-chain for `{round_id}` ({', '.join(executed_steps)})"
+
+    success, detail = run_executor_command(build_executor_command(project_id, payload))
+    if not success:
+        return False, detail
     return True, f"executed {command_name}"
 
 

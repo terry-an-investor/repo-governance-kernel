@@ -12,7 +12,9 @@ from round_control import (
     exception_ledger_path,
     load_active_round,
     load_exception_contract_file,
+    load_round_file,
     locate_exception_contract_file,
+    locate_round_file,
 )
 
 
@@ -118,7 +120,7 @@ def write_fixture_files() -> None:
                 "",
                 "## Validation Rules",
                 "",
-                "- The fixture must retire one exception contract, abandon one round, and open one successor round.",
+                "- The fixture must retire one exception contract, close one round through a structured close chain, and open one successor round.",
                 "",
                 "## Forbidden Shortcuts",
                 "",
@@ -175,7 +177,7 @@ def main() -> None:
             "--problem",
             "Validate that adjudication can execute explicit durable control rewrites on a disposable project.",
             "--success-criterion",
-            "structured follow-ups can abandon an existing round and retire an existing exception contract",
+            "structured follow-ups can close an existing round through a governed close chain and retire an existing exception contract",
             "--success-criterion",
             "a successor round can be opened from adjudication bootstrap fields after those rewrites",
             "--non-goal",
@@ -199,7 +201,7 @@ def main() -> None:
             "--scope-item",
             "Simulate an execution slice that adjudication will replace with a narrower successor round.",
             "--deliverable",
-            "A disposable round that can be abandoned by adjudication follow-up execution.",
+            "A disposable round that can be closed by adjudication follow-up execution.",
             "--validation-plan",
             "Record adjudication and execute its follow-up contract.",
             "--scope-path",
@@ -233,10 +235,15 @@ def main() -> None:
 
         round_followup = json.dumps(
             {
-                "command": "update-round-status",
+                "command": "round-close-chain",
                 "round_id": initial_round_id,
-                "status": "abandoned",
-                "reason": "Adjudication selected a narrower successor round and retired the broader disposable slice.",
+                "validation_pending_reason": "Adjudication accepted the disposable slice for final validation before closing it.",
+                "captured_reason": "Adjudication confirmed the disposable slice was validated and can be captured before closure.",
+                "closed_reason": "Adjudication closed the predecessor round before opening the narrower successor slice.",
+                "validated_by": [
+                    "Disposable adjudication fixture close-chain validation",
+                ],
+                "clear_blockers": True,
             },
             ensure_ascii=True,
             sort_keys=True,
@@ -261,7 +268,7 @@ def main() -> None:
             "--question",
             "Can adjudication execute explicit durable rewrites instead of only recording a verdict?",
             "--verdict",
-            "Abandon the broad pre-adjudication round, retire the temporary exception contract, and open a narrower successor round on the same objective.",
+            "Close the broad pre-adjudication round through an explicit close chain, retire the temporary exception contract, and open a narrower successor round on the same objective.",
             "--retain-id",
             objective_id,
             "--invalidate-id",
@@ -281,7 +288,7 @@ def main() -> None:
             "--round-scope-item",
             "Validate that execute-adjudication-followups can open a successor round after durable rewrites.",
             "--round-scope-item",
-            "Keep the same objective but replace the broader abandoned round with a narrower contract.",
+            "Keep the same objective but replace the broader closed round with a narrower contract.",
             "--round-scope-path",
             "projects/__adjudication_followups_smoke__/",
             "--round-deliverable",
@@ -289,7 +296,7 @@ def main() -> None:
             "--round-validation-plan",
             "Run follow-up execution, patch current-task to the new active round, then rerun audit.",
             "--round-status-note",
-            "Opened from adjudication bootstrap fields after abandoning the predecessor round.",
+            "Opened from adjudication bootstrap fields after closing the predecessor round.",
         )
 
         execute_result = run_json(
@@ -307,8 +314,15 @@ def main() -> None:
         if not successor_round_id:
             raise SystemExit("adjudication follow-up execution did not leave an active successor round")
         if successor_round_id == initial_round_id:
-            raise SystemExit("adjudication follow-up execution left the abandoned round active")
+            raise SystemExit("adjudication follow-up execution left the predecessor round active")
         patch_current_task(objective_id=objective_id, round_id=successor_round_id)
+
+        predecessor_round_path = locate_round_file(FIXTURE_PROJECT_ID, initial_round_id)
+        if predecessor_round_path is None:
+            raise SystemExit("predecessor round disappeared after adjudication execution")
+        predecessor_meta, _predecessor_sections = load_round_file(predecessor_round_path)
+        if str(predecessor_meta.get("status") or "").strip() != "closed":
+            raise SystemExit("round-close-chain did not close the predecessor round")
 
         final_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)
         if final_audit["summary"]["errors"] != 0:

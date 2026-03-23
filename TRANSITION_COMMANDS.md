@@ -518,9 +518,15 @@ Current implementation status:
   `executor_followups`
 - currently supports structured execution for:
   - `close-objective`
+  - `round-close-chain`
   - `update-round-status`
   - `retire-exception-contract`
   - `invalidate-exception-contract`
+- `round-close-chain` is the first bounded multi-step bundle:
+  - reuses legal `update-round-status` transitions only
+  - supports `active -> validation_pending -> captured -> closed`
+  - supports resuming from `validation_pending` or `captured`
+  - refuses unsupported starting statuses instead of improvising
 - can rerun control audit after those follow-ups
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly

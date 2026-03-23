@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-1649-expand-adjudication-rewrite-bundles`
+- Active round id: `round-2026-03-23-1711-govern-objective-close-adjudication-bundles`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `543d21175ed79f2f99f9639e6e43ff00b2c3aea1`
+- HEAD anchor: `29a8c54cb9f1ec6a7b3854d33f509a8e05ed442d`
 - Worktree state: `dirty`
-- Changed path count: `17`
-- Last anchor refresh: `2026-03-23T16:50:07+08:00`
+- Changed path count: `13`
+- Last anchor refresh: `2026-03-23T17:11:07+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,15 +34,20 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - adding one richer adjudication rewrite bundle beyond the current structured subset without letting executor logic guess intent
-  - keeping machine-executable follow-up contracts explicit and bounded instead of inferring rewrites from verdict prose
-  - validating the next richer adjudication rewrite bundle on disposable fixtures and the live control state
+  - designing the next bounded adjudication bundle around governed objective-close paths
+  - deciding whether `executor_followups` should remain serialized JSON strings or evolve into a richer structured contract
+  - keeping the adjudication schema project-agnostic while broadening execution coverage
 
 ## Validated Facts
 
 - The latest committed baseline is:
   - `543d211 Execute first adjudication follow-up slice`
 - `uv run python scripts/session_memory.py smoke` passes on the current working tree after frontmatter `executor_followups` and the prose-only blocked boundary landed.
+- `uv run python scripts/smoke_adjudication_followups.py` now passes with the first bounded multi-step bundle:
+  - `round-close-chain`
+  - `active -> validation_pending -> captured -> closed`
+- `uv run python scripts/smoke_phase1.py` passes after the `round-close-chain` milestone landed.
+- `uv run python scripts/session_memory.py smoke` passes after the `round-close-chain` milestone landed.
 - Current index baseline before adding this project sample was:
   - `memory_items = 6`
   - `memory_paths = 17`
@@ -141,13 +146,18 @@ The immediate objective is:
 - Adjudication follow-up execution now has its first real durable rewrite slice:
   - adjudication frontmatter `executor_followups` can call bounded existing transition commands
   - current supported automatic execution covers:
+    - `round-close-chain`
     - `update-round-status`
     - `retire-exception-contract`
     - `invalidate-exception-contract`
     - `close-objective`
+  - `round-close-chain` is the first bounded multi-step executor bundle:
+    - legal path today is `active -> validation_pending -> captured -> closed`
+    - can resume from `validation_pending` or `captured`
+    - still refuses unsupported statuses instead of guessing
   - structured round bootstrap can still open one successor round after those rewrites
 - Disposable adjudication-followup fixture validation now exercises:
-  - abandon a pre-adjudication round
+  - close a pre-adjudication round through a structured close chain
   - retire an active exception contract
   - open a successor round from adjudication bootstrap fields
   - block one prose-only follow-up instead of guessing a durable rewrite
@@ -163,8 +173,10 @@ The immediate objective is:
   - explicit objective close with zero active objectives and clean audit
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
-- A successor round is now active to expand adjudication rewrite bundles:
+- The adjudication rewrite-bundle round is now closed after full validation:
   - `round-2026-03-23-1649-expand-adjudication-rewrite-bundles`
+- A successor round is now active to govern objective-close adjudication bundles:
+  - `round-2026-03-23-1711-govern-objective-close-adjudication-bundles`
 
 ## Important Files
 
@@ -218,17 +230,17 @@ The immediate objective is:
   knows the project context.
 - Adjudication follow-ups now execute a bounded structured subset, but they
   still cannot infer rewrites from verdict prose or handle broader multi-object
-  rewrite plans automatically.
+  rewrite plans automatically beyond the first bounded close-chain bundle.
 - Phase transitions are still implicit in objective rewrites because `set-phase`
   does not exist yet as a first-class guarded command.
 
 ## Next Steps
 
-1. Expand the adjudication executor beyond its first structured subset:
-   decide the next safe supported rewrites such as round close/capture chains,
-   objective close paths, or explicit invalidation bundles.
+1. Expand the adjudication executor beyond the first bounded close-chain bundle:
+   define the next safe supported rewrite around governed objective-close
+   paths without letting adjudication prose mutate durable truth.
 2. Decide whether `executor_followups` should stay as serialized JSON payloads
-   in frontmatter or grow into a richer multi-field adjudication contract.
+   in frontmatter or evolve into a richer explicit contract shape.
 3. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 4. Run the first serious external-target role-eval bundle for `wind-agent`.

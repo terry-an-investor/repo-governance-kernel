@@ -1,26 +1,26 @@
 # Active Round
 
-- Round id: `round-2026-03-23-1649-expand-adjudication-rewrite-bundles`
+- Round id: `round-2026-03-23-1711-govern-objective-close-adjudication-bundles`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- Add one more safe adjudication execution bundle beyond the current structured subset, such as a multi-step round close chain or a governed objective close bundle.
-- Keep machine-executable follow-up contracts explicit and bounded instead of inferring them from verdict prose.
-- Validate at least one richer adjudication rewrite bundle on disposable fixtures and the live control state.
+- Design the next bounded adjudication bundle around governed objective-close paths instead of only round close chains.
+- Decide whether executor_followups should remain serialized JSON strings or evolve into a richer structured contract.
+- Keep the schema project-agnostic while broadening adjudication execution coverage.
 
 ## Deliverable
 
-A broader adjudication execution layer that can apply one additional multi-step rewrite bundle while preserving honest blocked boundaries.
+A validated milestone plan and first implementation slice for governed objective-close adjudication bundles.
 
 ## Validation Plan
 
-Add targeted bundle regression, rerun audit-control-state, then rerun full phase-1 smoke.
+Define the next bounded bundle, update canonical docs, and prove the path with targeted validation before broader automation.
 
 ## Active Risks
 
-_none recorded_
+- Objective-close bundles could overreach and mutate durable truth without enough explicit inputs if the contract stays underspecified.
 
 ## Blockers
 
