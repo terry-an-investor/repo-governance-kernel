@@ -36,3 +36,15 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 
 - Manage Python execution in this project with `uv`.
 - Prefer `uv run python ...` over direct `python ...`.
+
+## 6. Round Closure
+
+- At the end of each meaningful round, inspect the current project for remaining
+  problems before closing the turn.
+- This close-out inspection must explicitly consider:
+  - control-state drift or schema drift
+  - guard or transition holes
+  - sample-file pollution or fidelity regressions
+  - validation gaps between claimed behavior and observed behavior
+- Do not wait for the user to ask "what is still wrong"; surface the current
+  problems proactively in the round close-out.
