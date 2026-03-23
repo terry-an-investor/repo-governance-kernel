@@ -42,6 +42,9 @@ control state to answer:
 
 Without this layer, retrieval can recover facts while still accelerating drift.
 
+That control state should evolve through explicit state transitions, not through
+silent document overwrite.
+
 ### 1. Files are the source of truth
 
 The canonical memory should live in visible files.

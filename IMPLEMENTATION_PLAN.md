@@ -14,6 +14,8 @@ frozen design:
 - retrieval stays structure-first, then FTS5
 - control state stays file-first before automation expands
 
+This phase remains state-machine oriented, not state-machine enforced.
+
 ## Phase 1 In Scope
 
 - establish canonical control objects in files:
@@ -48,6 +50,7 @@ frozen design:
 - graph reasoning
 - generalized memory ontology expansion
 - automatic pivot detection beyond explicit operator-authored records
+- unified transition engine with enforced guards and side effects
 
 ## Current Implementation Gaps
 
@@ -59,6 +62,7 @@ frozen design:
 - keep constitution out of the default handoff packet unless later evidence
   proves that always inlining it helps more than it bloats
 - compile constitution into role-specific contexts instead
+- define the future transition command surface before implementing enforcement
 
 ### `scripts/build_index.py`
 
@@ -95,7 +99,8 @@ frozen design:
 4. switch query path from `LIKE` to FTS5
 5. teach context assembly to compile through active objective state
 6. add role-context compilers over the same control substrate
-7. rerun real builds and queries
+7. freeze the explicit state-machine design and transition semantics
+8. rerun real builds and queries
 
 ## Validation Standard
 

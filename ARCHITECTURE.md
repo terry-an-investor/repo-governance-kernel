@@ -19,6 +19,7 @@ supports:
 ## Architectural Summary
 
 The system should be read together with [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md).
+The transition model is defined in [`STATE_MACHINE.md`](./STATE_MACHINE.md).
 
 Memory is the storage substrate. Control state is the thing that keeps the
 project direction coherent.
@@ -29,6 +30,15 @@ The system has four layers:
 2. extraction and summarization
 3. memory store
 4. retrieval and context injection
+
+The control layer also depends on coordinated state domains rather than one
+global status bit:
+
+- objective-line state
+- project phase state
+- round state
+- workaround state
+- memory freshness state
 
 This keeps raw history available while making extracted memory explicit and
 cheap to consume.
@@ -277,6 +287,7 @@ Suggested root directory:
 ```text
 session-memory/
 ├── CONTROL_SYSTEM.md
+├── STATE_MACHINE.md
 ├── DESIGN_PRINCIPLES.md
 ├── ARCHITECTURE.md
 ├── SCHEMA.md

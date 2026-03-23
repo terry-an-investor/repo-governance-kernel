@@ -21,6 +21,8 @@ The problem is not only recall. The harder problem is control:
 
 The system should store control state, not only remembered facts.
 
+See [`STATE_MACHINE.md`](./STATE_MACHINE.md) for the explicit transition model.
+
 A fresh agent or side-session reviewer does not merely need "context". It needs
 to know:
 
@@ -233,6 +235,19 @@ The system should add these project-agnostic control objects:
 
 These objects are not role-specific. Reviewer, architect, and orchestrator
 contexts should be compiled from them.
+
+## State-Machine Status
+
+The current design should be understood as:
+
+- state-machine oriented
+
+It should not yet be described as:
+
+- state-machine enforced
+
+That means the docs already define state domains, transition intent, and drift
+semantics, but the implementation still lacks a unified transition engine.
 
 ## Minimal Pivot Record
 

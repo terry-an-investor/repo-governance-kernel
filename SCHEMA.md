@@ -86,6 +86,9 @@ Initial memory object types:
 - `validation-report`
 - `hypothesis`
 
+The current schema stores state-bearing objects, but it does not yet enforce a
+single transition engine over them.
+
 ## Identity Model
 
 The minimum identity split is:
@@ -203,6 +206,30 @@ matter:
 - `phase`
   - optional project phase at extraction time, usually `exploration` or
     `execution`
+
+State-bearing objects may also need object-local status semantics.
+
+Suggested future examples:
+
+- objective:
+  - `proposed`
+  - `active`
+  - `superseded`
+  - `closed`
+  - `invalidated`
+- round-contract:
+  - `draft`
+  - `active`
+  - `blocked`
+  - `validation_pending`
+  - `captured`
+  - `closed`
+  - `abandoned`
+- workaround:
+  - `proposed`
+  - `active`
+  - `retired`
+  - `invalidated`
 
 ## Durable Memory File Shapes
 

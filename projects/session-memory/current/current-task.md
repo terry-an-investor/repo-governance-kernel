@@ -71,12 +71,16 @@ The immediate objective is:
   - run config
 - The first external-target reviewer bundle was prepared successfully for
   `wind-agent`.
+- `STATE_MACHINE.md` now makes the design explicit:
+  - current system is state-machine oriented
+  - current system is not yet state-machine enforced
 
 ## Important Files
 
 - `C:/Users/terryzzb/Desktop/session-memory/DESIGN_PRINCIPLES.md`
 - `C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md`
 - `C:/Users/terryzzb/Desktop/session-memory/CONTROL_SYSTEM.md`
+- `C:/Users/terryzzb/Desktop/session-memory/STATE_MACHINE.md`
 - `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
 - `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
 - `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
@@ -107,9 +111,12 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Decide whether reviewer/orchestrator scoring should stay manual or gain
+3. Freeze the transition command surface for:
+   `open-objective`, `record-pivot`, `open-round`, `close-round`,
+   `activate-workaround`, and related guards.
+4. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
-4. Run and record the first bootstrap control-vs-treatment experiment against
+5. Run and record the first bootstrap control-vs-treatment experiment against
    live project state.
-5. Add a first real workaround or validation-report sample only when a live
+6. Add a first real workaround or validation-report sample only when a live
    implementation round creates one honestly.
