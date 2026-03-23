@@ -1,27 +1,19 @@
 ---
 id: round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate
 type: round-contract
-title: "Freeze machine-readable transition registry"
+title: "Promote transition registry to semantic owner layer"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: cc53d54dcf8c3869205632429a68344133db1330
+git_sha: 9f009fb5a58425dff319dbb1a20af72bb43fdf27
 paths:
-  - AGENTS.md
-  - .githooks/
-  - .github/
   - scripts/
-  - CONTROL_SYSTEM.md
-  - SCHEMA.md
-  - STATE_MACHINE.md
+  - projects/session-memory/
   - TRANSITION_COMMANDS.md
-  - projects/session-memory/control/
-  - projects/session-memory/current/
-  - DESIGN_PRINCIPLES.md
-  - HARNESS.md
-  - scripts/transition_specs.py
+  - STATE_MACHINE.md
+  - CONTROL_SYSTEM.md
 thread_ids: []
 evidence_refs: []
 tags:
@@ -29,7 +21,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T20:59:13+08:00
+updated_at: 2026-03-23T21:19:13+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -38,26 +30,26 @@ superseded_by: []
 
 ## Summary
 
-Add a canonical transition registry that declares command domains, executor support, and adjudication plan families in one machine-readable owner-layer surface.
+Extend the machine-readable transition registry from command names and support flags into a first semantic contract that registry consumers can validate and reuse.
 
 ## Scope
 
-- Add a machine-readable transition registry for the currently implemented command surface and bounded adjudication plan families.
-- Wire executor and adjudication plan compiler support lists to the registry instead of hard-coded local sets.
-- Teach control audit to detect registry drift against the canonical documented command surface.
+- Extend the transition registry spec to encode first semantic fields for implemented command and plan families.
+- Wire registry export and validation to reject placeholder semantic coverage for commands that the repo treats as implemented.
+- Teach control audit to warn when documented commands are missing semantic coverage in the machine-readable registry.
 
 ## Deliverable
 
-A repo-owned transition registry that becomes the single machine-readable source for supported transition commands and bounded adjudication plan families.
+A richer transition registry that can describe implemented command semantics beyond names and executor support, plus audit checks that keep that registry honest.
 
 ## Validation Plan
 
-Validate registry listing and audit checks, rerun adjudication smoke and full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
+Validate registry export shape, rerun targeted audit checks, rerun transition/adjudication smoke, and rerun real-project audit plus worktree enforcement.
 
 ## Active Risks
 
-- A partial registry could create false confidence if scripts still quietly keep private support lists outside the owner-layer registry.
-- Registry drift checks may still be too shallow if they only compare names and not full guard or side-effect semantics yet.
+- A shallow semantic schema could still duplicate prose without becoming authoritative enough to drive later consumers.
+- Overreaching into fully generic command execution in the same round would blur the owner-layer boundary and regress reviewability.
 
 ## Blockers
 
@@ -110,3 +102,5 @@ The active round now targets harness law so disposable smoke isolation and execu
 Round rewritten because The harness-law milestone is complete, and the next control slice is a machine-readable transition registry so command support stops drifting between docs, executor, and plan compiler.
 
 The active round now targets a machine-readable transition registry so command support stops living partly in prose and partly in scattered script constants.
+
+Round rewritten because The next development slice is semantic registry uplift rather than name-only registry coverage.

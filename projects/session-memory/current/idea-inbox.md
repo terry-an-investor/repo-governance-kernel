@@ -7,6 +7,8 @@
 ## Triaged
 
 - Add a second project sample before any embedding or rerank work.
+- Open successor round: make round-domain commands consume semantic transition-registry contracts instead of scattered local assumptions.
+- Open successor round: expand bounded adjudication plan families only where registry-backed command semantics already exist.
 
 ## Discarded
 

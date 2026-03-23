@@ -6,22 +6,22 @@
 
 ## Scope
 
-- Add a machine-readable transition registry for the currently implemented command surface and bounded adjudication plan families.
-- Wire executor and adjudication plan compiler support lists to the registry instead of hard-coded local sets.
-- Teach control audit to detect registry drift against the canonical documented command surface.
+- Extend the transition registry spec to encode first semantic fields for implemented command and plan families.
+- Wire registry export and validation to reject placeholder semantic coverage for commands that the repo treats as implemented.
+- Teach control audit to warn when documented commands are missing semantic coverage in the machine-readable registry.
 
 ## Deliverable
 
-A repo-owned transition registry that becomes the single machine-readable source for supported transition commands and bounded adjudication plan families.
+A richer transition registry that can describe implemented command semantics beyond names and executor support, plus audit checks that keep that registry honest.
 
 ## Validation Plan
 
-Validate registry listing and audit checks, rerun adjudication smoke and full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
+Validate registry export shape, rerun targeted audit checks, rerun transition/adjudication smoke, and rerun real-project audit plus worktree enforcement.
 
 ## Active Risks
 
-- A partial registry could create false confidence if scripts still quietly keep private support lists outside the owner-layer registry.
-- Registry drift checks may still be too shallow if they only compare names and not full guard or side-effect semantics yet.
+- A shallow semantic schema could still duplicate prose without becoming authoritative enough to drive later consumers.
+- Overreaching into fully generic command execution in the same round would blur the owner-layer boundary and regress reviewability.
 
 ## Blockers
 

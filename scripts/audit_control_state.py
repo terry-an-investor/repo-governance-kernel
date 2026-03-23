@@ -25,7 +25,12 @@ from round_control import (
     select_active_objective_record,
     select_open_round_record,
 )
-from transition_specs import adjudication_plan_types, transition_command_names
+from transition_specs import (
+    adjudication_plan_types,
+    semantic_adjudication_plan_types,
+    semantic_transition_command_names,
+    transition_command_names,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -637,6 +642,18 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             message="TRANSITION_COMMANDS.md documents commands that are not present in the machine-readable transition registry",
             evidence=missing_registry_commands,
         )
+    semantic_registry_commands = set(semantic_transition_command_names())
+    missing_semantic_commands = sorted(documented_commands - semantic_registry_commands)
+    if missing_semantic_commands:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="documented_transition_commands_missing_semantic_registry_contract",
+            message="TRANSITION_COMMANDS.md documents commands that do not yet have semantic machine-readable coverage in the transition registry",
+            evidence=missing_semantic_commands,
+        )
+
     documented_plans = documented_plan_family_names(transition_commands_doc_path)
     registry_plans = set(adjudication_plan_types())
     missing_registry_plans = sorted(documented_plans - registry_plans)
@@ -649,7 +666,19 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             message="TRANSITION_COMMANDS.md documents adjudication plan families that are not present in the machine-readable transition registry",
             evidence=missing_registry_plans,
         )
+    semantic_registry_plans = set(semantic_adjudication_plan_types())
+    missing_semantic_plans = sorted(documented_plans - semantic_registry_plans)
+    if missing_semantic_plans:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="documented_adjudication_plans_missing_semantic_registry_contract",
+            message="TRANSITION_COMMANDS.md documents adjudication plan families that do not yet have semantic machine-readable coverage in the transition registry",
+            evidence=missing_semantic_plans,
+        )
     checks.append("transition registry coverage against documented command surface")
+    checks.append("transition registry semantic coverage against documented command surface")
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")
     warning_count = sum(1 for issue in issues if issue["severity"] == "warning")

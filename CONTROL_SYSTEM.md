@@ -520,7 +520,9 @@ The machine-executable subset must stay explicit and bounded.
 When the verdict already knows a safe rewrite pattern, the repo may carry it as
 one bounded plan contract and compile it into low-level executor payloads
 through repo-owned code instead of forcing operators to hand-author every JSON
-payload.
+payload. Those plan contracts should stay anchored to the same machine-readable
+transition registry that names command guards, write targets, and side-effect
+classes for the underlying owner-layer commands.
 Those bounded plan contracts may consume adjudication durable context such as
 the invalidated object set when target resolution remains deterministic and
 auditable.

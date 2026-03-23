@@ -21,10 +21,10 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `41106ce5da36e0681495490949f3b18e6616dbb0`
+- HEAD anchor: `9f009fb5a58425dff319dbb1a20af72bb43fdf27`
 - Worktree state: `dirty`
-- Changed path count: `14`
-- Last anchor refresh: `2026-03-23T20:03:10+08:00`
+- Changed path count: `9`
+- Last anchor refresh: `2026-03-23T21:24:04+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - freezing a machine-readable transition registry so command support stops drifting between prose docs, executor support lists, and adjudication plan compiler constants
-  - declaring canonical transition command names, domains, executor support, and adjudication plan families in one owner-layer registry
-  - wiring executor and adjudication compiler support lists to that registry instead of scattered local sets
-  - teaching control audit to warn when `TRANSITION_COMMANDS.md` documents command or plan names outside the registry
+  - promoting the machine-readable transition registry from name-only coverage into a first semantic owner-layer contract
+  - declaring canonical transition command names, domains, implementation status, required inputs, guard codes, write targets, and side-effect classes in one registry
+  - keeping executor support and adjudication plan family resolution anchored to that registry instead of scattered local sets
+  - teaching control audit to warn when `TRANSITION_COMMANDS.md` documents command or plan semantics outside the registry
 
 ## Validated Facts
 
@@ -65,9 +65,14 @@ The immediate objective is:
 - `uv run python scripts/list_transition_registry.py` now exports the canonical machine-readable transition registry:
   - transition command names
   - command domains
+  - implementation status
+  - required inputs
+  - guard codes
+  - write targets
+  - side-effect codes
   - executor-supported commands
   - bounded adjudication plan family names
-- `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry coverage against `TRANSITION_COMMANDS.md`
+- `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry name coverage and semantic coverage against `TRANSITION_COMMANDS.md`
 - A deliberate protocol violation now fails honestly:
   - running one disposable adjudication smoke while `smoke_phase1.py` tries to start the suite causes `fixture_leak_before_run`
   - this is now a visible harness-protocol failure instead of a silent flaky test
@@ -350,10 +355,9 @@ The immediate objective is:
 
 ## Next Steps
 
-1. Keep compressing assembled context so it acts like a handoff packet instead
+1. Complete the active semantic-registry round so transition commands carry machine-readable guard, write-target, and side-effect contracts instead of name-only coverage.
+2. Open the successor round that makes round-domain commands and audit consume semantic transition-registry contracts directly.
+3. Open the successor round that broadens bounded adjudication plan families only where registry-backed command semantics already make execution honest.
+4. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extend the transition registry beyond names and support flags toward richer
-   guard, write-target, and side-effect semantics that can drive stronger audit and review tooling.
-4. After the registry is richer, compile a structured reviewer packet from it so
-   review can inspect spec surfaces and evidence coverage instead of free-form context alone.
+5. Run the first serious external-target role-eval bundle for `wind-agent`.

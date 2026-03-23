@@ -21,12 +21,19 @@ registry:
 
 - `scripts/transition_specs.py`
 
-The registry does not yet encode every guard or side effect, but it now owns:
+The registry still does not encode every full rewrite semantics, but it now owns:
 
 - canonical command names
 - command domains
+- implementation status
+- required inputs
+- guard codes
+- write targets
+- side-effect codes
+- whether a command emits a transition event
 - which commands are currently executor-supported
 - bounded adjudication plan family names
+- adjudication plan target-resolution contracts
 
 The current milestone also adds one first enforcement owner layer:
 
@@ -668,10 +675,11 @@ Current implementation status:
 - reports prose-only, unsupported, or underspecified follow-ups as blocked instead of
   pretending they were executed
 - transition-registry note:
-  - the current owner-layer registry covers command names, domains, executor
-    support, and adjudication plan families
+  - the current owner-layer registry covers command names, domains,
+    implementation status, required inputs, guard codes, write targets,
+    side-effect codes, executor support, and adjudication plan families
   - `audit-control-state` now warns if `TRANSITION_COMMANDS.md` documents command
-    or plan names that the registry does not yet cover
+    or plan names that the registry does not yet cover semantically
 
 ## Minimal First Implementation Set
 
