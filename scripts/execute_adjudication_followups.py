@@ -90,7 +90,7 @@ def scaffold_exception_ledger(path: Path) -> None:
             "",
             "- None recorded yet.",
             "",
-            "## Invalidated By Pivot",
+            "## Invalidated",
             "",
             "- None recorded yet.",
             "",

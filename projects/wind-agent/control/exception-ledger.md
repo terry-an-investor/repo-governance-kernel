@@ -8,6 +8,6 @@
 
 - None recorded yet.
 
-## Invalidated By Pivot
+## Invalidated
 
 - None recorded yet.

@@ -88,6 +88,10 @@ def pivot_log_path(project_id: str) -> Path:
     return project_dir(project_id) / "control" / "pivot-log.md"
 
 
+def exception_ledger_path(project_id: str) -> Path:
+    return project_dir(project_id) / "control" / "exception-ledger.md"
+
+
 def rounds_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "rounds"
 
@@ -98,6 +102,10 @@ def objectives_dir(project_id: str) -> Path:
 
 def pivots_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "pivots"
+
+
+def exception_contracts_dir(project_id: str) -> Path:
+    return project_dir(project_id) / "memory" / "exception-contracts"
 
 
 def transition_events_dir(project_id: str) -> Path:
@@ -236,6 +244,7 @@ def build_memory_frontmatter(
     confidence: str = "high",
     phase: str = "",
     objective_id: str = "",
+    pivot_id: str = "",
     supersedes: list[str] | None = None,
     superseded_by: list[str] | None = None,
     extra_fields: dict[str, object] | None = None,
@@ -297,6 +306,8 @@ def build_memory_frontmatter(
     )
     if objective_id:
         lines.append(f"objective_id: {objective_id}")
+    if pivot_id:
+        lines.append(f"pivot_id: {pivot_id}")
     if normalized_phase:
         lines.append(f"phase: {normalized_phase}")
     for key, raw_value in extra_fields.items():
@@ -645,6 +656,133 @@ def render_adjudication_file(
     return "\n".join(body_parts).strip() + "\n"
 
 
+def render_exception_contract_file(
+    *,
+    exception_contract_id: str,
+    title: str,
+    status: str,
+    project_id: str,
+    objective_id: str,
+    pivot_id: str,
+    anchor: dict[str, str],
+    paths: list[str],
+    created_at: str | None,
+    evidence_refs: list[dict[str, str]] | None,
+    tags: list[str] | None,
+    confidence: str,
+    phase: str,
+    summary: str,
+    reason: str,
+    temporary_behavior: str,
+    risk: str,
+    exit_condition: str,
+    owner_scope: list[str],
+    evidence: list[str],
+    resolution: str,
+) -> str:
+    frontmatter = build_memory_frontmatter(
+        item_id=exception_contract_id,
+        memory_type="exception-contract",
+        title=title,
+        status=status,
+        project_id=project_id,
+        anchor=anchor,
+        paths=paths,
+        created_at=created_at,
+        evidence_refs=evidence_refs,
+        tags=tags,
+        confidence=confidence,
+        phase=phase,
+        objective_id=objective_id,
+        pivot_id=pivot_id,
+    )
+    body_parts = [
+        frontmatter,
+        "## Summary\n",
+        summary.strip() or "_none recorded_",
+        "",
+        "## Reason\n",
+        reason.strip() or "_none recorded_",
+        "",
+        "## Temporary Behavior\n",
+        temporary_behavior.strip() or "_none recorded_",
+        "",
+        "## Risk\n",
+        risk.strip() or "_none recorded_",
+        "",
+        "## Exit Condition\n",
+        exit_condition.strip() or "_none recorded_",
+        "",
+        "## Owner Scope\n",
+        render_bullet_list(owner_scope),
+        "",
+        "## Evidence\n",
+        render_bullet_list(evidence),
+        "",
+        "## Resolution\n",
+        resolution.strip() or "_none recorded_",
+        "",
+    ]
+    return "\n".join(body_parts).strip() + "\n"
+
+
+def render_exception_ledger_file(project_id: str) -> str:
+    records = load_all_exception_contracts(project_id)
+    grouped: dict[str, list[tuple[Path, dict[str, object], dict[str, str]]]] = {
+        "active": [],
+        "retired": [],
+        "invalidated": [],
+    }
+    for record in records:
+        _path, meta, _sections = record
+        status = str(meta.get("status") or "").strip()
+        if status in grouped:
+            grouped[status].append(record)
+
+    def render_group(records: list[tuple[Path, dict[str, object], dict[str, str]]]) -> str:
+        if not records:
+            return "- None recorded yet."
+        lines: list[str] = []
+        for _path, meta, sections in records:
+            contract_id = str(meta.get("id") or "").strip()
+            title = str(meta.get("title") or contract_id).strip() or contract_id
+            objective_id = str(meta.get("objective_id") or "").strip()
+            pivot_id = str(meta.get("pivot_id") or "").strip()
+            exit_condition = summarize_line(sections.get("Exit Condition", ""))
+            resolution = summarize_line(sections.get("Resolution", ""))
+            owner_scope = parse_bullet_list(sections.get("Owner Scope", ""))
+            lines.append(f"- `{contract_id}`: {title}")
+            if objective_id:
+                lines.append(f"  - objective: `{objective_id}`")
+            if owner_scope:
+                lines.append(f"  - owner scope: {normalize_phrase(owner_scope[0])}")
+            if exit_condition != "_none recorded_":
+                lines.append(f"  - exit condition: {exit_condition}")
+            if pivot_id:
+                lines.append(f"  - pivot: `{pivot_id}`")
+            if resolution != "_none recorded_":
+                lines.append(f"  - resolution: {resolution}")
+        return "\n".join(lines)
+
+    parts = [
+        "# Exception Ledger",
+        "",
+        "## Active",
+        "",
+        render_group(grouped["active"]),
+        "",
+        "## Retired",
+        "",
+        render_group(grouped["retired"]),
+        "",
+        "## Invalidated",
+        "",
+        render_group(grouped["invalidated"]),
+        "",
+    ]
+    return "\n".join(parts).strip() + "\n"
+
+
 def render_active_objective_file(
     *,
     objective_id: str,
@@ -753,6 +891,28 @@ def locate_objective_file(project_id: str, objective_id: str) -> Path | None:
     for path in sorted(directory.glob("*.md")):
         values = extract_frontmatter_scalars(read_text(path), ["id"])
         if values.get("id") == objective_id:
+            return path
+    return None
+
+
+def locate_exception_contract_file(project_id: str, exception_contract_id: str) -> Path | None:
+    directory = exception_contracts_dir(project_id)
+    if not directory.exists():
+        return None
+    for path in sorted(directory.glob("*.md")):
+        values = extract_frontmatter_scalars(read_text(path), ["id"])
+        if values.get("id") == exception_contract_id:
+            return path
+    return None
+
+
+def locate_pivot_file(project_id: str, pivot_id: str) -> Path | None:
+    directory = pivots_dir(project_id)
+    if not directory.exists():
+        return None
+    for path in sorted(directory.glob("*.md")):
+        values = extract_frontmatter_scalars(read_text(path), ["id"])
+        if values.get("id") == pivot_id:
             return path
     return None
 
@@ -867,6 +1027,45 @@ def load_pivot_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     return meta, sections
 
 
+def load_exception_contract_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
+    text = read_text(path)
+    frontmatter_text, _body = split_frontmatter(text)
+    meta = parse_frontmatter(frontmatter_text)
+    for key in [
+        "id",
+        "title",
+        "status",
+        "project_id",
+        "workspace_id",
+        "workspace_root",
+        "branch",
+        "git_sha",
+        "created_at",
+        "confidence",
+        "phase",
+        "objective_id",
+        "pivot_id",
+    ]:
+        if key in meta:
+            meta[key] = normalize_scalar_metadata(meta[key])
+    meta["paths"] = parse_string_list(meta.get("paths"))
+    meta["tags"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("tags")) if normalize_scalar_metadata(item)]
+    normalized_evidence_refs: list[dict[str, str]] = []
+    for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
+        normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))
+        if not normalized_ref:
+            continue
+        normalized_evidence_refs.append(
+            {
+                "type": normalize_scalar_metadata(entry.get("type", "")),
+                "ref": normalized_ref,
+            }
+        )
+    meta["evidence_refs"] = normalized_evidence_refs
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
+    return meta, sections
+
+
 def load_adjudication_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     text = read_text(path)
     frontmatter_text, _body = split_frontmatter(text)
@@ -949,6 +1148,18 @@ def load_all_pivots(project_id: str) -> list[tuple[Path, dict[str, object], dict
     return records
 
 
+def load_all_exception_contracts(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    directory = exception_contracts_dir(project_id)
+    if not directory.exists():
+        return []
+    records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for path in sorted(directory.glob("*.md")):
+        meta, sections = load_exception_contract_file(path)
+        records.append((path, meta, sections))
+    records.sort(key=lambda record: record_sort_key(record[0], record[1]), reverse=True)
+    return records
+
+
 def load_all_adjudications(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
     directory = adjudications_dir(project_id)
     if not directory.exists():
@@ -991,6 +1202,27 @@ def find_rounds(
         round_objective_id = str(meta.get("objective_id") or "").strip()
         status = str(meta.get("status") or "").strip()
         if target_objective_id and round_objective_id != target_objective_id:
+            continue
+        if allowed_statuses and status not in allowed_statuses:
+            continue
+        matches.append(record)
+    return matches
+
+
+def find_exception_contracts(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    statuses: set[str] | None = None,
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    target_objective_id = objective_id.strip()
+    allowed_statuses = {status.strip() for status in (statuses or set()) if status.strip()}
+    matches: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for record in load_all_exception_contracts(project_id):
+        _path, meta, _sections = record
+        contract_objective_id = str(meta.get("objective_id") or "").strip()
+        status = str(meta.get("status") or "").strip()
+        if target_objective_id and contract_objective_id != target_objective_id:
             continue
         if allowed_statuses and status not in allowed_statuses:
             continue
@@ -1143,6 +1375,7 @@ def build_transition_event_file(
     timestamp = timestamp_now()
     slug = slugify(f"{command_name}-{title}")
     event_id = f"trans-{timestamp.strftime('%Y-%m-%d-%H%M%S')}-{slug}"
+    normalized_target_ids = [target_id.strip() for target_id in target_ids if target_id.strip()]
     frontmatter = [
         "---",
         f"id: {event_id}",
@@ -1156,8 +1389,8 @@ def build_transition_event_file(
         f"git_sha: {anchor.get('git_sha', '')}",
         "paths:",
     ]
-    if target_ids:
-        for target_id in target_ids:
+    if normalized_target_ids:
+        for target_id in normalized_target_ids:
             frontmatter.append(f"  - {target_id}")
     else:
         frontmatter.append("  - .")

@@ -496,7 +496,7 @@ def main() -> None:
         "Exception Ledger",
         exception_preface,
         exception_sections,
-        ["Active", "Invalidated By Pivot"],
+        ["Active", "Invalidated"],
     )
 
     if current_task_path.exists():

@@ -7,9 +7,11 @@ import json
 from round_control import (
     active_objective_path,
     active_round_path,
+    exception_ledger_path,
     load_all_rounds,
     parse_bullet_list,
     project_dir,
+    render_exception_ledger_file,
     render_active_objective_file,
     render_active_round_file,
     render_pivot_log_file,
@@ -58,6 +60,7 @@ def main() -> int:
 
     pivot_log_text = render_pivot_log_file(args.project_id)
     actions.append(f"rebuild `projects/{args.project_id}/control/pivot-log.md` from durable pivot and objective records")
+    exception_ledger_text = render_exception_ledger_file(args.project_id)
 
     active_round_text: str | None = None
     active_round_record = open_round_record
@@ -93,6 +96,12 @@ def main() -> int:
                 f"remove stale `{active_round_path(args.project_id).relative_to(project_path.parent).as_posix()}` because no durable open round exists"
             )
 
+    ledger_path = exception_ledger_path(args.project_id)
+    if ledger_path.exists():
+        actions.append(
+            f"rebuild `{ledger_path.relative_to(project_path.parent).as_posix()}` from durable exception-contract records"
+        )
+
     if issues:
         print(
             json.dumps(
@@ -126,6 +135,9 @@ def main() -> int:
             control_round_path.write_text(active_round_text, encoding="utf-8")
         elif control_round_path.exists():
             control_round_path.unlink()
+
+        if ledger_path.exists():
+            ledger_path.write_text(exception_ledger_text, encoding="utf-8")
 
     print(
         json.dumps(

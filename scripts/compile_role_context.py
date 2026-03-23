@@ -158,7 +158,7 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
         "Exception Ledger",
         exception_preface,
         exception_sections,
-        ["Active", "Invalidated By Pivot"],
+        ["Active", "Invalidated"],
     )
     append_control_sections(
         parts,
@@ -281,7 +281,7 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
         "Exception Ledger",
         exception_preface,
         exception_sections,
-        ["Active", "Invalidated By Pivot"],
+        ["Active", "Invalidated"],
     )
     append_memory(parts, "Relevant Durable Memory", orchestration_memory)
     return "\n".join(parts).strip() + "\n"

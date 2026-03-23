@@ -47,6 +47,7 @@ def run_plain(script_name: str, *args: str) -> None:
 def main() -> None:
     session_memory_audit = run_json("audit_control_state.py", "--project-id", "session-memory")
     wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
+    exception_smoke = run_json("smoke_exception_contracts.py")
     build_result = run_json("build_index.py")
     check_result = run_json("check_index.py")
     query_result = run_json(
@@ -126,6 +127,7 @@ def main() -> None:
                     "session-memory": session_memory_audit["status"],
                     "wind-agent": wind_agent_audit["status"],
                 },
+                "exception_contracts": exception_smoke,
                 "build": build_result,
                 "check": {
                     "memory_items": check_result["memory_items"],

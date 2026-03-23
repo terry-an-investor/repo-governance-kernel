@@ -2,12 +2,12 @@
 id: round-2026-03-23-1213-implement-first-transition-slice
 type: round-contract
 title: "Implement first transition command slice"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: cb2047abe10b8520e6a0b26d4ddc13250d5344e2
+git_sha: 41f9d2e9e3d3caaaae16446b43d74b2ace393ccf
 paths:
   - scripts/open_round.py
   - scripts/update_round_status.py
@@ -21,7 +21,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T12:13:22+08:00
-updated_at: 2026-03-23T12:24:08+08:00
+updated_at: 2026-03-23T15:16:13+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -45,6 +45,8 @@ A working first transition slice that can open a round, move it through legal st
 ## Validation Plan
 
 Run command-level transitions on the real session-memory round path and pass smoke after the new active round is opened.
+uv run python scripts/session_memory.py smoke
+uv run python scripts/session_memory.py audit-control-state --project-id session-memory
 
 ## Active Risks
 
@@ -60,3 +62,13 @@ _none recorded_
 active -> blocked: metadata preservation validation via real transition
 
 blocked -> active: round rewrite validation complete; resume implementation
+
+active -> validation_pending: first round slice implemented; promote to validation before closing
+
+validation_pending -> captured: real transition slice validated on session-memory
+
+validated by:
+- uv run python scripts/session_memory.py smoke
+- uv run python scripts/session_memory.py audit-control-state --project-id session-memory
+
+captured -> closed: first round transition slice completed and superseded by exception-contract milestone

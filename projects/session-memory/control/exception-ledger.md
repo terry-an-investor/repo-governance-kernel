@@ -2,12 +2,15 @@
 
 ## Active
 
-- None recorded yet.
+- `exc-2026-03-23-1524-transition-logic-remains-split-across-per-command-scripts`: Transition logic remains split across per-command scripts
+  - objective: `obj-2026-03-23-0002`
+  - owner scope: scripts/open_objective.py
+  - exit condition: Retire this contract once objective, round, and exception-contract transitions share one owner-layer transition engine or a materially equivalent common primitive.
 
 ## Retired
 
 - None recorded yet.
 
-## Invalidated By Pivot
+## Invalidated
 
 - None recorded yet.

@@ -342,6 +342,7 @@ Suggested sections:
 - exit condition
 - owner scope
 - evidence
+- resolution
 
 ### Validation Report
 
@@ -608,7 +609,7 @@ Suggested shape:
 
 ## Retired
 
-## Invalidated By Pivot
+## Invalidated
 ```
 
 ## Working-State Files

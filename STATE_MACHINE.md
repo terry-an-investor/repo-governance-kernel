@@ -301,6 +301,7 @@ Refusing ambiguity belongs to repair. It is not a substitute for adjudication.
 Current implementation already does these things:
 
 - stores explicit objective and pivot files
+- stores explicit exception-contract files
 - stores exception ledger state
 - compiles contexts from active control files
 - computes freshness verdicts for assembled packets
@@ -320,9 +321,16 @@ Current implementation already does these things:
 - can audit current control honesty through:
   - `audit-control-state`
   - projection drift
+  - exception-ledger projection drift against durable exception-contract truth
   - execution without a bounded round
   - missing control surfaces such as constitution or exception ledger
   - placeholder constitution files that still lack real invariants
+- enforces one first exception-contract slice through:
+  - `activate-exception-contract`
+  - `retire-exception-contract`
+  - `invalidate-exception-contract`
+  - projects `control/exception-ledger.md` from durable exception-contract records
+  - rejects retire/invalidate transitions when the contract is not currently active
 - can record adjudication verdicts through:
   - `adjudicate-control-state`
   - stores explicit adjudication records from the current audit/conflict set
@@ -340,7 +348,7 @@ Current implementation does not yet do these things:
 - auto-invalidate stale round contracts after hard pivots
 - enforce guards before phase changes
 - update status fields through a single transition engine
-- cover objective, pivot, round, and exception-contract domains with the same enforcement depth
+- cover objective, pivot, round, and exception-contract domains with the same unified enforcement depth
 
 This gap should remain explicit until enforcement exists.
 

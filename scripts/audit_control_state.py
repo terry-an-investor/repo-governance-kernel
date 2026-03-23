@@ -10,12 +10,14 @@ from assemble_context import clean_section_text, inspect_live_workspace, parse_h
 from round_control import (
     active_objective_path,
     active_round_path,
+    exception_ledger_path,
     load_all_rounds,
     parse_bullet_list,
     pivot_log_path,
     project_dir,
     render_active_objective_file,
     render_active_round_file,
+    render_exception_ledger_file,
     render_pivot_log_file,
     resolve_anchor,
     select_active_objective_record,
@@ -440,15 +442,26 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             evidence=[str(constitution_path)],
         )
 
-    exception_ledger_path = project_path / "control" / "exception-ledger.md"
-    if not exception_ledger_path.exists():
+    exception_path = exception_ledger_path(project_id)
+    expected_exception_ledger = render_exception_ledger_file(project_id).strip()
+    actual_exception_ledger = read_if_exists(exception_path)
+    if not exception_path.exists():
         add_issue(
             issues,
             severity="warning",
             domain="exception-contract",
             code="missing_exception_ledger",
             message="control/exception-ledger.md is missing, so temporary deviations have no canonical active ledger",
-            evidence=[str(exception_ledger_path)],
+            evidence=[str(exception_path)],
+        )
+    elif actual_exception_ledger != expected_exception_ledger:
+        add_issue(
+            issues,
+            severity="error",
+            domain="projection",
+            code="exception_ledger_projection_drift",
+            message="control/exception-ledger.md does not match the durable exception-contract projection",
+            evidence=[str(exception_path)],
         )
     checks.append("constitution and exception-contract control presence")
 

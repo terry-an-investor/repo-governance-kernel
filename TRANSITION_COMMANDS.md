@@ -434,6 +434,7 @@ It should report at least:
 - projection drift between durable truth and control files
 - current-task drift where the main orientation file no longer mentions the
   active durable objective or active durable round
+- exception-ledger projection drift against durable exception-contract records
 - execution phase without one bounded open round
 - blocked rounds without blockers
 - missing control surfaces such as constitution or exception ledger
@@ -511,21 +512,27 @@ The current implementation now includes two real enforced slices:
 - round:
   - `open-round`
   - `update-round-status`
+- exception-contract:
+  - `activate-exception-contract`
+  - `retire-exception-contract`
+  - `invalidate-exception-contract`
 
 These slices already do these things:
 
 - write durable `objective`, `pivot`, and `round-contract` files
-- update `control/active-objective.md`, `control/pivot-log.md`, and `control/active-round.md`
+- write durable `exception-contract` files
+- update `control/active-objective.md`, `control/pivot-log.md`, `control/active-round.md`, and `control/exception-ledger.md`
 - reject illegal round-status transitions
 - refuse hard pivots that would silently outrun a durable still-open round tied to the old objective
 - refuse opening a second active objective when a durable active objective already exists
+- refuse retiring or invalidating exception contracts that are not currently active
 - preserve existing round metadata when rewriting status
 - record `transition-event` files for both objective-line and round operations
+- record `transition-event` files for exception-contract operations
 
 It does not yet implement:
 
 - soft-pivot transition commands
-- exception-contract transition commands
 - explicit phase transition commands
 - adjudication-driven automatic follow-up rewrites
 - a unified transition engine shared across every command domain
