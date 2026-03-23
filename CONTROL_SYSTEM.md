@@ -129,7 +129,7 @@ The owner layer here is repository-local and harness-agnostic:
 
 - transition gates inside control commands
 - repo-local git hooks that call the same enforcement primitive
-- later CI jobs that call the same enforcement primitive again
+- CI workflows that call the same enforcement primitive again
 
 That means the system can borrow the hooks idea without coupling project
 control to one vendor's runtime semantics.
@@ -139,6 +139,11 @@ They should run before important promotions such as:
 - round capture
 - round closure
 - commit or push
+
+The trigger surfaces may differ, but they must reuse the same repo-owned
+commands. A GitHub Actions workflow that reimplements the policy in YAML logic
+instead of calling `scripts/enforce_worktree.py` and
+`scripts/audit_control_state.py` would be architecture drift.
 
 The first enforcement slice should block at least these failures:
 

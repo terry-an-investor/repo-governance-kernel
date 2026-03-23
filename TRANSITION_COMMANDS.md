@@ -501,6 +501,12 @@ Primary users:
 - `update-round-status` before `closed`
 - git hooks and CI before commit or push
 
+Current trigger surfaces in this repo:
+
+- `.githooks/pre-commit`
+- `.githooks/pre-push`
+- `.github/workflows/control-enforcement.yml`
+
 Owner-layer note:
 
 - the canonical enforcement owner is the repository command itself, not a

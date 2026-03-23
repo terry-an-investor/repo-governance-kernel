@@ -21,10 +21,10 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `5988e6cc7741c92f37d5af3cbffb204f34016d20`
+- HEAD anchor: `18d7be1e7f239ea9510af46c5387d9e33de0006a`
 - Worktree state: `dirty`
-- Changed path count: `22`
-- Last anchor refresh: `2026-03-23T18:14:34+08:00`
+- Changed path count: `7`
+- Last anchor refresh: `2026-03-23T19:01:17+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -100,6 +100,7 @@ The immediate objective is:
   - `scripts/install_hooks.py` installs `.githooks/` through `git config core.hooksPath`
   - `.githooks/pre-commit` runs worktree enforcement before commit
   - `.githooks/pre-push` runs worktree enforcement plus control-state audit before push
+  - `.github/workflows/control-enforcement.yml` reuses the same owner-layer commands in CI
 - Automatic enforcement now has a second real blocked-state class:
   - constitution-declared guarded exception paths can be marked as temporary-deviation zones
   - dirty paths inside those zones are blocked unless one active exception contract explicitly covers them
@@ -264,22 +265,17 @@ The immediate objective is:
   still cannot infer rewrites from verdict prose or handle broader multi-object
   rewrite plans automatically beyond the first bounded close-chain bundle.
 - Automatic enforcement is still only partially implemented:
-  - the first worktree gate exists, but workaround or exception-contract dishonesty is not yet enforced as a durable blocked state
-  - git hooks exist locally, but CI still does not reuse the same owner-layer gate
+  - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
   - round scope maintenance is still manual; there is no dedicated refresh command yet
 - Phase transitions are still implicit in objective rewrites because `set-phase`
   does not exist yet as a first-class guarded command.
 
 ## Next Steps
 
-1. Broaden enforcement beyond scope drift and projection drift by defining one
-   more durable blocked-state class around workaround or exception-contract abuse.
-2. Reuse the same owner-layer enforcement in CI so local hooks and remote gates
-   cannot diverge.
-3. Add a safer round-scope refresh path so real implementation rounds do not
+1. Add a safer round-scope refresh path so real implementation rounds do not
    rely on manual `paths` edits.
-4. Keep compressing assembled context so it acts like a handoff packet instead
+2. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-5. Run the first serious external-target role-eval bundle for `wind-agent`.
-6. After enforcement broadens again, choose the next command gap:
+3. Run the first serious external-target role-eval bundle for `wind-agent`.
+4. After enforcement broadens again, choose the next command gap:
    explicit phase transitions or reviewer/orchestrator automatic checks.

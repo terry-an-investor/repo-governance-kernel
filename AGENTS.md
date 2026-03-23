@@ -39,6 +39,8 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 - Install and keep repository git hooks active through `uv run python scripts/install_hooks.py`.
 - Treat `.githooks/pre-commit` and `.githooks/pre-push` as part of the control
   plane, not optional local convenience.
+- Keep `.github/workflows/control-enforcement.yml` aligned with the same
+  owner-layer enforcement commands used by local hooks.
 
 ## 6. Automatic Enforcement
 
@@ -52,6 +54,8 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 - `captured` and `closed` round transitions must pass automatic worktree
   enforcement before promotion is allowed.
 - Treat repository-local enforcement as the canonical owner layer.
+- Treat CI as another trigger surface for the same owner-layer commands, not a
+  separate policy implementation.
 - Do not rely on Codex or Claude harness-specific native hooks for correctness.
 - When a harness offers native hooks, use them only as an extra trigger path
   into the same repo-owned enforcement command.

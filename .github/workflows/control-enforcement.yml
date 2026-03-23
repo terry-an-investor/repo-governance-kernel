@@ -1,0 +1,31 @@
+name: control-enforcement
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  control-enforcement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Enforce worktree
+        run: uv run python scripts/enforce_worktree.py --project-id session-memory
+
+      - name: Audit control state
+        run: uv run python scripts/audit_control_state.py --project-id session-memory
+
+      - name: Run phase-1 smoke
+        run: uv run python scripts/smoke_phase1.py
