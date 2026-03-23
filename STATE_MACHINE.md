@@ -62,6 +62,12 @@ Suggested states:
 - `active -> invalidated`
   - when the framing is proven wrong without a direct successor
 
+An explicit close or invalidation can honestly leave the project with:
+
+- zero active objectives
+- no `control/active-objective.md`
+- a `pivot-log.md` that shows no active lineage until a new objective is opened
+
 ### Guards
 
 An objective should not become `active` unless it has:
@@ -78,6 +84,11 @@ When an objective becomes `superseded`:
 - active round contracts tied to it should be reviewed
 - stale exception contracts should be checked for invalidation
 - compiled contexts should re-anchor to the new objective
+
+When an objective becomes `closed` or `invalidated` without a successor:
+
+- no fake active-objective projection should remain
+- open rounds and active exception contracts tied to that objective must be resolved first
 
 ## 2. Project Phase State
 
@@ -307,9 +318,14 @@ Current implementation already does these things:
 - computes freshness verdicts for assembled packets
 - enforces a first objective-line slice through:
   - `open-objective`
+  - `close-objective`
+  - `record-soft-pivot`
   - `record-hard-pivot`
   - only one durable active objective is allowed
+  - zero durable active objectives is legal after an explicit objective close
   - hard pivots reject durable still-open rounds tied to the previous objective
+  - objective close rejects durable open rounds and active exception contracts tied to the objective
+  - soft pivots preserve the same durable objective id while refreshing durable and projected active-objective state together
 - enforces one first round slice through:
   - `open-round`
   - `update-round-status`
@@ -345,9 +361,8 @@ Current implementation does not yet do these things:
 - reject illegal transitions outside the implemented round slice
 - apply adjudication verdicts as a fully general automatic rewrite engine
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
-- auto-invalidate stale round contracts after hard pivots
+- auto-invalidate stale round contracts after hard pivots or soft pivots
 - enforce guards before phase changes
-- update status fields through a single transition engine
 - cover objective, pivot, round, and exception-contract domains with the same unified enforcement depth
 
 This gap should remain explicit until enforcement exists.

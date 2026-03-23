@@ -235,7 +235,8 @@ A soft pivot should usually:
 - preserve the same objective id
 - create a pivot record
 - update the active objective fields
-- invalidate obsolete round contracts
+- record why the same objective id still holds
+- force an explicit round review path when the objective shape changed under an open round
 
 ### Hard Pivot
 
@@ -254,6 +255,18 @@ A hard pivot should usually:
 - create a new objective id
 - create a pivot record that links old and new objectives
 - recompile current control context from the new objective line
+
+### Objective Close
+
+Use when the project intentionally ends the current objective line without
+opening a successor yet.
+
+An objective close should usually:
+
+- update the durable objective status to `closed` or `invalidated`
+- remove `control/active-objective.md`
+- leave zero active objectives until a new mainline is opened
+- refuse to proceed while open rounds or active exception contracts still depend on the closing objective
 
 ## Exploration vs Execution
 

@@ -16,12 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-1548-implement-remaining-objective-line-transitions`
+- Active round id: `round-2026-03-23-1619-implement-adjudication-follow-up-rewrite-slice`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `72ab90077f2b18968f6deecc11f8215c1f220aa8`
+- HEAD anchor: `d7af73f203cc6011b645485368685954b2876164`
+- Worktree state: `dirty`
+- Changed path count: `18`
+- Last anchor refresh: `2026-03-23T16:20:10+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -29,18 +32,17 @@ The immediate objective is:
   - unified CLI and smoke command exist
 - Control-system framing is now explicit:
   - durable docs define objective, pivot, and exception-contract as first-class objects
-  - this project is the first real sample for a hard pivot in objective line
+  - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - finishing the remaining objective-line command surface so projects can close or soft-pivot objectives honestly
-  - building those commands on top of the shared transition engine instead of reintroducing per-command drift
-  - keeping objective-line fixtures strong enough that projection/event semantics stay honest under command expansion
+  - turning adjudication follow-ups from scaffold behavior into real durable control rewrites for supported verdicts
+  - keeping adjudication, repair, and transition execution as separate layers instead of collapsing them into one workaround script
+  - validating the new adjudication path on disposable fixtures and the live `session-memory` control state
 
 ## Validated Facts
 
 - The latest committed baseline is:
-  - `0d603f3 Implement phase-1 SQLite FTS5 memory pipeline`
-- `uv run python scripts/session_memory.py smoke` passed on the committed
-  baseline.
+  - `d7af73f Extract shared transition engine primitive`
+- `uv run python scripts/session_memory.py smoke` passes on the current working tree after the remaining objective-line slice landed.
 - Current index baseline before adding this project sample was:
   - `memory_items = 6`
   - `memory_paths = 17`
@@ -85,11 +87,17 @@ The immediate objective is:
   - `projects/session-memory/memory/rounds/2026-03-23-1516-implement-exception-contract-transition-slice.md`
   - `projects/session-memory/memory/rounds/2026-03-23-1530-extract-shared-transition-engine-primitive.md`
   - `projects/session-memory/memory/rounds/2026-03-23-1548-implement-remaining-objective-line-transitions.md`
-- The first enforced transition slice now exists:
+- The objective-line slice now exists end to end:
   - `open-objective`
+  - `close-objective`
+  - `record-soft-pivot`
   - `record-hard-pivot`
+- The round and exception-control slices remain live:
   - `open-round`
   - `update-round-status`
+  - `activate-exception-contract`
+  - `retire-exception-contract`
+  - `invalidate-exception-contract`
 - `wind-agent` now has a real control substrate as a second project sample:
   - `control/active-objective.md`
   - `control/pivot-log.md`
@@ -102,6 +110,12 @@ The immediate objective is:
 - Objective-line guards are now anchored to durable truth, not only control files:
   - reject opening a second active objective from orphaned durable state
   - reject hard pivot when durable still-open rounds remain on the old objective
+  - reject close-objective when durable open rounds or active exception contracts still depend on the objective
+  - reject soft-pivot when it would silently mutate objective shape under an open round without an explicit review path
+- Explicit objective close is now a first-class honest state:
+  - durable objective history may exist with zero active objectives
+  - `control/active-objective.md` may be absent after explicit close or invalidation
+  - `pivot-log.md` now projects an empty active lineage honestly instead of treating that state as corruption
 - Control projection repair now exists:
   - `reconcile-control-state`
   - rebuilds `active-objective.md`, `pivot-log.md`, and `active-round.md` from durable truth
@@ -124,13 +138,17 @@ The immediate objective is:
   - objective, round, exception, and hard-pivot commands now delegate shared
     write/projection/event work through `apply-transition-transaction`
 - The shared transition-engine milestone round is now closed.
-- A successor round is now active for the remaining objective-line commands:
-  - `close-objective`
-  - `record-soft-pivot`
+- The remaining objective-line round is now closed after validation.
 - Disposable fixture validation now exercises:
   - `activate -> retire`
   - `activate -> invalidate`
   - exception-ledger projection and audit on a temporary project
+- Disposable objective-line fixture validation now exercises:
+  - open objective -> open round -> soft pivot with the same objective id
+  - round closure before objective close
+  - explicit objective close with zero active objectives and clean audit
+- A successor round is now active for adjudication follow-up rewrites:
+  - `round-2026-03-23-1619-implement-adjudication-follow-up-rewrite-slice`
 
 ## Important Files
 
@@ -150,22 +168,25 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_role_context.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/close_objective.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/activate_exception_contract.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/retire_exception_contract.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/invalidate_exception_contract.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/execute_adjudication_followups.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/open_round.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/open_objective.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/prepare_role_eval_bundle.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/record_soft_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/reconcile_control_state.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_exception_contracts.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_objective_line.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/update_round_status.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/exception-ledger.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/exception-contracts/2026-03-23-1524-transition-logic-remains-split-across-per-command-scripts.md`
-- `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_transition_engine.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-22-project-scoped-scope.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-23-multi-project-workspace-aware-scope.md`
@@ -178,20 +199,22 @@ The immediate objective is:
   implementation fails to ground it in concrete files and evidence.
 - The evaluation protocol is still a biased pilot because the evaluator already
   knows the project context.
-- The remaining objective-line commands still do not exist yet, so projects
-  cannot close or soft-pivot objectives through the canonical command surface.
+- Adjudication follow-ups are still mostly scaffold-level, so durable conflict
+  resolution cannot yet execute meaningful object rewrites end to end.
+- Phase transitions are still implicit in objective rewrites because `set-phase`
+  does not exist yet as a first-class guarded command.
 
 ## Next Steps
 
-1. Keep compressing assembled context so it acts like a handoff packet instead
+1. Implement the new active round:
+   turn adjudication follow-ups into real durable rewrites for at least one
+   supported verdict shape.
+2. Add a disposable adjudication smoke fixture and wire it into the unified
+   smoke path.
+3. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Implement the remaining objective-line commands.
-   Add `close-objective` and `record-soft-pivot` on top of the shared
-   transition engine.
-4. Decide whether reviewer/orchestrator scoring should stay manual or gain
+4. Run the first serious external-target role-eval bundle for `wind-agent`.
+5. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
-5. Run and record the first bootstrap control-vs-treatment experiment against
-   live project state.
-6. Decide whether the next command gap after objective-line completion is:
-   phase transitions or adjudication-driven follow-up rewrites.
+6. After adjudication follow-ups are real, choose the next command gap:
+   explicit phase transitions or reviewer/orchestrator automatic checks.

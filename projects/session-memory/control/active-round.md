@@ -1,27 +1,26 @@
 # Active Round
 
-- Round id: `round-2026-03-23-1548-implement-remaining-objective-line-transitions`
+- Round id: `round-2026-03-23-1619-implement-adjudication-follow-up-rewrite-slice`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- add close-objective so objective lines can end honestly without manual file edits
-- add record-soft-pivot so execution-frame changes do not require fake hard pivots or silent rewrites
-- validate the new objective-line commands against disposable fixtures and keep projection/event semantics aligned with the shared transition engine
+- Turn execute-adjudication-followups from scaffold-only behavior into real durable control rewrites for supported verdict shapes.
+- Keep adjudication, repair, and transition execution separate while proving at least one honest follow-up path beyond scaffolding.
+- Validate the new adjudication path on disposable fixtures and current project control state without introducing fake automation.
 
 ## Deliverable
 
-A real remaining objective-line slice with close-objective and record-soft-pivot commands using the shared transition engine and proven on disposable fixtures.
+A real adjudication follow-up slice that can execute at least one non-trivial durable control rewrite from a durable adjudication record.
 
 ## Validation Plan
 
-Run objective-line fixture regression for close-objective and soft-pivot, then pass audit-control-state, role-context compilation, and full smoke.
+Add disposable adjudication fixtures, run targeted adjudication smoke, then rerun audit-control-state and full phase-1 smoke.
 
 ## Active Risks
 
-- Soft-pivot semantics can blur into hard pivot if objective identity and success criteria boundaries are not enforced tightly.
-- Close-objective can create dead-end control state if active projections are not updated consistently.
+_none recorded_
 
 ## Blockers
 

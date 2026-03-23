@@ -83,16 +83,26 @@ Required inputs:
 - `objective_id`
 - `closing_status`
 - `reason`
+- optional `evidence`
 
 Primary writes:
 
 - objective file frontmatter/body update
-- active objective control file update
+- `control/active-objective.md`
+- `control/pivot-log.md`
 
 Guards:
 
-- the objective must exist
+- referenced objective must match both control and durable active objective truth
 - closing status must be `closed` or `invalidated`
+- no durable `draft`, `active`, `blocked`, or `validation_pending` round may remain tied to the objective
+- no active exception contract may remain tied to the objective
+
+Side effects:
+
+- remove `control/active-objective.md`
+- leave the project with zero active objectives when no successor mainline exists
+- keep `pivot-log.md` honest about the absence of an active lineage
 
 ## 2. Pivot Commands
 
@@ -108,22 +118,41 @@ Required inputs:
 - `objective_id`
 - `trigger`
 - `change_summary`
-- `evidence_refs`
+- `identity_rationale`
+- optional revised objective fields:
+  - `title`
+  - `summary`
+  - `problem`
+  - `success_criteria`
+  - `non_goals`
+  - `why_now`
+  - `phase`
+  - `risks`
+  - `paths`
+- optional `evidence_refs`
 
 Primary writes:
 
+- active objective durable file update
 - `projects/<project_id>/memory/pivots/<timestamp>-<slug>.md`
 - `projects/<project_id>/control/pivot-log.md`
-- active objective file update
+- `projects/<project_id>/control/active-objective.md`
 
 Guards:
 
-- referenced objective must be active
-- change must not require a new objective id
+- referenced objective must match both control and durable active objective truth
+- at least one material objective field must change
+- resulting problem, success criteria, non-goals, and phase must remain present
+- if resulting phase is `execution`, one durable open round must stay aligned to the same objective
+- if an open round remains while objective-shape fields change, the round review path must be recorded explicitly
+- identity rationale must be recorded because the system cannot infer whether a hard pivot was required
 
 Side effects:
 
-- invalidate or review any active round whose scope no longer matches
+- update the durable active objective in place
+- refresh `control/active-objective.md`
+- record a durable pivot that explains both the change and the preserved objective identity
+- force explicit round review notes instead of silently mutating round contracts
 
 ### `record-hard-pivot`
 
@@ -504,10 +533,12 @@ This set is enough to make the control plane materially real.
 
 ## Current Implementation Status
 
-The current implementation now includes two real enforced slices:
+The current implementation now includes real enforced slices in three command domains:
 
 - objective-line:
   - `open-objective`
+  - `close-objective`
+  - `record-soft-pivot`
   - `record-hard-pivot`
 - round:
   - `open-round`
@@ -532,10 +563,9 @@ These slices already do these things:
 
 It does not yet implement:
 
-- soft-pivot transition commands
 - explicit phase transition commands
 - adjudication-driven automatic follow-up rewrites
-- a unified transition engine shared across every command domain
+- automatic round rewrites from soft-pivot or hard-pivot verdicts
 
 ## Explicit Non-Goal
 

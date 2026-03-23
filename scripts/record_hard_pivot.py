@@ -7,13 +7,10 @@ import json
 from round_control import (
     active_objective_path,
     apply_transition_transaction,
-    find_objectives_by_status,
     find_rounds,
-    load_active_objective,
-    load_objective_file,
-    locate_objective_file,
+    merged_tags,
+    objective_record_payload,
     objectives_dir,
-    parse_bullet_list,
     pivot_log_path,
     pivots_dir,
     project_dir,
@@ -21,10 +18,10 @@ from round_control import (
     render_objective_file,
     render_pivot_file,
     render_pivot_log_file,
+    resolve_active_objective_record,
     resolve_anchor,
     slugify,
     timestamp_now,
-    transition_events_dir,
 )
 
 
@@ -54,74 +51,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--supersession-notes", default="")
     return parser.parse_args()
 
-
-def normalize_section_text(text: str) -> str:
-    value = text.strip()
-    return "" if value in {"", "_none recorded_"} else value
-
-
-def merged_tags(existing: list[str], *, drop: set[str], add: list[str]) -> list[str]:
-    seen: set[str] = set()
-    result: list[str] = []
-    for tag in existing:
-        cleaned = str(tag).strip()
-        if not cleaned or cleaned in drop or cleaned in seen:
-            continue
-        seen.add(cleaned)
-        result.append(cleaned)
-    for tag in add:
-        cleaned = str(tag).strip()
-        if not cleaned or cleaned in seen:
-            continue
-        seen.add(cleaned)
-        result.append(cleaned)
-    return result
-
-
 def main() -> int:
     args = parse_args()
     project_path = project_dir(args.project_id)
     if not project_path.exists():
         raise SystemExit(f"project directory not found: {project_path}")
 
-    active_objective_preface, _active_objective_sections = load_active_objective(args.project_id)
-    control_active_objective_id = active_objective_preface.get("objective id", "")
-    previous_objective_id = args.previous_objective_id or control_active_objective_id
-    if not previous_objective_id:
-        raise SystemExit("missing previous objective id; pass --previous-objective-id or maintain control/active-objective.md")
-    if not control_active_objective_id:
-        raise SystemExit(
-            f"missing active objective control state in `{active_objective_path(args.project_id)}`; "
-            "repair control state before recording a hard pivot"
-        )
-    if previous_objective_id != control_active_objective_id:
-        raise SystemExit(
-            f"hard pivot previous objective must match the control active objective; "
-            f"got `{previous_objective_id}` but control declares `{control_active_objective_id}`"
-        )
-
-    durable_active_objectives = find_objectives_by_status(args.project_id, statuses={"active"})
-    durable_active_ids = [str(meta.get("id") or path.stem).strip() for path, meta, _sections in durable_active_objectives]
-    if len(durable_active_ids) != 1:
-        rendered_ids = ", ".join(f"`{objective_id}`" for objective_id in durable_active_ids) or "_none_"
-        raise SystemExit(
-            "hard pivot requires exactly one durable active objective before transition; "
-            f"found {len(durable_active_ids)}: {rendered_ids}"
-        )
-    if durable_active_ids[0] != previous_objective_id:
-        raise SystemExit(
-            f"hard pivot previous objective must match the durable active objective; "
-            f"got `{previous_objective_id}` but durable active objective is `{durable_active_ids[0]}`"
-        )
-
-    objective_path = locate_objective_file(args.project_id, previous_objective_id)
-    if objective_path is None:
-        raise SystemExit(f"objective file not found for `{previous_objective_id}`")
-
-    previous_meta, previous_sections = load_objective_file(objective_path)
-    previous_status = str(previous_meta.get("status") or "").strip()
-    if previous_status != "active":
-        raise SystemExit(f"hard pivot requires an active previous objective; `{previous_objective_id}` is `{previous_status or 'unknown'}`")
+    objective_path, previous_meta, previous_sections, previous_objective_id = resolve_active_objective_record(
+        args.project_id,
+        objective_id=args.previous_objective_id or "",
+    )
+    previous_payload = objective_record_payload(previous_meta, previous_sections)
 
     blocking_round_records = find_rounds(
         args.project_id,
@@ -147,38 +87,38 @@ def main() -> int:
     pivot_file_stem = f"{timestamp.strftime('%Y-%m-%d-%H%M')}-{pivot_slug}"
     anchor = resolve_anchor(args.project_id)
 
-    previous_superseded_by = [str(item).strip() for item in previous_meta.get("superseded_by", []) if str(item).strip()]
+    previous_superseded_by = list(previous_payload["superseded_by"])
     if objective_id not in previous_superseded_by:
         previous_superseded_by.append(objective_id)
 
     previous_objective_text = render_objective_file(
         objective_id=previous_objective_id,
-        title=str(previous_meta.get("title") or previous_objective_id),
+        title=str(previous_payload["title"]),
         status="superseded",
         project_id=args.project_id,
         anchor=anchor,
-        paths=[str(item).strip() for item in previous_meta.get("paths", []) if str(item).strip()],
-        created_at=str(previous_meta.get("created_at") or "").strip() or timestamp.isoformat(timespec="seconds"),
-        evidence_refs=[entry for entry in previous_meta.get("evidence_refs", []) if isinstance(entry, dict)],
+        paths=list(previous_payload["paths"]),
+        created_at=str(previous_payload["created_at"]) or timestamp.isoformat(timespec="seconds"),
+        evidence_refs=list(previous_payload["evidence_refs"]),
         tags=merged_tags(
-            [str(item).strip() for item in previous_meta.get("tags", []) if str(item).strip()],
+            list(previous_payload["tags"]),
             drop={"active"},
             add=["superseded"],
         ),
-        confidence=str(previous_meta.get("confidence") or "high").strip() or "high",
-        phase=str(previous_meta.get("phase") or args.phase).strip() or args.phase,
-        supersedes=[str(item).strip() for item in previous_meta.get("supersedes", []) if str(item).strip()],
+        confidence=str(previous_payload["confidence"]),
+        phase=str(previous_payload["phase"]) or args.phase,
+        supersedes=list(previous_payload["supersedes"]),
         superseded_by=previous_superseded_by,
-        summary=normalize_section_text(previous_sections.get("Summary", "")),
-        problem=normalize_section_text(previous_sections.get("Problem", "")),
-        success_criteria=parse_bullet_list(previous_sections.get("Success Criteria", "")),
-        non_goals=parse_bullet_list(previous_sections.get("Non-Goals", "")),
-        why_now=normalize_section_text(previous_sections.get("Why Now", "")),
-        current_risks=parse_bullet_list(previous_sections.get("Active Risks", "")),
+        summary=str(previous_payload["summary"]),
+        problem=str(previous_payload["problem"]),
+        success_criteria=list(previous_payload["success_criteria"]),
+        non_goals=list(previous_payload["non_goals"]),
+        why_now=str(previous_payload["why_now"]),
+        current_risks=list(previous_payload["current_risks"]),
         supersession_notes="\n\n".join(
             part
             for part in [
-                normalize_section_text(previous_sections.get("Supersession Notes", "")),
+                str(previous_payload["supersession_notes"]),
                 f"Superseded by `{objective_id}` because {args.trigger.strip()}",
             ]
             if part
@@ -228,7 +168,9 @@ def main() -> int:
         summary=f"Hard pivot from `{previous_objective_id}` to `{objective_id}`.",
         pivot_type="Hard pivot.",
         trigger=args.trigger,
-        previous_objective=f"`{previous_objective_id}` {previous_meta.get('title', '').strip()}".strip(),
+        change_summary=args.summary.strip() or args.problem.strip(),
+        identity_rationale="A new objective id is required because the prior objective line was superseded rather than revised in place.",
+        previous_objective=f"`{previous_objective_id}` {str(previous_payload['title']).strip()}".strip(),
         new_objective=f"`{objective_id}` {args.title}".strip(),
         evidence=[item.strip() for item in args.evidence if item.strip()],
         decisions_retained=[item.strip() for item in args.retained_decision if item.strip()],

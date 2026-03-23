@@ -266,6 +266,8 @@ Suggested sections:
 - summary
 - pivot type
 - trigger
+- change summary
+- identity rationale
 - previous objective
 - new objective
 - evidence
@@ -529,6 +531,9 @@ Purpose:
 
 - state the currently active objective line and whether the project is in
   exploration or execution
+
+This file should be absent when the project intentionally has no active
+objective.
 
 Suggested shape:
 

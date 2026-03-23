@@ -207,6 +207,30 @@ def parse_bullet_list(text: str) -> list[str]:
     return items
 
 
+def normalize_section_text(text: str) -> str:
+    value = text.strip()
+    return "" if value in {"", "_none recorded_"} else value
+
+
+def merged_tags(existing: list[str], *, drop: set[str] | None = None, add: list[str] | None = None) -> list[str]:
+    dropped = {item.strip() for item in (drop or set()) if item.strip()}
+    additions = [item.strip() for item in (add or []) if item.strip()]
+    seen: set[str] = set()
+    result: list[str] = []
+    for tag in existing:
+        cleaned = str(tag).strip()
+        if not cleaned or cleaned in dropped or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        result.append(cleaned)
+    for tag in additions:
+        if not tag or tag in seen:
+            continue
+        seen.add(tag)
+        result.append(tag)
+    return result
+
+
 def build_round_frontmatter(
     *,
     round_id: str,
@@ -514,6 +538,8 @@ def render_pivot_file(
     summary: str,
     pivot_type: str,
     trigger: str,
+    change_summary: str,
+    identity_rationale: str,
     previous_objective: str,
     new_objective: str,
     evidence: list[str],
@@ -548,6 +574,12 @@ def render_pivot_file(
         "",
         "## Trigger\n",
         trigger.strip() or "_none recorded_",
+        "",
+        "## Change Summary\n",
+        change_summary.strip() or "_none recorded_",
+        "",
+        "## Identity Rationale\n",
+        identity_rationale.strip() or "_none recorded_",
         "",
         "## Previous Objective\n",
         previous_objective.strip() or "_none recorded_",
@@ -997,6 +1029,28 @@ def load_objective_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     return meta, sections
 
 
+def objective_record_payload(meta: dict[str, object], sections: dict[str, str]) -> dict[str, object]:
+    return {
+        "title": str(meta.get("title") or str(meta.get("id") or "")).strip(),
+        "status": str(meta.get("status") or "").strip(),
+        "paths": [str(item).strip() for item in meta.get("paths", []) if str(item).strip()],
+        "created_at": str(meta.get("created_at") or "").strip(),
+        "evidence_refs": [entry for entry in meta.get("evidence_refs", []) if isinstance(entry, dict)],
+        "tags": [str(item).strip() for item in meta.get("tags", []) if str(item).strip()],
+        "confidence": str(meta.get("confidence") or "high").strip() or "high",
+        "phase": str(meta.get("phase") or "").strip(),
+        "supersedes": [str(item).strip() for item in meta.get("supersedes", []) if str(item).strip()],
+        "superseded_by": [str(item).strip() for item in meta.get("superseded_by", []) if str(item).strip()],
+        "summary": normalize_section_text(sections.get("Summary", "")),
+        "problem": normalize_section_text(sections.get("Problem", "")),
+        "success_criteria": parse_bullet_list(sections.get("Success Criteria", "")),
+        "non_goals": parse_bullet_list(sections.get("Non-Goals", "")),
+        "why_now": normalize_section_text(sections.get("Why Now", "")),
+        "current_risks": parse_bullet_list(sections.get("Active Risks", "")),
+        "supersession_notes": normalize_section_text(sections.get("Supersession Notes", "")),
+    }
+
+
 def load_pivot_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     text = read_text(path)
     frontmatter_text, _body = split_frontmatter(text)
@@ -1243,7 +1297,6 @@ def find_exception_contracts(
 def select_active_objective_record(
     project_id: str,
 ) -> tuple[tuple[Path, dict[str, object], dict[str, str]] | None, list[str]]:
-    objective_records = load_all_objectives(project_id)
     active_records = find_objectives_by_status(project_id, statuses={"active"})
     issues: list[str] = []
     if len(active_records) > 1:
@@ -1255,8 +1308,6 @@ def select_active_objective_record(
         return None, issues
     if len(active_records) == 1:
         return active_records[0], issues
-    if objective_records:
-        issues.append("durable objective history exists but no active objective is marked `active`")
     return None, issues
 
 
@@ -1275,6 +1326,53 @@ def select_open_round_record(
     if len(open_rounds) == 1:
         return open_rounds[0], issues
     return None, issues
+
+
+def resolve_active_objective_record(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    require_control_projection: bool = True,
+) -> tuple[Path, dict[str, object], dict[str, str], str]:
+    active_objective_preface, _active_objective_sections = load_active_objective(project_id)
+    control_objective_id = str(active_objective_preface.get("objective id", "")).strip()
+    control_status = str(active_objective_preface.get("status", "")).strip()
+    target_objective_id = objective_id.strip() or control_objective_id
+
+    if require_control_projection and not control_objective_id:
+        raise SystemExit(
+            f"missing active objective control state in `{active_objective_path(project_id)}`; "
+            "repair control state before rewriting the active objective line"
+        )
+    if not target_objective_id:
+        raise SystemExit("missing objective id; pass --objective-id or maintain control/active-objective.md")
+    if require_control_projection and target_objective_id != control_objective_id:
+        raise SystemExit(
+            f"requested objective `{target_objective_id}` does not match control active objective `{control_objective_id}`"
+        )
+    if require_control_projection and control_status and control_status != "active":
+        raise SystemExit(f"active objective control state is not active; found `{control_status}`")
+
+    active_record, issues = select_active_objective_record(project_id)
+    if issues:
+        raise SystemExit(
+            "cannot resolve one authoritative durable active objective: " + "; ".join(issues)
+        )
+    if active_record is None:
+        raise SystemExit("no durable active objective exists")
+
+    path, meta, sections = active_record
+    durable_objective_id = str(meta.get("id") or path.stem).strip()
+    durable_status = str(meta.get("status") or "").strip()
+    if target_objective_id != durable_objective_id:
+        raise SystemExit(
+            f"requested objective `{target_objective_id}` does not match durable active objective `{durable_objective_id}`"
+        )
+    if durable_status != "active":
+        raise SystemExit(
+            f"active objective rewrite requires durable status `active`; found `{durable_status or 'unknown'}`"
+        )
+    return path, meta, sections, durable_objective_id
 
 
 def extract_first_inline_id(text: str) -> str:

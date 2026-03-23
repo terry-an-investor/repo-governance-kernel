@@ -2,18 +2,23 @@
 id: round-2026-03-23-1548-implement-remaining-objective-line-transitions
 type: round-contract
 title: "Implement remaining objective-line transitions"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 0300b70fbe9fb8027d7798c16b94373c6272ee86
+git_sha: d7af73f203cc6011b645485368685954b2876164
 paths:
   - scripts/round_control.py
   - scripts/session_memory.py
+  - scripts/close_objective.py
   - scripts/open_objective.py
   - scripts/record_hard_pivot.py
+  - scripts/record_soft_pivot.py
+  - scripts/smoke_objective_line.py
+  - scripts/smoke_phase1.py
   - projects/session-memory/current/current-task.md
+  - CONTROL_SYSTEM.md
   - TRANSITION_COMMANDS.md
   - STATE_MACHINE.md
   - SCHEMA.md
@@ -24,7 +29,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T15:48:39+08:00
-updated_at: 2026-03-23T15:48:40+08:00
+updated_at: 2026-03-23T16:19:36+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -48,6 +53,8 @@ A real remaining objective-line slice with close-objective and record-soft-pivot
 ## Validation Plan
 
 Run objective-line fixture regression for close-objective and soft-pivot, then pass audit-control-state, role-context compilation, and full smoke.
+uv run python scripts/smoke_objective_line.py
+uv run python scripts/session_memory.py smoke
 
 ## Active Risks
 
@@ -61,3 +68,13 @@ _none recorded_
 ## Status Notes
 
 This round starts after shared transition-engine extraction and targets the still-missing canonical objective-line commands.
+
+active -> validation_pending: Remaining objective-line transition slice is implemented and ready for validation closeout.
+
+validation_pending -> captured: Objective-line transition slice validated on disposable fixtures and full phase-1 smoke.
+
+validated by:
+- uv run python scripts/smoke_objective_line.py
+- uv run python scripts/session_memory.py smoke
+
+captured -> closed: Remaining objective-line transition slice is complete and a successor adjudication round will take over.
