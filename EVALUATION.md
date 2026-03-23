@@ -1,7 +1,7 @@
 # Session Memory Evaluation
 
 Date: 2026-03-23
-Scope: Self-bootstrap and control experiments
+Scope: Controlled recovery experiments across evolving projects
 
 ## Goal
 
@@ -46,6 +46,41 @@ The main capability questions are:
 
 ## Experiment Shape
 
+### Frozen Evaluation Bundle
+
+The repeated problem class is:
+
+- comparing fresh-session recovery fairly on a repo that is still moving
+
+The missing reusable primitive is:
+
+- one frozen `evaluation bundle` that both arms consume unchanged
+
+The lowest honest owner layer is:
+
+- `session-memory` evaluation tooling and artifacts
+- not the target repo being evaluated
+
+Each experiment should first materialize one bundle containing:
+
+- `snapshot/`
+  - one frozen copied repo tree or fixed-commit worktree
+- `task.md`
+  - exact prompt, constraints, and success condition
+- `ground-truth.md`
+  - facts the scorer will treat as correct for that snapshot
+- `treatment-packet.md`
+  - assembled `session-memory` handoff packet used only by treatment
+- `score-template.md`
+  - rubric and metric sheet fixed before either run
+- `run-config.json`
+  - model, sandbox, approval mode, writable roots, and output paths
+
+Control and treatment must read from the same bundle.
+
+Do not let either arm read directly from a live mutable repo after the bundle is
+frozen.
+
 ### 1. Choose one bounded task slice
 
 A task slice should be:
@@ -72,6 +107,8 @@ Before starting either arm:
 - write the exact task prompt
 - write the expected constraints
 - write the expected success condition
+- freeze the repo snapshot that will be mounted for both arms
+- freeze the scorer's ground truth against that same snapshot
 
 Do not rewrite the task after seeing results.
 
@@ -90,6 +127,7 @@ The fresh session may not start from:
 
 - assembled session packet
 - pre-selected memory recall output
+- treatment-only hints hidden in the scoring notes
 
 #### Treatment Arm
 
@@ -104,6 +142,9 @@ After reading the packet, it may use:
 - code search
 - docs
 - explicit `session-memory` recall commands
+
+The treatment arm still uses the same frozen snapshot as control.
+The packet is the only allowed difference.
 
 ### 4. Record objective measurements
 
@@ -196,6 +237,21 @@ This experiment is good because:
 - it requires recovering current phase-1 boundaries
 - it requires locating the right schema and builder files
 - it is easy to score for correctness
+
+## External Project Evaluation
+
+For serious validation, prefer an external actively changing project rather than
+`session-memory` itself.
+
+Recommended shape:
+
+- use a copied working-tree snapshot when current dirty state matters
+- start with orientation-only tasks before code-changing tasks
+- score recovery quality first, implementation quality second
+
+`wind-agent` is the first target because it has real scope drift, live
+validation history, and durable architecture debt that a fresh session must
+recover correctly.
 
 ## Result Handling
 
