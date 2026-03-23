@@ -23,6 +23,7 @@ COMMAND_MAP = {
     "prepare-role-eval": SCRIPTS / "prepare_role_eval_bundle.py",
     "open-round": SCRIPTS / "open_round.py",
     "record-hard-pivot": SCRIPTS / "record_hard_pivot.py",
+    "reconcile-control-state": SCRIPTS / "reconcile_control_state.py",
     "refresh-current-task-anchor": SCRIPTS / "refresh_current_task_anchor.py",
     "smoke": SCRIPTS / "smoke_phase1.py",
     "update-round-status": SCRIPTS / "update_round_status.py",

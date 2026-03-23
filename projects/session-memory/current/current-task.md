@@ -99,6 +99,12 @@ The immediate objective is:
 - Objective-line guards are now anchored to durable truth, not only control files:
   - reject opening a second active objective from orphaned durable state
   - reject hard pivot when durable still-open rounds remain on the old objective
+- Control projection repair now exists:
+  - `reconcile-control-state`
+  - rebuilds `active-objective.md`, `pivot-log.md`, and `active-round.md` from durable truth
+- Real repair validation has been exercised:
+  - deleted `session-memory/control/active-round.md` and restored it from durable round state
+  - deleted `wind-agent/control/active-objective.md` and restored it from durable objective state
 - The first real round lifecycle has been exercised:
   - `active -> validation_pending -> captured -> closed`
   - successor round opened with transition-event records
@@ -128,6 +134,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/open_objective.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/prepare_role_eval_bundle.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/reconcile_control_state.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`

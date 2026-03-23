@@ -299,6 +299,9 @@ Current implementation already does these things:
   - `update-round-status`
   - legal round transitions are rejected
   - round-contract metadata is preserved during status rewrites
+- can repair projected control files from durable state through:
+  - `reconcile-control-state`
+  - only when durable objective and round truth is unambiguous
 - records transition-event files for round operations
 
 Current implementation does not yet do these things:

@@ -403,6 +403,22 @@ These records should preserve:
 - guard outcome
 - side effects performed
 
+## Related Repair Command
+
+`reconcile-control-state` is not a transition command.
+
+It is a repair path that rebuilds projected control files from durable memory:
+
+- `control/active-objective.md`
+- `control/pivot-log.md`
+- `control/active-round.md`
+
+It should:
+
+- trust durable objective, pivot, and round records over stale projected files
+- refuse repair when durable truth is ambiguous
+- avoid inventing a new transition event when it is only restoring projection
+
 ## Minimal First Implementation Set
 
 The smallest honest set to implement first is:

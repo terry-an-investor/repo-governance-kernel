@@ -23,6 +23,8 @@ Today that enforcement is intentionally narrow:
 - the round domain has real transition commands
 - illegal round-status transitions are rejected
 - transition events are recorded as durable files
+- control projections can be rebuilt from durable truth when the state is
+  unambiguous
 
 It is not yet a unified transition engine across every domain.
 
@@ -82,6 +84,10 @@ It is not yet a unified transition engine across every domain.
   - `open-round`
   - `update-round-status`
   - rewrite path now preserves round metadata instead of degrading frontmatter
+- repair support now exists:
+  - `reconcile-control-state`
+  - rebuilds control files from durable objective, pivot, and round records
+  - refuses ambiguous durable state instead of guessing
 - next enforcement slice should target workaround commands or a shared transition engine
 
 ### `scripts/build_index.py`

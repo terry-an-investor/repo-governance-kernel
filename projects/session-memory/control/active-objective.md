@@ -6,36 +6,30 @@
 
 ## Problem
 
-Fresh coding sessions, side reviewers, and architecture helpers do not fail
-mainly because they lack raw history. They fail because they do not know the
-active objective line, temporary compromises, and current control boundaries of
-the project.
+The real user pain is not only recovering facts. It is preserving direction,
+containing temporary hacks, supporting project-aware review, and handling pivot
+without losing provenance.
 
 ## Success Criteria
 
-- The system preserves project direction across sessions and interruptions.
-- A fresh session can recover active objective, pivot lineage, and current
-  workaround debt quickly.
-- Retrieval and assembly prefer the active control line over raw recency.
-- The schema stays project-agnostic while remaining useful for real software
-  work.
+- active objective and pivot lineage are first-class
+- context assembly prefers active control state over raw recency
+- temporary workarounds are tracked separately from target design
+- reviewer or side-session contexts can be compiled from project control state
 
 ## Non-Goals
 
-- Generic personal memory product.
-- Embedding-first memory stack in phase 1.
-- Prompt-only reviewer personas without project-aware control state.
+- generic role prompts without durable project knowledge
+- replacing git or project docs
+- broad semantic retrieval before file workflow proves itself
 
 ## Why Now
 
-The project has already proven a file-first memory path. The next bottleneck is
-control: preventing drift, dirty workaround accumulation, and stale objectives
-from steering future sessions.
+The file-first memory path is already proven enough to expose the real next
+bottleneck: objective drift, uncontrolled workaround debt, and fresh sessions
+that still lack an explicit control line.
 
 ## Current Risks
 
-- The control model may remain doc-only unless scripts consume it soon.
-- Objective and pivot objects could become verbose notes instead of operational
-  inputs.
-- Real project samples are still limited, so some control semantics may need
-  correction once more projects are onboarded.
+- The system can still regress into a memory-only framing if control objects do
+- Overfitting the schema to one project's governance remains a risk.

@@ -19,6 +19,7 @@ from build_index import parse_evidence_refs, parse_frontmatter, parse_string_lis
 
 
 ROOT = Path(__file__).resolve().parent.parent
+OPEN_ROUND_STATUSES = {"draft", "active", "blocked", "validation_pending"}
 
 
 def yaml_quote(value: str) -> str:
@@ -592,6 +593,12 @@ def render_active_round_file(
     return "\n".join(parts).strip() + "\n"
 
 
+def record_sort_key(path: Path, meta: dict[str, object]) -> str:
+    updated_at = str(meta.get("updated_at") or "").strip()
+    created_at = str(meta.get("created_at") or "").strip()
+    return updated_at or created_at or path.name
+
+
 def locate_round_file(project_id: str, round_id: str) -> Path | None:
     directory = rounds_dir(project_id)
     if not directory.exists():
@@ -795,6 +802,43 @@ def find_rounds(
             continue
         matches.append(record)
     return matches
+
+
+def select_active_objective_record(
+    project_id: str,
+) -> tuple[tuple[Path, dict[str, object], dict[str, str]] | None, list[str]]:
+    objective_records = load_all_objectives(project_id)
+    active_records = find_objectives_by_status(project_id, statuses={"active"})
+    issues: list[str] = []
+    if len(active_records) > 1:
+        rendered_ids = ", ".join(
+            f"`{str(meta.get('id') or path.stem)}`"
+            for path, meta, _sections in active_records
+        )
+        issues.append(f"multiple durable active objectives exist: {rendered_ids}")
+        return None, issues
+    if len(active_records) == 1:
+        return active_records[0], issues
+    if objective_records:
+        issues.append("durable objective history exists but no active objective is marked `active`")
+    return None, issues
+
+
+def select_open_round_record(
+    project_id: str,
+) -> tuple[tuple[Path, dict[str, object], dict[str, str]] | None, list[str]]:
+    open_rounds = find_rounds(project_id, statuses=OPEN_ROUND_STATUSES)
+    issues: list[str] = []
+    if len(open_rounds) > 1:
+        rendered_ids = ", ".join(
+            f"`{str(meta.get('id') or path.stem)}` ({str(meta.get('status') or 'unknown').strip()})"
+            for path, meta, _sections in open_rounds
+        )
+        issues.append(f"multiple durable open rounds exist: {rendered_ids}")
+        return None, issues
+    if len(open_rounds) == 1:
+        return open_rounds[0], issues
+    return None, issues
 
 
 def extract_first_inline_id(text: str) -> str:
