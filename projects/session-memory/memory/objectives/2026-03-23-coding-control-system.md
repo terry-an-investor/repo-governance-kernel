@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: a0a5946b91a2476c7e5515f30ecf0e0058296574
+git_sha: 745e42622fe1c9245eb8d72687ebfff2a170dad8
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-23T22:05:08+08:00
-phase: paused
+updated_at: 2026-03-23T22:12:49+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -82,3 +82,5 @@ This objective replaces the narrower memory-and-handoff framing while retaining
 its file-first storage and retrieval foundation.
 
 Phase changed from `execution` to `paused` because Development is intentionally paused after closing the last bounded execution round, so the active objective should not remain marked as execution.
+
+Phase changed from `paused` to `execution` because A short bounded execution slice is needed to codify the Win11-native tooling rule instead of leaving the repository in an ad hoc shell-selection state.

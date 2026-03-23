@@ -36,6 +36,9 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 
 - Manage Python execution in this project with `uv`.
 - Prefer `uv run python ...` over direct `python ...`.
+- Use Win11-native tooling for this repo: prefer PowerShell and `C:\Program Files\Git\cmd\git.exe`.
+- Do not invoke `bash.exe`, WSL shells, `/usr/bin/git`, or `/mnt/...` paths for repository work.
+- Treat Windows paths such as `C:/Users/...` as canonical in docs, scripts, and validation.
 - Install and keep repository git hooks active through `uv run python scripts/install_hooks.py`.
 - Treat `.githooks/pre-commit` and `.githooks/pre-push` as part of the control
   plane, not optional local convenience.
