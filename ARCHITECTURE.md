@@ -207,6 +207,15 @@ At minimum, the system should support refreshing:
 
 without forcing a new snapshot every time the workspace moves.
 
+Because `current/current-task.md` is itself a committed control projection, its
+anchor metadata should be treated as the workspace facts observed at the last
+refresh, not as a self-updating guarantee that the file already names the exact
+commit that contains it.
+
+That means live workspace inspection remains the canonical freshness check for
+the current branch, while current-task anchor fields remain useful orientation
+metadata.
+
 That creates a useful distinction:
 
 - `stale`

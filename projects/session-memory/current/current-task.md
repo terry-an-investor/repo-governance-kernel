@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate`
+- Active round id: `round-2026-03-23-2132-resolve-current-task-anchor-freshness-semantics`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `9f009fb5a58425dff319dbb1a20af72bb43fdf27`
+- HEAD anchor: `646c4f1114410f17b2a401d09221f1084eea6c59`
 - Worktree state: `dirty`
-- Changed path count: `9`
-- Last anchor refresh: `2026-03-23T21:24:04+08:00`
+- Changed path count: `12`
+- Last anchor refresh: `2026-03-23T21:34:24+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - promoting the machine-readable transition registry from name-only coverage into a first semantic owner-layer contract
-  - declaring canonical transition command names, domains, implementation status, required inputs, guard codes, write targets, and side-effect classes in one registry
-  - keeping executor support and adjudication plan family resolution anchored to that registry instead of scattered local sets
-  - teaching control audit to warn when `TRANSITION_COMMANDS.md` documents command or plan semantics outside the registry
+  - correcting current-task anchor semantics so committed control projections do not pretend to equal the commit that contains them
+  - treating live workspace inspection as the canonical freshness owner layer when branch alignment still holds
+  - updating packet freshness guidance so historical current-task anchor metadata remains useful orientation context without masquerading as live truth
+  - aligning canonical docs and project control state to the corrected freshness model
 
 ## Validated Facts
 

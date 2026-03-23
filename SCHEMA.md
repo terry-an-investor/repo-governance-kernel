@@ -695,8 +695,8 @@ Recommended `Current State` anchor bullets:
 
 Optional but useful:
 
-- one explicit worktree hint such as `clean` or `dirty`
-- `Changed path count`
+- one explicit observed worktree hint such as `clean` or `dirty`
+- observed `Changed path count`
 - `Last anchor refresh`
 
 Recommended maintenance path:
@@ -704,6 +704,10 @@ Recommended maintenance path:
 - refresh these anchor bullets from the live workspace without rewriting the
   whole task narrative
 - keep active objective and active round ids aligned with the durable control
+  state
+- treat these bullets as the workspace facts observed at the last refresh, not
+  as a self-updating promise that the file already names the commit that
+  contains the projection itself
   files so fresh sessions do not anchor on stale execution contracts
 
 ### `projects/<project_id>/current/blockers.md`
@@ -809,6 +813,7 @@ Suggested fields:
   - `branch`
   - `git_sha`
   - optional worktree hint
+  - optional `last_anchor_refresh`
 - latest snapshot anchor:
   - `source`
   - `updated_at`

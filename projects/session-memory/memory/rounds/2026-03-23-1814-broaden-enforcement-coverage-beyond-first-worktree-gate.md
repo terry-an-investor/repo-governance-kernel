@@ -2,12 +2,12 @@
 id: round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate
 type: round-contract
 title: "Promote transition registry to semantic owner layer"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 9f009fb5a58425dff319dbb1a20af72bb43fdf27
+git_sha: 646c4f1114410f17b2a401d09221f1084eea6c59
 paths:
   - scripts/
   - projects/session-memory/
@@ -21,7 +21,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T21:19:13+08:00
+updated_at: 2026-03-23T21:32:36+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -45,6 +45,11 @@ A richer transition registry that can describe implemented command semantics bey
 ## Validation Plan
 
 Validate registry export shape, rerun targeted audit checks, rerun transition/adjudication smoke, and rerun real-project audit plus worktree enforcement.
+uv run python scripts/list_transition_registry.py
+uv run python scripts/audit_control_state.py --project-id session-memory
+uv run python scripts/enforce_worktree.py --project-id session-memory
+uv run python scripts/smoke_transition_engine.py
+uv run python scripts/smoke_adjudication_followups.py
 
 ## Active Risks
 
@@ -104,3 +109,16 @@ Round rewritten because The harness-law milestone is complete, and the next cont
 The active round now targets a machine-readable transition registry so command support stops living partly in prose and partly in scattered script constants.
 
 Round rewritten because The next development slice is semantic registry uplift rather than name-only registry coverage.
+
+active -> validation_pending: Semantic transition-registry owner-layer slice is implemented and ready for close-out validation.
+
+validation_pending -> captured: Semantic transition-registry owner-layer slice passed audit, enforcement, transition-engine smoke, and adjudication-followup smoke.
+
+validated by:
+- uv run python scripts/list_transition_registry.py
+- uv run python scripts/audit_control_state.py --project-id session-memory
+- uv run python scripts/enforce_worktree.py --project-id session-memory
+- uv run python scripts/smoke_transition_engine.py
+- uv run python scripts/smoke_adjudication_followups.py
+
+captured -> closed: Semantic transition-registry owner-layer slice is complete and a successor round now needs to address current-task anchor freshness semantics.

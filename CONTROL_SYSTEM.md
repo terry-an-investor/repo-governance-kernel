@@ -56,6 +56,11 @@ If those two layers are weak, an agent will often "help" by filling gaps with:
 So the control system should not only preserve memory. It should front-load the
 precision that gives human review leverage.
 
+That also means committed control projections must stay honest about what they
+can know. A file such as `current/current-task.md` may record the workspace
+facts observed at its last refresh, but the live workspace inspection remains
+the canonical freshness owner layer for the current branch and worktree state.
+
 ## Operational Layers
 
 The control plane should be understood as five operational layers:
