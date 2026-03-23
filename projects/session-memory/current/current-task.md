@@ -74,6 +74,14 @@ The immediate objective is:
 - `STATE_MACHINE.md` now makes the design explicit:
   - current system is state-machine oriented
   - current system is not yet state-machine enforced
+- `TRANSITION_COMMANDS.md` now freezes:
+  - canonical transition names
+  - guards
+  - side effects
+  - primary write targets
+- The project now has a first real active round sample under:
+  - `projects/session-memory/control/active-round.md`
+  - `projects/session-memory/memory/rounds/2026-03-23-transition-command-surface.md`
 
 ## Important Files
 
@@ -81,11 +89,13 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md`
 - `C:/Users/terryzzb/Desktop/session-memory/CONTROL_SYSTEM.md`
 - `C:/Users/terryzzb/Desktop/session-memory/STATE_MACHINE.md`
+- `C:/Users/terryzzb/Desktop/session-memory/TRANSITION_COMMANDS.md`
 - `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
 - `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
 - `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/ROLE_CONTEXT_EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-objective.md`
+- `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-round.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/pivot-log.md`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/build_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
@@ -111,9 +121,8 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Freeze the transition command surface for:
-   `open-objective`, `record-pivot`, `open-round`, `close-round`,
-   `activate-workaround`, and related guards.
+3. Implement the first small transition slice:
+   `open-objective` plus `record-hard-pivot` or `open-round`.
 4. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
 5. Run and record the first bootstrap control-vs-treatment experiment against

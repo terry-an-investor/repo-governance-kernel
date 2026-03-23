@@ -262,6 +262,8 @@ The main event types that should drive state transitions are:
 
 These events should become the future command surface.
 
+The concrete command contract is defined in [`TRANSITION_COMMANDS.md`](./TRANSITION_COMMANDS.md).
+
 ## Drift As Illegal Or Unhealthy State
 
 The system should treat drift as evidence that the current state is dishonest.

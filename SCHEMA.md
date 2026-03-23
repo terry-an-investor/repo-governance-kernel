@@ -41,6 +41,7 @@ session-memory/
 │   │   ├── control/
 │   │   │   ├── constitution.md
 │   │   │   ├── active-objective.md
+│   │   │   ├── active-round.md
 │   │   │   ├── pivot-log.md
 │   │   │   └── workaround-ledger.md
 │   │   ├── current/
@@ -51,6 +52,8 @@ session-memory/
 │   │   ├── memory/
 │   │   │   ├── objectives/
 │   │   │   ├── pivots/
+│   │   │   ├── rounds/
+│   │   │   ├── transition-events/
 │   │   │   ├── decisions/
 │   │   │   ├── failures/
 │   │   │   ├── constraints/
@@ -75,6 +78,8 @@ Initial memory object types:
 - `constitution`
 - `objective`
 - `pivot`
+- `round-contract`
+- `transition-event`
 - `decision`
 - `failure`
 - `constraint`
@@ -262,6 +267,34 @@ Suggested sections:
 - decisions retained
 - assumptions invalidated
 - next control changes
+
+### Round Contract
+
+Use for one bounded execution slice linked to an active objective.
+
+Suggested sections:
+
+- summary
+- scope
+- deliverable
+- validation plan
+- active risks
+- blockers
+- status notes
+
+### Transition Event
+
+Use for one explicit control-state transition performed by a command.
+
+Suggested sections:
+
+- summary
+- command
+- previous state
+- next state
+- guards
+- side effects
+- evidence
 
 ### Workaround
 
@@ -469,6 +502,32 @@ Suggested shape:
 ## Why Now
 
 ## Current Risks
+```
+
+### `projects/<project_id>/control/active-round.md`
+
+Purpose:
+
+- state the currently active bounded execution contract for one project
+
+Suggested shape:
+
+```markdown
+# Active Round
+
+- Round id:
+- Objective id:
+- Status: draft | active | blocked | validation_pending | captured | closed | abandoned
+
+## Scope
+
+## Deliverable
+
+## Validation Plan
+
+## Active Risks
+
+## Blockers
 ```
 
 ### `projects/<project_id>/control/pivot-log.md`

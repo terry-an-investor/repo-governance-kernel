@@ -20,6 +20,7 @@ supports:
 
 The system should be read together with [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md).
 The transition model is defined in [`STATE_MACHINE.md`](./STATE_MACHINE.md).
+The future command surface is defined in [`TRANSITION_COMMANDS.md`](./TRANSITION_COMMANDS.md).
 
 Memory is the storage substrate. Control state is the thing that keeps the
 project direction coherent.
@@ -288,6 +289,7 @@ Suggested root directory:
 session-memory/
 ├── CONTROL_SYSTEM.md
 ├── STATE_MACHINE.md
+├── TRANSITION_COMMANDS.md
 ├── DESIGN_PRINCIPLES.md
 ├── ARCHITECTURE.md
 ├── SCHEMA.md
@@ -296,6 +298,7 @@ session-memory/
 │   │   ├── control/
 │   │   │   ├── constitution.md
 │   │   │   ├── active-objective.md
+│   │   │   ├── active-round.md
 │   │   │   ├── pivot-log.md
 │   │   │   └── workaround-ledger.md
 │   │   ├── current/
@@ -306,6 +309,8 @@ session-memory/
 │   │   ├── memory/
 │   │   │   ├── objectives/
 │   │   │   ├── pivots/
+│   │   │   ├── rounds/
+│   │   │   ├── transition-events/
 │   │   │   ├── decisions/
 │   │   │   ├── failures/
 │   │   │   ├── constraints/
@@ -332,6 +337,14 @@ Notes:
 - `projects/<project_id>/memory/` stores project-local durable memory
 - `cross-project/` stores memories that generalize across projects
 - `index/` is optional query acceleration
+
+The control plane is expected to evolve from:
+
+- direct file edits
+
+to:
+
+- transition commands with guards and side effects over these canonical paths
 
 ## Snapshot Model
 
