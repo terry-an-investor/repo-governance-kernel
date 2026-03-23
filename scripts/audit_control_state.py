@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
-from assemble_context import clean_section_text, parse_h2_sections
+from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections
 from round_control import (
     active_objective_path,
     active_round_path,
@@ -16,6 +17,7 @@ from round_control import (
     render_active_objective_file,
     render_active_round_file,
     render_pivot_log_file,
+    resolve_anchor,
     select_active_objective_record,
     select_open_round_record,
 )
@@ -78,6 +80,53 @@ def constitution_has_substance(path: Path) -> bool:
         "Forbidden Shortcuts",
     ]:
         if not is_placeholder_text(sections.get(name, "")):
+            return True
+    return False
+
+
+def normalize_hook_name(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
+
+
+def load_constitution_sections(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    return parse_h2_sections(clean_section_text(path, strip_heading=True, strip_yaml=False))
+
+
+def constitution_audit_hooks(path: Path) -> set[str]:
+    sections = load_constitution_sections(path)
+    return {
+        normalize_hook_name(item)
+        for item in parse_bullet_list(sections.get("Audit Hooks", ""))
+        if normalize_hook_name(item)
+    }
+
+
+def parse_changed_paths(status_short: str) -> list[str]:
+    changed_paths: list[str] = []
+    for raw_line in status_short.splitlines():
+        line = raw_line.rstrip()
+        if not line or line.startswith("## "):
+            continue
+        if len(line) < 4:
+            continue
+        path_part = line[3:].strip()
+        if " -> " in path_part:
+            path_part = path_part.split(" -> ", 1)[1].strip()
+        normalized = path_part.replace("\\", "/").lstrip("./")
+        if normalized:
+            changed_paths.append(normalized)
+    return changed_paths
+
+
+def path_is_covered(path: str, scope_paths: list[str]) -> bool:
+    normalized_path = path.replace("\\", "/").strip().lstrip("./")
+    for raw_scope in scope_paths:
+        scope = raw_scope.replace("\\", "/").strip().lstrip("./").rstrip("/")
+        if not scope:
+            continue
+        if normalized_path == scope or normalized_path.startswith(scope + "/"):
             return True
     return False
 
@@ -298,6 +347,25 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             evidence=[str(exception_ledger_path)],
         )
     checks.append("constitution and exception-contract control presence")
+
+    hooks = constitution_audit_hooks(constitution_path)
+    if "round_paths_cover_live_dirty_paths" in hooks and open_round_record is not None:
+        _round_path, round_meta, _round_sections = open_round_record
+        round_scope_paths = [str(item).strip() for item in round_meta.get("paths", []) if str(item).strip()]
+        live_workspace = inspect_live_workspace(resolve_anchor(project_id))
+        if live_workspace.get("status") == "available":
+            changed_paths = parse_changed_paths(str(live_workspace.get("status_short") or ""))
+            uncovered_paths = [path for path in changed_paths if not path_is_covered(path, round_scope_paths)]
+            if uncovered_paths:
+                add_issue(
+                    issues,
+                    severity="warning",
+                    domain="constitution",
+                    code="round_scope_excludes_live_dirty_paths",
+                    message="the active round paths do not cover every live dirty path required by constitution audit hooks",
+                    evidence=uncovered_paths,
+                )
+        checks.append("constitution-derived live round scope coverage")
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")
     warning_count = sum(1 for issue in issues if issue["severity"] == "warning")

@@ -78,3 +78,7 @@ It is not a backlog, roadmap, or prose summary.
   canonical success without the stronger owner-facing verification contract.
 - Do not hide broader `src/native/`, `native/`, or `src/cli/` work behind a
   still-open narrow query-only round.
+
+## Audit Hooks
+
+- `round_paths_cover_live_dirty_paths`

@@ -14,6 +14,7 @@ paths:
   - src/native/
   - native/
   - src/cli/
+  - tests/cli/
 thread_ids: []
 evidence_refs: []
 tags:

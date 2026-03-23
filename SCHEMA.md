@@ -508,7 +508,13 @@ Suggested shape:
 ## Validation Rules
 
 ## Forbidden Shortcuts
+
+## Audit Hooks
 ```
+
+`Audit Hooks` is optional.
+Use it only for explicit machine-checkable rules that should become part of
+control audit.
 
 ### `projects/<project_id>/control/active-objective.md`
 

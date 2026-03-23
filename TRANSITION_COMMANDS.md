@@ -436,6 +436,8 @@ It should report at least:
 - blocked rounds without blockers
 - missing control surfaces such as constitution or exception ledger
 - placeholder control surfaces that still do not restore real project law
+- constitution-derived machine-checkable hooks such as live round-scope
+  coverage against dirty paths
 
 ### `adjudicate-control-state`
 
