@@ -442,7 +442,7 @@ def main() -> None:
     project_dir = ROOT / "projects" / args.project_id
     active_objective_path = project_dir / "control" / "active-objective.md"
     pivot_log_path = project_dir / "control" / "pivot-log.md"
-    workaround_ledger_path = project_dir / "control" / "workaround-ledger.md"
+    exception_ledger_path = project_dir / "control" / "exception-ledger.md"
     current_task_path = project_dir / "current" / "current-task.md"
     blockers_path = project_dir / "current" / "blockers.md"
     snapshot_path = latest_snapshot(project_dir)
@@ -452,7 +452,7 @@ def main() -> None:
         current_task_sections = parse_h2_sections(clean_section_text(current_task_path, strip_heading=True, strip_yaml=False))
     active_objective_preface, active_objective_sections = load_control_sections(active_objective_path)
     pivot_log_preface, pivot_log_sections = load_control_sections(pivot_log_path)
-    workaround_preface, workaround_sections = load_control_sections(workaround_ledger_path)
+    exception_preface, exception_sections = load_control_sections(exception_ledger_path)
     current_task_anchor = extract_current_task_anchor(current_task_sections)
     snapshot_anchor = extract_snapshot_anchor(snapshot_path)
     packet_anchor = merge_anchor_sources(current_task_anchor, snapshot_anchor)
@@ -493,9 +493,9 @@ def main() -> None:
 
     append_control_block(
         parts,
-        "Workaround Ledger",
-        workaround_preface,
-        workaround_sections,
+        "Exception Ledger",
+        exception_preface,
+        exception_sections,
         ["Active", "Invalidated By Pivot"],
     )
 

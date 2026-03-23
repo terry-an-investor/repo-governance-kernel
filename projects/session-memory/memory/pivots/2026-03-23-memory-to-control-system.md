@@ -56,7 +56,7 @@ patches, and enabling project-aware review and orchestration.
 ## New Objective
 
 `obj-2026-03-23-0002` treats memory as substrate and adds objective, pivot,
-workaround, and control-state compilation as first-class concerns.
+exception-contract, and control-state compilation as first-class concerns.
 
 ## Evidence
 
@@ -78,5 +78,5 @@ workaround, and control-state compilation as first-class concerns.
 ## Next Control Changes
 
 - materialize real control-state files
-- teach `assemble` to read active objective and workaround state
+- teach `assemble` to read active objective and exception-contract state
 - evaluate whether control-state injection improves orientation quality

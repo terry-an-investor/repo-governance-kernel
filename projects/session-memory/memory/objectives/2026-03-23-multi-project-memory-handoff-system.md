@@ -68,7 +68,7 @@ This objective reached a valid phase-1 memory baseline, then became too narrow.
 
 ## Active Risks
 
-- The framing under-specifies control problems such as drift, workaround debt,
+- The framing under-specifies control problems such as drift, exception-contract debt,
   and architecture continuity.
 
 ## Supersession Notes

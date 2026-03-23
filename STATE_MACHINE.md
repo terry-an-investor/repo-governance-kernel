@@ -28,7 +28,7 @@ It should be modeled as several coordinated state domains:
 1. objective-line state
 2. project phase state
 3. round state
-4. workaround state
+4. exception-contract state
 5. memory freshness state
 
 This keeps transitions local and makes invalid combinations easier to detect.
@@ -76,7 +76,7 @@ An objective should not become `active` unless it has:
 When an objective becomes `superseded`:
 
 - active round contracts tied to it should be reviewed
-- stale workarounds should be checked for invalidation
+- stale exception contracts should be checked for invalidation
 - compiled contexts should re-anchor to the new objective
 
 ## 2. Project Phase State
@@ -125,7 +125,7 @@ halted while preserving the control state.
 When moving from `execution -> exploration`:
 
 - open round contracts should be re-evaluated
-- workaround debt should not silently carry forward as architecture truth
+- exception-contract debt should not silently carry forward as architecture truth
 
 ## 3. Round State
 
@@ -182,22 +182,22 @@ When a round is marked `abandoned`:
 - the reason should be preserved
 - unfinished work should not remain disguised as active progress
 
-## 4. Workaround State
+## 4. Exception-Contract State
 
 This domain answers:
 
-- whether a compromise is still active
+- whether a temporary deviation is still active
 - whether it has been retired
 - whether a pivot invalidated it
 
-### Workaround States
+### Exception-Contract States
 
 - `proposed`
 - `active`
 - `retired`
 - `invalidated`
 
-### Workaround Transitions
+### Exception-Contract Transitions
 
 - `proposed -> active`
 - `active -> retired`
@@ -205,7 +205,7 @@ This domain answers:
 
 ### Guards
 
-A workaround should not become `active` unless it has:
+An exception contract should not become `active` unless it has:
 
 - reason
 - risk
@@ -214,13 +214,13 @@ A workaround should not become `active` unless it has:
 
 ### Side Effects
 
-Active workarounds should influence:
+Active exception contracts should influence:
 
 - reviewer contexts
 - orchestrator contexts
 - architecture discussions
 
-Retired or invalidated workarounds should not remain in default active context
+Retired or invalidated exception contracts should not remain in default active context
 unless they are still needed as historical warning.
 
 ## 5. Memory Freshness State
@@ -255,9 +255,9 @@ The main event types that should drive state transitions are:
 - `capture_snapshot`
 - `close_round`
 - `abandon_round`
-- `activate_workaround`
-- `retire_workaround`
-- `invalidate_workaround`
+- `activate_exception_contract`
+- `retire_exception_contract`
+- `invalidate_exception_contract`
 - `refresh_anchor`
 
 These events should become the future command surface.
@@ -281,12 +281,27 @@ Important drift types:
 
 Drift is not only an observation. It should influence allowed transitions.
 
+## Audit vs Adjudication vs Repair
+
+These three responsibilities must stay separate:
+
+- `audit-control-state`
+  - detect dishonest or conflicting state
+- `adjudicate-control-state`
+  - decide which durable objects remain authoritative and which must be
+    closed, superseded, split, or invalidated
+- `reconcile-control-state`
+  - rebuild projected control files only after durable truth is already
+    coherent enough to project
+
+Refusing ambiguity belongs to repair. It is not a substitute for adjudication.
+
 ## State-Machine Enforcement Gap
 
 Current implementation already does these things:
 
 - stores explicit objective and pivot files
-- stores workaround ledger state
+- stores exception ledger state
 - compiles contexts from active control files
 - computes freshness verdicts for assembled packets
 - enforces a first objective-line slice through:
@@ -302,16 +317,22 @@ Current implementation already does these things:
 - can repair projected control files from durable state through:
   - `reconcile-control-state`
   - only when durable objective and round truth is unambiguous
+- can audit current control honesty through:
+  - `audit-control-state`
+  - projection drift
+  - execution without a bounded round
+  - missing control surfaces such as constitution or exception ledger
 - records transition-event files for round operations
 
 Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
+- adjudicate durable state conflicts into explicit durable verdicts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots
 - enforce guards before phase changes
 - update status fields through a single transition engine
-- cover objective, pivot, round, and workaround domains with the same enforcement depth
+- cover objective, pivot, round, and exception-contract domains with the same enforcement depth
 
 This gap should remain explicit until enforcement exists.
 

@@ -156,15 +156,32 @@ def render_bullet_list(items: list[str], *, empty_text: str = "_none recorded_")
     cleaned = [item.strip() for item in items if item.strip()]
     if not cleaned:
         return empty_text
-    return "\n".join(f"- {item}" for item in cleaned)
+    rendered_items: list[str] = []
+    for item in cleaned:
+        lines = [line.strip() for line in item.splitlines() if line.strip()]
+        if not lines:
+            continue
+        rendered_items.append(f"- {lines[0]}")
+        for continuation in lines[1:]:
+            rendered_items.append(f"  {continuation}")
+    return "\n".join(rendered_items)
 
 
 def parse_bullet_list(text: str) -> list[str]:
     items: list[str] = []
+    current_lines: list[str] = []
     for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if line.startswith("- "):
-            items.append(line[2:].strip())
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            if current_lines:
+                items.append("\n".join(current_lines).strip())
+            current_lines = [stripped[2:].strip()]
+            continue
+        if current_lines and stripped:
+            current_lines.append(stripped)
+    if current_lines:
+        items.append("\n".join(current_lines).strip())
     return items
 
 

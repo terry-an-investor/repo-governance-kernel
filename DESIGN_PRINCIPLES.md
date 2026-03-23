@@ -37,13 +37,24 @@ control state to answer:
 
 - what objective is currently active
 - whether the project is in exploration or execution
-- which workarounds are temporary debt
+- which exception contracts are temporary debt
 - whether the project has pivoted
 
 Without this layer, retrieval can recover facts while still accelerating drift.
 
 That control state should evolve through explicit state transitions, not through
 silent document overwrite.
+
+It should also separate:
+
+- audit
+  - detect dishonest or conflicting state
+- adjudication
+  - decide which durable records remain authoritative
+- projection
+  - rebuild the compact control files after the durable state is coherent
+
+Without this split, repair logic will silently become an accidental judge.
 
 ### 1. Files are the source of truth
 
@@ -99,7 +110,7 @@ The same split should exist for control state:
   - pivot history
 - mutable control
   - active round contract
-  - workaround ledger
+  - exception ledger
   - idea inbox
   - current blockers
 
@@ -203,7 +214,7 @@ Handoff must also preserve control continuity:
 - the active objective
 - whether the project is exploring or executing
 - recent pivots
-- active workarounds
+- active exception contracts
 - the current round boundary
 
 ### 9. Start narrow and real

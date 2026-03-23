@@ -90,7 +90,7 @@ Produce a concise review with these sections:
 The review should prioritize:
 
 - objective drift
-- workaround leakage
+- exception-contract leakage
 - architecture invariant violations
 - missing validation or stale governance claims
 """
@@ -181,7 +181,7 @@ def build_score_template(project_id: str, role: str, evaluation_scope: dict[str,
             "- `finding_recall`",
             "- `finding_precision`",
             "- `constraint_adherence`",
-            "- `workaround_detection`",
+            "- `exception_contract_detection`",
             "- `validation_gap_detection`",
             "",
             "## Scoring Questions",

@@ -13,14 +13,14 @@
 
 - Markdown files remain canonical.
 - SQLite plus FTS5 is the phase-1 accelerator, not the authority layer.
-- Active objective, pivot lineage, and workaround state must remain explicit.
+- Active objective, pivot lineage, and exception-contract state must remain explicit.
 - Context assembly must compile through active control state before historical
   recall.
 
 ## Quality Bar
 
 - New concepts must have clear owner-layer semantics.
-- Temporary compromise must be labeled as workaround, not merged into target
+- Temporary deviation must be labeled as an exception contract, not merged into target
   architecture.
 - Freshness and provenance must be surfaced when state may be stale.
 

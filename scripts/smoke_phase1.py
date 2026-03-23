@@ -45,6 +45,8 @@ def run_plain(script_name: str, *args: str) -> None:
 
 
 def main() -> None:
+    session_memory_audit = run_json("audit_control_state.py", "--project-id", "session-memory")
+    wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
     build_result = run_json("build_index.py")
     check_result = run_json("check_index.py")
     query_result = run_json(
@@ -107,10 +109,18 @@ def main() -> None:
         raise SystemExit("session-memory assemble output missing")
     if not ROLE_ARTIFACT_PATH.exists():
         raise SystemExit("session-memory reviewer context output missing")
+    if session_memory_audit["summary"]["errors"] != 0:
+        raise SystemExit("session-memory control audit reported errors")
+    if wind_agent_audit["summary"]["errors"] != 0:
+        raise SystemExit("wind-agent control audit reported errors")
 
     print(
         json.dumps(
             {
+                "audit": {
+                    "session-memory": session_memory_audit["status"],
+                    "wind-agent": wind_agent_audit["status"],
+                },
                 "build": build_result,
                 "check": {
                     "memory_items": check_result["memory_items"],

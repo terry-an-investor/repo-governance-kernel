@@ -12,7 +12,7 @@ project-level pivots.
 The problem is not only recall. The harder problem is control:
 
 - preserving project direction while implementation is moving
-- containing workaround debt before it becomes the real architecture
+- containing temporary deviation debt before it becomes the real architecture
 - allowing new ideas without derailing the active mainline
 - making architecture review and side-session work actually project-aware
 - supporting legitimate project pivots without losing provenance
@@ -32,6 +32,87 @@ to know:
 - what evidence is trusted
 - whether the project is still on the same objective line
 - whether a pivot has already happened
+
+The system also needs one layer that is still mostly missing in code today:
+
+- adjudication
+  - when durable control objects conflict, decide which line remains active,
+    which objects are stale or invalid, and what must be rewritten
+
+Rejecting ambiguity is only a guard. It is not the control system's final job.
+
+## Operational Layers
+
+The control plane should be understood as five operational layers:
+
+1. durable truth
+2. projected control state
+3. control audit
+4. adjudication
+5. transition execution
+
+### Durable Truth
+
+Durable truth is the append-mostly memory substrate:
+
+- objectives
+- pivots
+- round contracts
+- exception contracts
+- transition events
+
+These records preserve provenance, but they can still conflict.
+
+### Projected Control State
+
+Projected control state is the compact mutable surface:
+
+- `control/active-objective.md`
+- `control/active-round.md`
+- `control/pivot-log.md`
+- `control/exception-ledger.md`
+
+These files are optimized for fast consumption by humans and agents. They are
+not the final authority when durable truth disagrees with them.
+
+### Control Audit
+
+Control audit asks whether the current state is honest enough to keep using.
+
+It should detect failures such as:
+
+- projection drift
+- execution without a bounded round
+- multiple durable active lines
+- blocked rounds without declared blockers
+- missing constitution or exception tracking
+
+Audit surfaces problems. It does not decide the winner.
+
+### Adjudication
+
+Adjudication is the missing resolution layer between detection and mutation.
+
+It should answer questions like:
+
+- which durable objective is still the real mainline
+- whether an open round should be closed, split, or invalidated
+- whether an exception contract is still a temporary deviation or has leaked
+  into architecture truth
+- whether old durable records are legitimate history or now misleading debris
+
+Adjudication should produce an explicit verdict with provenance, not an
+implicit guess hidden inside one repair script.
+
+### Transition Execution
+
+Transition execution is the command layer that writes the new honest state:
+
+- open or close objectives
+- record pivots
+- open or update rounds
+- activate, retire, or invalidate exception contracts
+- rebuild projections after the durable state is coherent
 
 ## Control Model
 
@@ -85,7 +166,7 @@ It should contain:
 - active risks
 - current blockers
 - deferred ideas that must not hijack the round
-- temporary workarounds introduced during implementation
+- active exception contracts introduced during implementation
 
 This is the layer that keeps agile work from turning into uncontrolled drift.
 
@@ -126,7 +207,7 @@ It is not merely:
 
 - editing `current-task.md`
 - changing implementation steps
-- replacing one workaround with another
+- replacing one exception contract with another
 
 A pivot exists when one or more of these change materially:
 
@@ -205,7 +286,7 @@ Required controls:
 
 - one active round contract
 - explicit non-goals
-- workaround tracking
+- exception-contract tracking
 - validation expectations
 - snapshot or handoff capture at phase boundaries
 
@@ -224,8 +305,10 @@ The system should add these project-agnostic control objects:
   - objective-line change record with provenance
 - `round-contract`
   - bounded execution contract for the active round
-- `workaround`
-  - temporary compromise with exit condition and risk
+- `exception-contract`
+  - temporary deviation with exit condition, owner scope, and risk
+- `adjudication`
+  - explicit verdict when durable control truth conflicts
 - `idea`
   - deferred or triaged idea that should not disrupt the mainline
 - `validation-report`
@@ -258,7 +341,7 @@ A pivot record should answer:
 - what evidence triggered the change
 - which objective was replaced or updated
 - which decisions still stand
-- which workarounds or assumptions are now invalid
+- which exception contracts or assumptions are now invalid
 - what new risks the pivot introduces
 
 ## Lifecycle
@@ -267,7 +350,7 @@ The smallest honest lifecycle is:
 
 1. open objective
 2. explore or execute under one active round
-3. capture decisions, failures, workarounds, and evidence
+3. capture decisions, failures, exception contracts, and evidence
 4. detect drift or objective mismatch
 5. record soft or hard pivot when needed
 6. refresh round control under the new objective line
@@ -296,7 +379,7 @@ That means:
 
 - active objective before historical objective
 - current round before old snapshots
-- unresolved workaround before settled decision
+- unresolved exception contract before settled decision
 - current pivot lineage before orphaned historical notes
 
 Historical memory still matters, but it should be loaded through the active

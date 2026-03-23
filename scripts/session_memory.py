@@ -12,6 +12,7 @@ SCRIPTS = ROOT / "scripts"
 
 
 COMMAND_MAP = {
+    "audit-control-state": SCRIPTS / "audit_control_state.py",
     "build-index": SCRIPTS / "build_index.py",
     "check-index": SCRIPTS / "check_index.py",
     "query": SCRIPTS / "query_index.py",

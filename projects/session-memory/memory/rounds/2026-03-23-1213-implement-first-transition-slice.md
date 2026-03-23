@@ -48,7 +48,7 @@ Run command-level transitions on the real session-memory round path and pass smo
 
 ## Active Risks
 
-- Guard logic may still be too narrow for future objective and workaround transitions.
+- Guard logic may still be too narrow for future objective and exception-contract transitions.
 - Round file rewriting could regress frontmatter fidelity if metadata preservation is incomplete.
 
 ## Blockers

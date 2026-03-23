@@ -8,7 +8,7 @@ file-first memory substrate.
 The immediate objective is:
 
 - keep the design frozen around Markdown plus SQLite plus FTS5
-- add first-class control-state files for objective, pivot, and workaround
+- add first-class control-state files for objective, pivot, and exception-contract
 - improve fresh-session context assembly quality
 - compile handoff through active objective state instead of recency alone
 
@@ -27,12 +27,12 @@ The immediate objective is:
   - SQLite plus FTS5 build/query/assemble path is working
   - unified CLI and smoke command exist
 - Control-system framing is now explicit:
-  - durable docs define objective, pivot, and workaround as first-class objects
+  - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for a hard pivot in objective line
 - Current work is focused on:
   - hardening the first enforced objective and round slices so control rewrites stay lossless
   - proving objective-line control on `wind-agent` so the schema stays project-agnostic
-  - deciding whether the next honest slice is workaround commands or a shared transition engine
+  - deciding whether the next honest slice is exception-contract commands or a shared transition engine
 
 ## Validated Facts
 
@@ -52,7 +52,7 @@ The immediate objective is:
 - `assemble_context.py` now compiles:
   - active objective
   - pivot lineage
-  - workaround ledger when present
+  - exception ledger when present
 - `compile_role_context.py` now exists for:
   - reviewer
   - architect
@@ -157,10 +157,10 @@ The immediate objective is:
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
 3. Implement the next transition slice:
-   `activate-workaround` or a shared transition engine for existing commands.
+   `activate-exception-contract` or a shared transition engine for existing commands.
 4. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
 5. Run and record the first bootstrap control-vs-treatment experiment against
    live project state.
-6. Add a first real workaround or validation-report sample only when a live
+6. Add a first real exception-contract or validation-report sample only when a live
    implementation round creates one honestly.

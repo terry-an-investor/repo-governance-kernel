@@ -77,10 +77,13 @@ Reviewer context should be scored on:
   - did it avoid generic or irrelevant comments
 - `constraint_adherence`
   - did it review against constitution and active objective
-- `workaround_detection`
-  - did it notice temporary compromises or debt leakage
+- `exception_contract_detection`
+  - did it notice temporary deviations or debt leakage
 - `validation_gap_detection`
   - did it identify missing evidence or stale governance claims
+- `adjudication_quality`
+  - when durable state conflicts, did it separate audit findings from actual
+    resolution proposals
 
 Reviewer failure modes to watch:
 

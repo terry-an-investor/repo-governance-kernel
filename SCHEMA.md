@@ -43,7 +43,7 @@ session-memory/
 │   │   │   ├── active-objective.md
 │   │   │   ├── active-round.md
 │   │   │   ├── pivot-log.md
-│   │   │   └── workaround-ledger.md
+│   │   │   └── exception-ledger.md
 │   │   ├── current/
 │   │   │   ├── current-task.md
 │   │   │   ├── blockers.md
@@ -54,10 +54,11 @@ session-memory/
 │   │   │   ├── pivots/
 │   │   │   ├── rounds/
 │   │   │   ├── transition-events/
+│   │   │   ├── adjudications/
 │   │   │   ├── decisions/
 │   │   │   ├── failures/
 │   │   │   ├── constraints/
-│   │   │   ├── workarounds/
+│   │   │   ├── exception-contracts/
 │   │   │   ├── patterns/
 │   │   │   ├── handoffs/
 │   │   │   └── validation-reports/
@@ -80,10 +81,11 @@ Initial memory object types:
 - `pivot`
 - `round-contract`
 - `transition-event`
+- `adjudication`
 - `decision`
 - `failure`
 - `constraint`
-- `workaround`
+- `exception-contract`
 - `pattern`
 - `handoff`
 - `task`
@@ -93,6 +95,8 @@ Initial memory object types:
 
 The current schema stores state-bearing objects, but it does not yet enforce a
 single transition engine over them.
+It also does not yet store explicit adjudication records, but the schema should
+reserve that concept because conflict resolution is different from projection.
 
 ## Identity Model
 
@@ -230,7 +234,7 @@ Suggested future examples:
   - `captured`
   - `closed`
   - `abandoned`
-- workaround:
+- exception-contract:
   - `proposed`
   - `active`
   - `retired`
@@ -297,9 +301,24 @@ Suggested sections:
 - side effects
 - evidence
 
-### Workaround
+### Adjudication
 
-Use for temporary compromises that are intentionally not the target design.
+Use for explicit resolution of conflicting durable control truth.
+
+Suggested sections:
+
+- summary
+- conflict set
+- adjudication question
+- verdict
+- objects retained
+- objects invalidated
+- required follow-up transitions
+- evidence
+
+### Exception Contract
+
+Use for temporary deviations that are intentionally not the target design.
 
 Suggested sections:
 
@@ -549,16 +568,16 @@ Suggested shape:
 ## Historical Objectives
 ```
 
-### `projects/<project_id>/control/workaround-ledger.md`
+### `projects/<project_id>/control/exception-ledger.md`
 
 Purpose:
 
-- track temporary compromises separately from real architecture
+- track temporary deviations separately from real architecture
 
 Suggested shape:
 
 ```markdown
-# Workaround Ledger
+# Exception Ledger
 
 ## Active
 

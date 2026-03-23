@@ -78,7 +78,7 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
     constitution_preface, constitution_sections = load_control_sections(project_dir / "control" / "constitution.md")
     objective_preface, objective_sections = load_control_sections(project_dir / "control" / "active-objective.md")
     pivot_preface, pivot_sections = load_control_sections(project_dir / "control" / "pivot-log.md")
-    workaround_preface, workaround_sections = load_control_sections(project_dir / "control" / "workaround-ledger.md")
+    exception_preface, exception_sections = load_control_sections(project_dir / "control" / "exception-ledger.md")
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
     review_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint"), limit)
@@ -107,9 +107,9 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
     )
     append_control_sections(
         parts,
-        "Workaround Ledger",
-        workaround_preface,
-        workaround_sections,
+        "Exception Ledger",
+        exception_preface,
+        exception_sections,
         ["Active", "Invalidated By Pivot"],
     )
     append_control_sections(
@@ -171,7 +171,7 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
     constitution_preface, constitution_sections = load_control_sections(project_dir / "control" / "constitution.md")
     objective_preface, objective_sections = load_control_sections(project_dir / "control" / "active-objective.md")
     pivot_preface, pivot_sections = load_control_sections(project_dir / "control" / "pivot-log.md")
-    workaround_preface, workaround_sections = load_control_sections(project_dir / "control" / "workaround-ledger.md")
+    exception_preface, exception_sections = load_control_sections(project_dir / "control" / "exception-ledger.md")
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
     orchestration_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern"), limit)
@@ -208,9 +208,9 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
     append_control_sections(parts, "Blockers", "", blockers_sections, ["Active", "Waiting"])
     append_control_sections(
         parts,
-        "Workaround Ledger",
-        workaround_preface,
-        workaround_sections,
+        "Exception Ledger",
+        exception_preface,
+        exception_sections,
         ["Active", "Invalidated By Pivot"],
     )
     append_memory(parts, "Relevant Durable Memory", orchestration_memory)

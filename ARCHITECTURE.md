@@ -25,6 +25,17 @@ The future command surface is defined in [`TRANSITION_COMMANDS.md`](./TRANSITION
 Memory is the storage substrate. Control state is the thing that keeps the
 project direction coherent.
 
+The architecture also needs to distinguish three different jobs that are easy
+to collapse incorrectly:
+
+- projection
+  - rebuild compact control files from already coherent durable truth
+- audit
+  - detect that the current control state is dishonest or incomplete
+- adjudication
+  - decide how durable conflicts should be resolved before transition commands
+    rewrite state
+
 The system has four layers:
 
 1. raw event store
@@ -38,11 +49,15 @@ global status bit:
 - objective-line state
 - project phase state
 - round state
-- workaround state
+- exception-contract state
 - memory freshness state
 
 This keeps raw history available while making extracted memory explicit and
 cheap to consume.
+
+Current implementation has durable truth and projected control state. It now
+also gains a first control-audit path. It still lacks a real adjudication
+engine.
 
 ## Layer 1: Raw Event Store
 
@@ -85,7 +100,7 @@ Extraction outputs should include:
 - constraint records
 - objective records
 - pivot records
-- workaround records
+- exception-contract records
 - task state
 - reusable patterns
 
@@ -236,8 +251,10 @@ Suggested types:
   - failed attempts, bad assumptions, invalid approaches
 - `constraint`
   - environment, product, repo, or tool limitations
-- `workaround`
-  - temporary compromise with risk and exit condition
+- `exception-contract`
+  - temporary deviation with risk, owner scope, and exit condition
+- `adjudication`
+  - explicit durable verdict about conflicting control truth
 - `task`
   - current or pending work state
 - `artifact`
@@ -300,7 +317,7 @@ session-memory/
 │   │   │   ├── active-objective.md
 │   │   │   ├── active-round.md
 │   │   │   ├── pivot-log.md
-│   │   │   └── workaround-ledger.md
+│   │   │   └── exception-ledger.md
 │   │   ├── current/
 │   │   │   ├── current-task.md
 │   │   │   ├── blockers.md
@@ -311,10 +328,11 @@ session-memory/
 │   │   │   ├── pivots/
 │   │   │   ├── rounds/
 │   │   │   ├── transition-events/
+│   │   │   ├── adjudications/
 │   │   │   ├── decisions/
 │   │   │   ├── failures/
 │   │   │   ├── constraints/
-│   │   │   ├── workarounds/
+│   │   │   ├── exception-contracts/
 │   │   │   ├── patterns/
 │   │   │   ├── handoffs/
 │   │   │   └── validation-reports/

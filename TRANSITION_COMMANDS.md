@@ -34,8 +34,9 @@ The minimal command surface should cover:
 1. objective-line transitions
 2. phase transitions
 3. round transitions
-4. workaround transitions
+4. exception-contract transitions
 5. anchor maintenance
+6. control diagnostics and adjudication
 
 ## 1. Objective-Line Commands
 
@@ -164,7 +165,7 @@ Side effects:
 - supersede the previous objective
 - re-anchor control state to the new objective
 - review active round contracts
-- invalidate or retire stale workarounds when required
+- invalidate or retire stale exception contracts when required
 
 ## 3. Phase Commands
 
@@ -292,13 +293,13 @@ Guards:
 - round must be active or blocked
 - refresh must not quietly perform a hard pivot
 
-## 5. Workaround Commands
+## 5. Exception-Contract Commands
 
-### `activate-workaround`
+### `activate-exception-contract`
 
 Purpose:
 
-- create or promote a workaround to active debt
+- create or promote an exception contract to active debt
 
 Required inputs:
 
@@ -311,48 +312,48 @@ Required inputs:
 
 Primary writes:
 
-- `projects/<project_id>/memory/workarounds/<timestamp>-<slug>.md`
-- `projects/<project_id>/control/workaround-ledger.md`
+- `projects/<project_id>/memory/exception-contracts/<timestamp>-<slug>.md`
+- `projects/<project_id>/control/exception-ledger.md`
 
 Guards:
 
 - all required fields must be present
 
-### `retire-workaround`
+### `retire-exception-contract`
 
 Purpose:
 
-- mark a workaround as retired
+- mark an exception contract as retired
 
 Required inputs:
 
 - `project_id`
-- `workaround_id`
+- `exception_contract_id`
 - `reason`
 
 Primary writes:
 
-- workaround file update
-- workaround ledger update
+- exception-contract file update
+- exception ledger update
 
-### `invalidate-workaround`
+### `invalidate-exception-contract`
 
 Purpose:
 
-- mark a workaround invalid because a pivot or other state change made it
+- mark an exception contract invalid because a pivot or other state change made it
   obsolete
 
 Required inputs:
 
 - `project_id`
-- `workaround_id`
+- `exception_contract_id`
 - `reason`
 - optional `pivot_id`
 
 Primary writes:
 
-- workaround file update
-- workaround ledger update
+- exception-contract file update
+- exception ledger update
 
 ## 6. Anchor And Capture Commands
 
@@ -419,6 +420,45 @@ It should:
 - refuse repair when durable truth is ambiguous
 - avoid inventing a new transition event when it is only restoring projection
 
+## Related Diagnostic And Adjudication Commands
+
+### `audit-control-state`
+
+Purpose:
+
+- detect dishonest, incomplete, or conflicting control state without mutating it
+
+It should report at least:
+
+- durable objective or round ambiguity
+- projection drift between durable truth and control files
+- execution phase without one bounded open round
+- blocked rounds without blockers
+- missing control surfaces such as constitution or exception ledger
+
+### `adjudicate-control-state`
+
+Purpose:
+
+- resolve durable-state conflicts into an explicit control verdict before
+  transition commands rewrite durable truth
+
+This is the layer that should answer:
+
+- which objective remains the active mainline
+- which open rounds should be closed, split, or invalidated
+- which exception contracts should be retired or invalidated
+- which historical durable records remain legitimate history versus misleading
+  stale state
+
+Suggested primary writes:
+
+- `projects/<project_id>/memory/adjudications/<timestamp>-<slug>.md`
+- follow-up updates to the affected durable control objects
+
+This command does not exist yet. The design needs it because refusing ambiguous
+repair is not the same thing as resolving ambiguous durable truth.
+
 ## Minimal First Implementation Set
 
 The smallest honest set to implement first is:
@@ -427,7 +467,7 @@ The smallest honest set to implement first is:
 2. `record-hard-pivot`
 3. `open-round`
 4. `update-round-status`
-5. `activate-workaround`
+5. `activate-exception-contract`
 
 This set is enough to make the control plane materially real.
 
@@ -455,7 +495,7 @@ These slices already do these things:
 It does not yet implement:
 
 - soft-pivot transition commands
-- workaround transition commands
+- exception-contract transition commands
 - explicit phase transition commands
 - a unified transition engine shared across every command domain
 

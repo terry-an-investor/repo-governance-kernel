@@ -25,8 +25,11 @@ Today that enforcement is intentionally narrow:
 - transition events are recorded as durable files
 - control projections can be rebuilt from durable truth when the state is
   unambiguous
+- one audit path can now report control dishonesty without mutating state
 
 It is not yet a unified transition engine across every domain.
+It also does not yet include a true adjudication layer for resolving durable
+conflicts.
 
 ## Phase 1 In Scope
 
@@ -34,7 +37,7 @@ It is not yet a unified transition engine across every domain.
   - constitution
   - active objective
   - pivot log
-  - workaround ledger
+  - exception ledger
 - index Markdown memory files under `projects/` and `cross-project/`
 - populate SQLite metadata tables
 - populate one FTS5 table for recall
@@ -69,7 +72,7 @@ It is not yet a unified transition engine across every domain.
 ### Control files
 
 - add canonical project-agnostic control files under `projects/<project_id>/control/`
-- make `assemble` read active objective and workaround state
+- make `assemble` read active objective and exception-contract state
 - keep pivot handling explicit before any automation tries to infer it
 - keep constitution out of the default handoff packet unless later evidence
   proves that always inlining it helps more than it bloats
@@ -88,7 +91,14 @@ It is not yet a unified transition engine across every domain.
   - `reconcile-control-state`
   - rebuilds control files from durable objective, pivot, and round records
   - refuses ambiguous durable state instead of guessing
-- next enforcement slice should target workaround commands or a shared transition engine
+- audit support now exists:
+  - `audit-control-state`
+  - reports projection drift, execution-without-round, and other control honesty
+    failures
+- next enforcement slice should target:
+  - explicit adjudication
+  - exception-contract commands
+  - or a shared transition engine
 
 ### `scripts/build_index.py`
 
