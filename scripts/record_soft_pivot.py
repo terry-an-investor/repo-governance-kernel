@@ -11,11 +11,13 @@ from round_control import (
     OPEN_ROUND_STATUSES,
     active_objective_path,
     apply_transition_transaction,
+    assert_objective_phase_command_contract,
     merged_tags,
     objective_record_payload,
     pivot_log_path,
     pivots_dir,
     project_dir,
+    render_objective_phase_guard_lines,
     render_active_objective_file,
     render_objective_file,
     render_pivot_file,
@@ -282,6 +284,30 @@ def main() -> int:
 
     active_path = active_objective_path(args.project_id)
     pivot_path_projection = pivot_log_path(args.project_id)
+    assert_objective_phase_command_contract(
+        "record-soft-pivot",
+        provided_inputs={
+            "project_id",
+            "objective_id",
+            "trigger",
+            "change_summary",
+            "identity_rationale",
+        },
+        satisfied_guard_codes={
+            "target_matches_active_objective",
+            "material_objective_change_present",
+            "resulting_objective_fields_present",
+            "execution_phase_round_alignment_preserved",
+            "round_review_path_explicit_when_objective_shape_changes",
+        },
+        write_targets={
+            "durable:objective",
+            "durable:pivot",
+            "control:active-objective",
+            "control:pivot-log",
+            "memory:transition-event",
+        },
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -295,14 +321,10 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"objective `{objective_id}` was active as `{str(payload['title']).strip()}` in phase `{str(payload['phase'])}`",
         next_state=f"objective `{objective_id}` remains active as `{next_title}` in phase `{next_phase}` and pivot `{pivot_id}` is recorded",
-        guards=[
-            f"objective `{objective_id}` matches both control and durable active truth",
-            "soft pivot preserves one active objective id instead of creating a successor objective",
-            "resulting problem, success criteria, non-goals, and phase remain present",
-            "execution phase keeps one aligned durable open round when required",
-            "open-round review path is explicit when the objective shape changes",
-            "identity rationale is explicitly recorded",
-        ],
+        guards=render_objective_phase_guard_lines(
+            "record-soft-pivot",
+            context={"objective_id": objective_id},
+        ),
         evidence=[args.trigger, args.change_summary, args.identity_rationale]
         + [item.strip() for item in args.evidence if item.strip()],
         target_ids=[objective_id, pivot_id],

@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: ``
-- Phase: `paused`
+- Active round id: `round-2026-03-23-2251-make-objective-phase-commands-consume-semantic-registry-contracts`
+- Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `caa256bab606d5f992f5e567ca2b034f4c12c544`
+- HEAD anchor: `933fae18411c468f3cc506becf8da057b59edeb2`
 - Worktree state: `dirty`
-- Changed path count: `8`
-- Last anchor refresh: `2026-03-23T22:33:40+08:00`
+- Changed path count: `13`
+- Last anchor refresh: `2026-03-23T22:56:26+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample

@@ -208,6 +208,7 @@ Phase and round-scope changes are now first-class owner-layer transitions, not
 manual edits:
 
 - `set-phase` changes durable objective phase and active-objective projection together
+- objective-line plus phase commands consume one shared registry-backed owner-layer contract for declared inputs, guard coverage, write-target coverage, and transition-event expectations
 - entering `execution` must already have one bounded round or bootstrap one in
   the same command
 - `refresh-round-scope` rewrites durable round `paths` from live dirty-path
@@ -215,6 +216,8 @@ manual edits:
 - `rewrite-open-round` rewrites one open round contract durably while preserving
   round identity, so pivots and adjudication can mutate round truth through a
   bounded owner-layer primitive instead of ad hoc file edits
+- `audit_control_state` now warns when either the objective/phase-domain helper
+  or the round-domain helper drifts from the semantic transition registry
 
 ## Precision Surfaces
 

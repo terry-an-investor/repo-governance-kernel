@@ -11,10 +11,12 @@ from round_control import (
     OPEN_ROUND_STATUSES,
     active_objective_path,
     apply_transition_transaction,
+    assert_objective_phase_command_contract,
     find_exception_contracts,
     find_rounds,
     objective_record_payload,
     render_active_objective_file,
+    render_objective_phase_guard_lines,
     render_objective_file,
     resolve_active_objective_record,
     resolve_anchor,
@@ -268,6 +270,21 @@ def main() -> int:
     )
 
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    assert_objective_phase_command_contract(
+        "set-phase",
+        provided_inputs={"project_id", "phase", "reason"},
+        satisfied_guard_codes={
+            "phase_supported",
+            "phase_transition_prerequisites_met",
+            "execution_phase_has_or_bootstraps_round",
+        },
+        write_targets={
+            "durable:objective",
+            "control:active-objective",
+            "control:active-round",
+            "memory:transition-event",
+        },
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -279,20 +296,9 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"objective `{objective_id}` was active in phase `{current_phase}`",
         next_state=f"objective `{objective_id}` remains active in phase `{next_phase}`",
-        guards=[
-            f"objective `{objective_id}` matches both control and durable active truth",
-            f"phase changes from `{current_phase}` to `{next_phase}`",
-            "phase transition reason is explicit",
-        ]
-        + (
-            ["execution phase has one bounded round or bootstrap contract"]
-            if next_phase == "execution"
-            else []
-        )
-        + (
-            ["open rounds were explicitly reviewed before leaving execution"]
-            if current_phase == "execution" and next_phase in {"exploration", "paused"} and open_rounds
-            else []
+        guards=render_objective_phase_guard_lines(
+            "set-phase",
+            context={"previous_phase": current_phase, "next_phase": next_phase},
         ),
         evidence=[args.reason.strip()] + _clean_list(args.evidence) + _clean_list(args.scope_review_note),
         target_ids=[objective_id],

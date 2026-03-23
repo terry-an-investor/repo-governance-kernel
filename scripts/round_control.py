@@ -32,6 +32,13 @@ ROUND_STATUS_TRANSITIONS = {
     "abandoned": set(),
 }
 ROUND_COMMAND_NAMES = {"open-round", "refresh-round-scope", "rewrite-open-round", "update-round-status"}
+OBJECTIVE_PHASE_COMMAND_NAMES = {
+    "open-objective",
+    "close-objective",
+    "record-soft-pivot",
+    "record-hard-pivot",
+    "set-phase",
+}
 ROUND_COMMAND_GUARD_TEXT = {
     "linked_objective_is_active": lambda context: f"objective `{context['objective_id']}` exists and is active",
     "linked_objective_is_execution": lambda context: "objective phase is `execution`",
@@ -57,8 +64,56 @@ ROUND_COMMAND_GUARD_TEXT = {
     "round_identity_preserved": lambda context: "round identity is preserved while contract content is rewritten",
     "rewrite_produces_material_change": lambda context: "rewrite produces at least one material round-contract change",
 }
+OBJECTIVE_PHASE_COMMAND_GUARD_TEXT = {
+    "objective_fields_present": lambda context: "problem, success criteria, non-goals, and phase are present",
+    "active_objective_phase_valid": lambda context: "initial objective phase is supported",
+    "no_other_active_objective": lambda context: "no control or durable active objective already exists",
+    "target_matches_active_objective": lambda context: (
+        f"objective `{context['objective_id']}` matches both control and durable active truth"
+        if context.get("objective_id")
+        else "target objective matches both control and durable active truth"
+    ),
+    "closing_status_supported": lambda context: (
+        f"closing status `{context['closing_status']}` is supported"
+        if context.get("closing_status")
+        else "closing status is supported"
+    ),
+    "no_open_rounds_for_objective": lambda context: "no durable open round remains attached to the objective",
+    "no_active_exception_contracts_for_objective": lambda context: "no active exception contract remains attached to the objective",
+    "material_objective_change_present": lambda context: "soft pivot produces at least one material objective change",
+    "resulting_objective_fields_present": lambda context: "resulting objective problem, success criteria, non-goals, and phase remain present",
+    "execution_phase_round_alignment_preserved": lambda context: "execution-phase objective state keeps one aligned durable open round when required",
+    "round_review_path_explicit_when_objective_shape_changes": lambda context: "open-round review path is explicit when the objective shape changes",
+    "previous_objective_is_active": lambda context: (
+        f"objective `{context['previous_objective_id']}` exists and is active"
+        if context.get("previous_objective_id")
+        else "previous objective exists and is active"
+    ),
+    "new_objective_fields_present": lambda context: "new objective problem, success criteria, non-goals, and phase are present",
+    "previous_objective_matches_control_truth": lambda context: "previous objective matches both control and durable active truth",
+    "no_open_rounds_on_previous_objective": lambda context: "no durable still-open round remains tied to the previous objective",
+    "phase_supported": lambda context: (
+        f"phase `{context['next_phase']}` is supported"
+        if context.get("next_phase")
+        else "target phase is supported"
+    ),
+    "phase_transition_prerequisites_met": lambda context: (
+        f"phase transition `{context['previous_phase']} -> {context['next_phase']}` satisfies its prerequisites"
+        if context.get("previous_phase") and context.get("next_phase")
+        else "phase transition prerequisites are met"
+    ),
+    "execution_phase_has_or_bootstraps_round": lambda context: "execution phase has one bounded round or bootstraps one in the same guarded transition",
+}
 ROUND_WRITE_TARGET_LABELS = {
     "durable:round",
+    "control:active-round",
+    "memory:transition-event",
+}
+OBJECTIVE_PHASE_WRITE_TARGET_LABELS = {
+    "durable:objective",
+    "durable:pivot",
+    "control:active-objective",
+    "control:pivot-log",
     "control:active-round",
     "memory:transition-event",
 }
@@ -229,6 +284,17 @@ def round_command_spec(command_name: str):
     return spec
 
 
+def objective_phase_command_spec(command_name: str):
+    spec = transition_command_spec(command_name)
+    if spec.domain not in {"objective-line", "phase"}:
+        raise SystemExit(f"transition command `{command_name}` is not an objective-line or phase-domain command")
+    if command_name not in OBJECTIVE_PHASE_COMMAND_NAMES:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` is not declared in the owner-layer objective/phase command set"
+        )
+    return spec
+
+
 def assert_round_command_contract(
     command_name: str,
     *,
@@ -278,6 +344,56 @@ def assert_round_command_contract(
     return spec
 
 
+def assert_objective_phase_command_contract(
+    command_name: str,
+    *,
+    provided_inputs: set[str],
+    satisfied_guard_codes: set[str],
+    write_targets: set[str],
+    emits_transition_event: bool = True,
+) -> object:
+    spec = objective_phase_command_spec(command_name)
+    missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
+    if missing_inputs:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
+        )
+
+    expected_guards = set(spec.guard_codes)
+    missing_guards = sorted(expected_guards - satisfied_guard_codes)
+    unexpected_guards = sorted(satisfied_guard_codes - expected_guards)
+    if missing_guards:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` is missing registry-declared guards: {', '.join(missing_guards)}"
+        )
+    if unexpected_guards:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` declared unexpected guard coverage outside the registry: {', '.join(unexpected_guards)}"
+        )
+
+    expected_write_targets = set(spec.write_targets)
+    missing_write_targets = sorted(expected_write_targets - write_targets)
+    unexpected_write_targets = sorted(write_targets - expected_write_targets)
+    if missing_write_targets:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` is missing registry-declared write targets: {', '.join(missing_write_targets)}"
+        )
+    if unexpected_write_targets:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` declared unexpected write targets outside the registry: {', '.join(unexpected_write_targets)}"
+        )
+    if not write_targets.issubset(OBJECTIVE_PHASE_WRITE_TARGET_LABELS):
+        raise SystemExit(
+            "objective/phase-domain command "
+            f"`{command_name}` declared unsupported objective/phase write targets: {', '.join(sorted(write_targets - OBJECTIVE_PHASE_WRITE_TARGET_LABELS))}"
+        )
+    if spec.emits_transition_event != emits_transition_event:
+        raise SystemExit(
+            f"objective/phase-domain command `{command_name}` transition-event expectation diverges from the registry"
+        )
+    return spec
+
+
 def render_round_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
     spec = round_command_spec(command_name)
     guard_context = context or {}
@@ -286,6 +402,18 @@ def render_round_guard_lines(command_name: str, *, context: dict[str, str] | Non
         renderer = ROUND_COMMAND_GUARD_TEXT.get(guard_code)
         if renderer is None:
             raise SystemExit(f"round-domain guard `{guard_code}` has no owner-layer renderer")
+        rendered.append(renderer(guard_context))
+    return rendered
+
+
+def render_objective_phase_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
+    spec = objective_phase_command_spec(command_name)
+    guard_context = context or {}
+    rendered: list[str] = []
+    for guard_code in spec.guard_codes:
+        renderer = OBJECTIVE_PHASE_COMMAND_GUARD_TEXT.get(guard_code)
+        if renderer is None:
+            raise SystemExit(f"objective/phase-domain guard `{guard_code}` has no owner-layer renderer")
         rendered.append(renderer(guard_context))
     return rendered
 
@@ -303,6 +431,25 @@ def validate_round_domain_registry_contracts() -> None:
             if guard_code not in ROUND_COMMAND_GUARD_TEXT:
                 raise SystemExit(
                     f"round-domain command `{command_name}` declares unsupported guard renderer `{guard_code}`"
+                )
+
+
+def validate_objective_phase_domain_registry_contracts() -> None:
+    for command_name in sorted(OBJECTIVE_PHASE_COMMAND_NAMES):
+        spec = objective_phase_command_spec(command_name)
+        if spec.implementation_status != "implemented":
+            raise SystemExit(
+                f"objective/phase-domain command `{command_name}` must remain `implemented` while the objective/phase helper consumes it"
+            )
+        if not set(spec.write_targets).issubset(OBJECTIVE_PHASE_WRITE_TARGET_LABELS):
+            raise SystemExit(
+                "objective/phase-domain command "
+                f"`{command_name}` declares unsupported write targets: {', '.join(sorted(set(spec.write_targets) - OBJECTIVE_PHASE_WRITE_TARGET_LABELS))}"
+            )
+        for guard_code in spec.guard_codes:
+            if guard_code not in OBJECTIVE_PHASE_COMMAND_GUARD_TEXT:
+                raise SystemExit(
+                    f"objective/phase-domain command `{command_name}` declares unsupported guard renderer `{guard_code}`"
                 )
 
 

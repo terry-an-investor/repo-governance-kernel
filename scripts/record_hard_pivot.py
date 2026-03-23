@@ -7,6 +7,7 @@ import json
 from round_control import (
     active_objective_path,
     apply_transition_transaction,
+    assert_objective_phase_command_contract,
     find_rounds,
     merged_tags,
     objective_record_payload,
@@ -14,6 +15,7 @@ from round_control import (
     pivot_log_path,
     pivots_dir,
     project_dir,
+    render_objective_phase_guard_lines,
     render_active_objective_file,
     render_objective_file,
     render_pivot_file,
@@ -192,6 +194,32 @@ def main() -> int:
     )
 
     pivot_log = pivot_log_path(args.project_id)
+    assert_objective_phase_command_contract(
+        "record-hard-pivot",
+        provided_inputs={
+            "project_id",
+            "previous_objective_id",
+            "title",
+            "problem",
+            "success_criteria",
+            "non_goals",
+            "phase",
+            "trigger",
+        },
+        satisfied_guard_codes={
+            "previous_objective_is_active",
+            "new_objective_fields_present",
+            "previous_objective_matches_control_truth",
+            "no_open_rounds_on_previous_objective",
+        },
+        write_targets={
+            "durable:objective",
+            "durable:pivot",
+            "control:active-objective",
+            "control:pivot-log",
+            "memory:transition-event",
+        },
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -206,13 +234,10 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"objective `{previous_objective_id}` was active",
         next_state=f"objective `{objective_id}` is now active and pivot `{pivot_id}` is recorded",
-        guards=[
-            f"control active objective is `{previous_objective_id}`",
-            f"durable active objective is `{previous_objective_id}`",
-            f"objective `{previous_objective_id}` exists and is active",
-            "new objective fields are present",
-            "no durable still-open round remains tied to the previous objective",
-        ],
+        guards=render_objective_phase_guard_lines(
+            "record-hard-pivot",
+            context={"previous_objective_id": previous_objective_id},
+        ),
         evidence=[args.trigger] + [item.strip() for item in args.evidence if item.strip()],
         target_ids=[previous_objective_id, objective_id, pivot_id],
         event_file_stem=f"{pivot_file_stem}-record-hard-pivot",

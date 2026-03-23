@@ -7,11 +7,13 @@ import json
 from round_control import (
     active_objective_path,
     apply_transition_transaction,
+    assert_objective_phase_command_contract,
     find_objectives_by_status,
     load_active_objective,
     objectives_dir,
     pivot_log_path,
     project_dir,
+    render_objective_phase_guard_lines,
     render_active_objective_file,
     render_objective_file,
     render_pivot_log_file,
@@ -111,6 +113,12 @@ def main() -> int:
     objective_path = objectives_dir(args.project_id) / f"{file_stem}.md"
     active_path = active_objective_path(args.project_id)
     pivot_path = pivot_log_path(args.project_id)
+    assert_objective_phase_command_contract(
+        "open-objective",
+        provided_inputs={"project_id", "title", "problem", "success_criteria", "non_goals", "phase"},
+        satisfied_guard_codes={"objective_fields_present", "active_objective_phase_valid", "no_other_active_objective"},
+        write_targets={"durable:objective", "control:active-objective", "control:pivot-log", "memory:transition-event"},
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -123,12 +131,7 @@ def main() -> int:
         anchor=anchor,
         previous_state="no active objective was present",
         next_state=f"objective `{objective_id}` is now active in phase `{args.phase}`",
-        guards=[
-            "project directory exists",
-            "no active objective control file entry is present",
-            "no durable active objective record already exists",
-            "problem, success criteria, non-goals, and phase are present",
-        ],
+        guards=render_objective_phase_guard_lines("open-objective"),
         evidence=[args.problem, args.why_now],
         target_ids=[objective_id],
         event_file_stem=f"{file_stem}-open-objective",

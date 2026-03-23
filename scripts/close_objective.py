@@ -8,12 +8,14 @@ from round_control import (
     OPEN_ROUND_STATUSES,
     active_objective_path,
     apply_transition_transaction,
+    assert_objective_phase_command_contract,
     find_exception_contracts,
     find_rounds,
     merged_tags,
     objective_record_payload,
     pivot_log_path,
     project_dir,
+    render_objective_phase_guard_lines,
     render_objective_file,
     render_pivot_log_file,
     resolve_active_objective_record,
@@ -116,6 +118,17 @@ def main() -> int:
     active_path = active_objective_path(args.project_id)
     pivot_path = pivot_log_path(args.project_id)
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    assert_objective_phase_command_contract(
+        "close-objective",
+        provided_inputs={"project_id", "objective_id", "closing_status", "reason"},
+        satisfied_guard_codes={
+            "target_matches_active_objective",
+            "closing_status_supported",
+            "no_open_rounds_for_objective",
+            "no_active_exception_contracts_for_objective",
+        },
+        write_targets={"durable:objective", "control:active-objective", "control:pivot-log", "memory:transition-event"},
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -128,12 +141,10 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"objective `{objective_id}` was active",
         next_state=f"objective `{objective_id}` is now `{args.closing_status}` and no active objective remains",
-        guards=[
-            f"objective `{objective_id}` matches both control and durable active truth",
-            f"closing status is one of {', '.join(f'`{status}`' for status in sorted(ALLOWED_CLOSING_STATUSES))}",
-            "no durable open round remains attached to the objective",
-            "no active exception contract remains attached to the objective",
-        ],
+        guards=render_objective_phase_guard_lines(
+            "close-objective",
+            context={"objective_id": objective_id, "closing_status": args.closing_status},
+        ),
         evidence=[args.reason] + [item.strip() for item in args.evidence if item.strip()],
         target_ids=[objective_id],
         event_file_stem=f"{timestamp}-{objective_id}-{args.closing_status}",
