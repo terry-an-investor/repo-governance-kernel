@@ -59,6 +59,13 @@ def parse_h2_sections(text: str) -> dict[str, str]:
     return sections
 
 
+def preface_before_first_h2(text: str) -> str:
+    match = SECTION_RE.search(text)
+    if not match:
+        return text.strip()
+    return text[: match.start()].strip()
+
+
 def strip_inline_code(text: str) -> str:
     value = text.strip()
     if value.startswith("`") and value.endswith("`") and len(value) >= 2:
@@ -97,6 +104,34 @@ def append_named_sections(parts: list[str], title: str, sections: dict[str, str]
     for name in names:
         body = sections.get(name, "").strip()
         if not body:
+            continue
+        selected.append(f"### {name}\n\n{body}")
+    if not selected:
+        return
+    parts.append(f"## {title}\n")
+    parts.append("\n\n".join(selected))
+    parts.append("")
+
+
+def is_placeholder_body(text: str) -> bool:
+    normalized = " ".join(text.strip().lower().split())
+    return normalized in {
+        "",
+        "- none recorded yet.",
+        "none recorded yet.",
+        "- _none_",
+        "_none_",
+    }
+
+
+def append_control_block(parts: list[str], title: str, preface: str, sections: dict[str, str], names: list[str]) -> None:
+    selected: list[str] = []
+    preface = preface.strip()
+    if preface and not is_placeholder_body(preface):
+        selected.append(preface)
+    for name in names:
+        body = sections.get(name, "").strip()
+        if is_placeholder_body(body):
             continue
         selected.append(f"### {name}\n\n{body}")
     if not selected:
@@ -390,6 +425,13 @@ def fetch_memory_rows(project_id: str, limit: int) -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def load_control_sections(path: Path) -> tuple[str, dict[str, str]]:
+    if not path.exists():
+        return "", {}
+    cleaned = clean_section_text(path, strip_heading=True, strip_yaml=False)
+    return preface_before_first_h2(cleaned), parse_h2_sections(cleaned)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Assemble a fresh-session context packet.")
     parser.add_argument("--project-id", required=True)
@@ -398,6 +440,9 @@ def main() -> None:
     args = parser.parse_args()
 
     project_dir = ROOT / "projects" / args.project_id
+    active_objective_path = project_dir / "control" / "active-objective.md"
+    pivot_log_path = project_dir / "control" / "pivot-log.md"
+    workaround_ledger_path = project_dir / "control" / "workaround-ledger.md"
     current_task_path = project_dir / "current" / "current-task.md"
     blockers_path = project_dir / "current" / "blockers.md"
     snapshot_path = latest_snapshot(project_dir)
@@ -405,6 +450,9 @@ def main() -> None:
     current_task_sections: dict[str, str] = {}
     if current_task_path.exists():
         current_task_sections = parse_h2_sections(clean_section_text(current_task_path, strip_heading=True, strip_yaml=False))
+    active_objective_preface, active_objective_sections = load_control_sections(active_objective_path)
+    pivot_log_preface, pivot_log_sections = load_control_sections(pivot_log_path)
+    workaround_preface, workaround_sections = load_control_sections(workaround_ledger_path)
     current_task_anchor = extract_current_task_anchor(current_task_sections)
     snapshot_anchor = extract_snapshot_anchor(snapshot_path)
     packet_anchor = merge_anchor_sources(current_task_anchor, snapshot_anchor)
@@ -425,6 +473,30 @@ def main() -> None:
         snapshot_anchor=snapshot_anchor,
         packet_anchor=packet_anchor,
         live_workspace=live_workspace,
+    )
+
+    append_control_block(
+        parts,
+        "Active Objective",
+        active_objective_preface,
+        active_objective_sections,
+        ["Problem", "Success Criteria", "Non-Goals", "Current Risks"],
+    )
+
+    append_control_block(
+        parts,
+        "Pivot Lineage",
+        pivot_log_preface,
+        pivot_log_sections,
+        ["Active Lineage", "Recent Pivots"],
+    )
+
+    append_control_block(
+        parts,
+        "Workaround Ledger",
+        workaround_preface,
+        workaround_sections,
+        ["Active", "Invalidated By Pivot"],
     )
 
     if current_task_path.exists():

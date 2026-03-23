@@ -31,7 +31,7 @@ The immediate objective is:
   - this project is the first real sample for a hard pivot in objective line
 - Current work is focused on:
   - validating the first real control-state sample under `projects/session-memory/control/`
-  - teaching later implementation to compile through active objective state
+  - tightening packet shape now that `assemble` reads active objective and pivot lineage
 
 ## Validated Facts
 
@@ -48,6 +48,10 @@ The immediate objective is:
 - The project direction is now clarified:
   - from multi-project coding-agent memory
   - to coding control system built on top of that memory substrate
+- `assemble_context.py` now compiles:
+  - active objective
+  - pivot lineage
+  - workaround ledger when present
 
 ## Important Files
 
@@ -78,9 +82,10 @@ The immediate objective is:
 
 ## Next Steps
 
-1. Teach `assemble` to read active objective and workaround state.
-2. Keep compressing assembled context so it acts like a handoff packet instead
+1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
+2. Decide whether active constitution belongs in assembled context or should
+   stay recall-only.
 3. Run and record the first bootstrap control-vs-treatment experiment against
    live project state.
 4. Add a first real workaround or validation-report sample only when a live
