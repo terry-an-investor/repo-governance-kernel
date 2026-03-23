@@ -289,14 +289,20 @@ Current implementation already does these things:
 - stores workaround ledger state
 - compiles contexts from active control files
 - computes freshness verdicts for assembled packets
+- enforces one first round slice through:
+  - `open-round`
+  - `update-round-status`
+  - legal round transitions are rejected
+  - round-contract metadata is preserved during status rewrites
+- records transition-event files for round operations
 
 Current implementation does not yet do these things:
 
-- reject illegal transitions
+- reject illegal transitions outside the implemented round slice
 - auto-invalidate stale round contracts after hard pivots
 - enforce guards before phase changes
 - update status fields through a single transition engine
-- persist transition events as first-class operations
+- cover objective, pivot, and workaround domains with the same enforcement depth
 
 This gap should remain explicit until enforcement exists.
 

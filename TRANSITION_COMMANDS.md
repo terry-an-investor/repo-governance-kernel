@@ -411,6 +411,28 @@ The smallest honest set to implement first is:
 
 This set is enough to make the control plane materially real.
 
+## Current Implementation Status
+
+The current implementation now includes a first real round-transition slice:
+
+- `open-round`
+- `update-round-status`
+
+This slice already does these things:
+
+- writes durable `round-contract` files
+- updates `control/active-round.md`
+- rejects illegal round-status transitions
+- preserves existing round metadata when rewriting status
+- records `transition-event` files for round operations
+
+It does not yet implement:
+
+- objective transition commands
+- pivot transition commands
+- workaround transition commands
+- a unified transition engine shared across every command domain
+
 ## Explicit Non-Goal
 
 Do not implement all commands at once.

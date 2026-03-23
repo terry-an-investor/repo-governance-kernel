@@ -20,7 +20,7 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `0d603f3e2ed77feed60c71812169593f982cbaad`
+- HEAD anchor: `cb2047abe10b8520e6a0b26d4ddc13250d5344e2`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -30,9 +30,9 @@ The immediate objective is:
   - durable docs define objective, pivot, and workaround as first-class objects
   - this project is the first real sample for a hard pivot in objective line
 - Current work is focused on:
-  - validating the first real control-state sample under `projects/session-memory/control/`
-  - tightening packet shape now that `assemble` reads active objective and pivot lineage
-  - compiling role-specific contexts from the same control substrate
+  - hardening the first enforced round-transition slice so round rewrites stay lossless
+  - keeping command semantics honest before expanding to objective and pivot transitions
+  - preserving project-agnostic control primitives while this repo bootstraps itself
 
 ## Validated Facts
 
@@ -82,6 +82,15 @@ The immediate objective is:
 - The project now has a first real active round sample under:
   - `projects/session-memory/control/active-round.md`
   - `projects/session-memory/memory/rounds/2026-03-23-transition-command-surface.md`
+- The first enforced transition slice now exists:
+  - `open-round`
+  - `update-round-status`
+- The first real round lifecycle has been exercised:
+  - `active -> validation_pending -> captured -> closed`
+  - successor round opened with transition-event records
+- The round rewrite path has now been re-validated on the active round:
+  - `active -> blocked -> active`
+  - frontmatter fidelity survived the rewrite
 
 ## Important Files
 
@@ -101,9 +110,12 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_role_context.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/open_round.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/prepare_role_eval_bundle.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/update_round_status.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-22-project-scoped-scope.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-23-multi-project-workspace-aware-scope.md`
 
@@ -121,8 +133,8 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Implement the first small transition slice:
-   `open-objective` plus `record-hard-pivot` or `open-round`.
+3. Implement the next transition slice:
+   `open-objective` plus `record-hard-pivot`.
 4. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
 5. Run and record the first bootstrap control-vs-treatment experiment against

@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-23-0001
 type: round-contract
-title: Freeze transition command surface and round architecture
-status: active
+title: "Freeze transition command surface and round architecture"
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 28ce1ee53c5e071c3797ec9c4dd7bb766fb21c93
+git_sha: cb2047abe10b8520e6a0b26d4ddc13250d5344e2
 paths:
   - STATE_MACHINE.md
   - TRANSITION_COMMANDS.md
@@ -26,7 +26,7 @@ tags:
   - transition-command-surface
 confidence: high
 created_at: 2026-03-23T23:20:00+08:00
-updated_at: 2026-03-23T23:20:00+08:00
+updated_at: 2026-03-23T12:13:07+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -55,6 +55,7 @@ instead of ad hoc.
 - docs are mutually consistent
 - round paths exist in schema and architecture
 - the sample active round reflects the real current design work
+- uv run python scripts/session_memory.py smoke
 
 ## Active Risks
 
@@ -69,3 +70,12 @@ instead of ad hoc.
 
 This round is design-first. It should freeze the control-plane command surface
 without pretending that transition enforcement already exists.
+
+active -> validation_pending: transition command surface frozen and ready for capture
+
+validation_pending -> captured: smoke validated the transition command surface round
+
+validated by:
+- uv run python scripts/session_memory.py smoke
+
+captured -> closed: round archived after validated design freeze

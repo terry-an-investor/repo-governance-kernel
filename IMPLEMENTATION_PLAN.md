@@ -14,7 +14,15 @@ frozen design:
 - retrieval stays structure-first, then FTS5
 - control state stays file-first before automation expands
 
-This phase remains state-machine oriented, not state-machine enforced.
+This phase is now partially state-machine enforced.
+
+Today that enforcement is intentionally narrow:
+
+- the round domain has real transition commands
+- illegal round-status transitions are rejected
+- transition events are recorded as durable files
+
+It is not yet a unified transition engine across every domain.
 
 ## Phase 1 In Scope
 
@@ -63,6 +71,11 @@ This phase remains state-machine oriented, not state-machine enforced.
   proves that always inlining it helps more than it bloats
 - compile constitution into role-specific contexts instead
 - define the future transition command surface before implementing enforcement
+- first round transition slice is now real:
+  - `open-round`
+  - `update-round-status`
+  - rewrite path now preserves round metadata instead of degrading frontmatter
+- next enforcement slice should target objective and pivot commands
 
 ### `scripts/build_index.py`
 

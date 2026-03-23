@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from round_control import (
+    active_objective_path,
+    active_round_path,
+    build_transition_event_file,
+    load_active_objective,
+    load_active_round,
+    project_dir,
+    render_active_round_file,
+    render_round_file,
+    resolve_anchor,
+    rounds_dir,
+    slugify,
+    timestamp_now,
+    transition_events_dir,
+)
+
+
+ACTIVE_ROUND_BLOCKING_STATUSES = {"active", "blocked", "validation_pending"}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Open a new active round contract.")
+    parser.add_argument("--project-id", required=True)
+    parser.add_argument("--title", required=True)
+    parser.add_argument("--slug")
+    parser.add_argument("--objective-id")
+    parser.add_argument("--scope-item", action="append", required=True)
+    parser.add_argument("--scope-path", action="append", default=[])
+    parser.add_argument("--deliverable", required=True)
+    parser.add_argument("--validation-plan", required=True)
+    parser.add_argument("--risk", action="append", default=[])
+    parser.add_argument("--blocker", action="append", default=[])
+    parser.add_argument("--status-note", default="")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    project_path = project_dir(args.project_id)
+    if not project_path.exists():
+        raise SystemExit(f"project directory not found: {project_path}")
+
+    objective_preface, _objective_sections = load_active_objective(args.project_id)
+    if not objective_preface:
+        raise SystemExit(f"missing active objective: {active_objective_path(args.project_id)}")
+
+    objective_id = args.objective_id or objective_preface.get("objective id", "")
+    objective_status = objective_preface.get("status", "")
+    if not objective_id:
+        raise SystemExit("active objective is missing `Objective id`")
+    if objective_status and objective_status != "active":
+        raise SystemExit(f"cannot open round from non-active objective status `{objective_status}`")
+
+    existing_round_preface, _existing_round_sections = load_active_round(args.project_id)
+    existing_round_id = existing_round_preface.get("round id", "")
+    existing_round_status = existing_round_preface.get("status", "")
+    if existing_round_id and existing_round_status in ACTIVE_ROUND_BLOCKING_STATUSES:
+        raise SystemExit(
+            f"cannot open a new round while `{existing_round_id}` is still `{existing_round_status}`; "
+            "close, capture, block, or abandon it honestly first"
+        )
+
+    slug = args.slug or slugify(args.title)
+    timestamp = timestamp_now()
+    file_stem = f"{timestamp.strftime('%Y-%m-%d-%H%M')}-{slug}"
+    round_id = f"round-{timestamp.strftime('%Y-%m-%d-%H%M')}-{slug}"
+    anchor = resolve_anchor(args.project_id)
+
+    round_text = render_round_file(
+        round_id=round_id,
+        title=args.title,
+        status="active",
+        project_id=args.project_id,
+        objective_id=objective_id,
+        anchor=anchor,
+        paths=args.scope_path,
+        created_at=timestamp.isoformat(timespec="seconds"),
+        evidence_refs=[],
+        tags=["round", "control-plane"],
+        confidence="high",
+        phase="execution",
+        summary=args.deliverable,
+        scope_items=args.scope_item,
+        deliverable=args.deliverable,
+        validation_plan=args.validation_plan,
+        risks=args.risk,
+        blockers=args.blocker,
+        status_notes=args.status_note,
+    )
+    active_round_text = render_active_round_file(
+        round_id=round_id,
+        objective_id=objective_id,
+        status="active",
+        scope_items=args.scope_item,
+        deliverable=args.deliverable,
+        validation_plan=args.validation_plan,
+        risks=args.risk,
+        blockers=args.blocker,
+    )
+
+    round_path = rounds_dir(args.project_id) / f"{file_stem}.md"
+    round_path.parent.mkdir(parents=True, exist_ok=True)
+    round_path.write_text(round_text, encoding="utf-8")
+
+    control_path = active_round_path(args.project_id)
+    control_path.parent.mkdir(parents=True, exist_ok=True)
+    control_path.write_text(active_round_text, encoding="utf-8")
+
+    previous_state = (
+        f"previous active round: `{existing_round_id}` status `{existing_round_status}`"
+        if existing_round_id
+        else "no active round was present"
+    )
+    next_state = f"round `{round_id}` is now active for objective `{objective_id}`"
+    guards = [
+        f"objective `{objective_id}` exists and is active",
+        "scope items are present",
+        "deliverable is present",
+        "validation plan is present",
+        "no conflicting active round remains open",
+    ]
+    side_effects = [
+        f"wrote durable round contract `{round_path.relative_to(project_path.parent).as_posix()}`",
+        f"updated `{control_path.relative_to(project_path.parent).as_posix()}`",
+    ]
+    evidence = [args.validation_plan]
+    event_id, event_text = build_transition_event_file(
+        project_id=args.project_id,
+        command_name="open-round",
+        title=f"Opened round {round_id}",
+        anchor=anchor,
+        previous_state=previous_state,
+        next_state=next_state,
+        guards=guards,
+        side_effects=side_effects,
+        evidence=evidence,
+        target_ids=[round_id, objective_id],
+    )
+    event_path = transition_events_dir(args.project_id) / f"{file_stem}-open-round.md"
+    event_path.parent.mkdir(parents=True, exist_ok=True)
+    event_path.write_text(event_text, encoding="utf-8")
+
+    print(
+        json.dumps(
+            {
+                "project_id": args.project_id,
+                "round_id": round_id,
+                "objective_id": objective_id,
+                "round_path": str(round_path),
+                "active_round_path": str(control_path),
+                "transition_event_id": event_id,
+                "transition_event_path": str(event_path),
+            },
+            ensure_ascii=True,
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

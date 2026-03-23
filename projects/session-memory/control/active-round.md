@@ -1,36 +1,28 @@
 # Active Round
 
-- Round id: `round-2026-03-23-0001`
+- Round id: `round-2026-03-23-1213-implement-first-transition-slice`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- freeze the transition command surface
-- extend canonical paths for round and transition objects
-- pressure-test the design with one real `active-round` sample
+- implement open-round and update-round-status as real commands
+- persist transition events for round commands
+- validate the first enforced control-state transitions on session-memory
 
 ## Deliverable
 
-Produce a coherent state-machine command architecture that defines:
-
-- the future command names
-- their guards
-- their side effects
-- the canonical files they own
+A working first transition slice that can open a round, move it through legal statuses, and write transition-event records.
 
 ## Validation Plan
 
-- canonical docs stay mutually consistent
-- schema paths match the command-surface design
-- the project has one real active-round sample under the new layout
+Run command-level transitions on the real session-memory round path and pass smoke after the new active round is opened.
 
 ## Active Risks
 
-- Round semantics can drift into fiction if no real round object exists.
-- The command surface can overreach if too many transitions are frozen before
-  the first implementation slice.
+- Guard logic may still be too narrow for future objective and workaround transitions.
+- Round file rewriting could regress frontmatter fidelity if metadata preservation is incomplete.
 
 ## Blockers
 
-- No enforced transition engine exists yet.
+_none recorded_
