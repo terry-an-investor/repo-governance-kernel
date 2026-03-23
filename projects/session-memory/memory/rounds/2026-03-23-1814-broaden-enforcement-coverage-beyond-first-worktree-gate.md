@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate
 type: round-contract
-title: "Compile bounded adjudication exception-contract plans"
+title: "Compile bounded adjudication phase-side-effect plans"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 66977f269575e0111cb73def17e97647cccfa526
+git_sha: 89b42b6ee1244f2dcade5cdf438ca5ca239b63f1
 paths:
   - AGENTS.md
   - .githooks/
@@ -26,7 +26,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T20:16:35+08:00
+updated_at: 2026-03-23T20:30:10+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -35,26 +35,26 @@ superseded_by: []
 
 ## Summary
 
-Extend adjudication executor plan compilation so exception-contract rewrites also come from durable plan contracts instead of hand-authored low-level payloads.
+Extend the adjudication plan compiler so execution-phase bootstrap can compile from durable adjudication round bootstrap fields instead of hand-authored set-phase payload JSON.
 
 ## Scope
 
-- Add bounded exception-contract executor plan types so adjudication can compile retire and invalidate rewrites from durable truth instead of hand-authored payload JSON.
-- Teach execute-adjudication-followups and the adjudication smoke fixture to exercise exception-contract plan compilation through adjudication invalidated object sets.
-- Validate that adjudication smoke, full phase-1 smoke, audit-control-state, and enforce-worktree all pass after the exception-contract plan compiler milestone lands.
+- Add a bounded adjudication plan type that compiles execution-phase bootstrap into an explicit set-phase auto-open-round payload using existing adjudication round bootstrap fields.
+- Exercise the new phase-side-effect plan path in disposable adjudication smoke without falling back to hand-authored set-phase executor payloads.
+- Validate that adjudication smoke, phase/scope smoke, full phase-1 smoke, audit-control-state, and enforce-worktree all pass after the phase-side-effect plan milestone lands.
 
 ## Deliverable
 
-A bounded adjudication plan compiler that covers both round rewrite-close chains and exception-contract retire/invalidate rewrites through durable plan contracts.
+A bounded adjudication plan compiler that can compile execution-phase bootstrap side effects from durable adjudication fields alongside existing round and exception-contract plan bundles.
 
 ## Validation Plan
 
-Run adjudication followup smoke with retire and invalidate exception-contract plan contracts, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
+Run adjudication followup smoke with phase-side-effect plan input, rerun phase/scope smoke and full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
 
 ## Active Risks
 
-- Exception plan compilation could become implicit verdict interpretation if target resolution stops being deterministic and auditable.
-- Compiler and executor merge logic could regress into duplicate or conflicting followup execution as more bounded plan types are added.
+- Phase-side-effect plans could become a hidden parallel schema if the compiler stops reusing the existing adjudication round bootstrap fields and set-phase contract.
+- Phase bootstrap compilation could conflict with later followups if phase entry and open-round side effects are not kept in one bounded deterministic bundle.
 
 ## Blockers
 
@@ -93,3 +93,7 @@ The active round was rewritten again to move from raw open-round rewrite integra
 Round rewritten because The current milestone has moved from initial adjudication plan compilation to bounded exception-contract plan compilation, so the durable round contract must be rewritten to the current mainline.
 
 The active round now targets bounded exception-contract plan compilation so adjudication can compile more of its durable verdict into repo-owned execution contracts.
+
+Round rewritten because The exception-contract plan milestone is complete, and the next bounded durable rewrite family is adjudication-driven phase-side-effect bundling through existing round bootstrap fields.
+
+The active round now targets bounded phase-side-effect plan compilation so adjudication can drive execution bootstrap through repo-owned plan expansion instead of hand-authored payloads.

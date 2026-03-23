@@ -457,6 +457,9 @@ payload.
 Those bounded plan contracts may consume adjudication durable context such as
 the invalidated object set when target resolution remains deterministic and
 auditable.
+They may also reuse the adjudication's existing round bootstrap fields when the
+repo is compiling a bounded phase-side-effect bundle such as entering
+`execution` and auto-opening one round.
 Prose alone is not authority to rewrite durable truth.
 
 ## Drift Detection

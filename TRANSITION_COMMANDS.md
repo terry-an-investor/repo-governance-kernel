@@ -624,6 +624,7 @@ Current implementation status:
     - `rewrite-open-round-then-close-chain`
     - `retire-invalidated-exception-contracts`
     - `invalidate-invalidated-exception-contracts`
+    - `enter-execution-with-round-bootstrap`
 - can execute explicit structured follow-ups encoded in adjudication frontmatter
   `executor_followups`
 - currently supports structured execution for:
@@ -645,6 +646,9 @@ Current implementation status:
 - bounded exception-contract plan bundles can target active exception contracts
   through adjudication `Objects Invalidated` when the mapping stays
   deterministic and auditable
+- bounded phase-side-effect plans can compile `set-phase --auto-open-round`
+  from the adjudication's existing round bootstrap fields instead of requiring
+  one hand-authored low-level phase payload
 - can rerun control audit after those follow-ups
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly

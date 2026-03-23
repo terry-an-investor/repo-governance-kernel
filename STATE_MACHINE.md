@@ -372,6 +372,8 @@ Current implementation already does these things:
   - can resolve bounded exception-contract plan targets from adjudication
     durable `Objects Invalidated` when the selected object set maps
     deterministically to active exception contracts
+  - can compile one bounded phase-side-effect bundle that enters `execution`
+    and auto-opens one round from adjudication durable round bootstrap fields
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states

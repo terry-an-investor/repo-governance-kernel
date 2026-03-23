@@ -347,6 +347,7 @@ frontmatter:
     - round rewrite plus close-chain bundles
     - exception-contract retire bundles resolved from adjudication `Objects Invalidated`
     - exception-contract invalidate bundles resolved from adjudication `Objects Invalidated`
+    - execution bootstrap bundles compiled from adjudication `round_*` bootstrap fields
   - this layer may read adjudication durable context when the plan shape
     requires deterministic target resolution; it must not guess from prose alone
 - `executor_followups`

@@ -590,6 +590,7 @@ def main() -> int:
         compiled_plan_followups = compile_plan_contracts(
             args.project_id,
             plan_contracts,
+            adjudication_meta=adjudication_meta,
             adjudication_sections=adjudication_sections,
         )
 

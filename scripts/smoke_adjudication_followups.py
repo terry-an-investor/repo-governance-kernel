@@ -9,7 +9,9 @@ from round_control import (
     exception_ledger_path,
     load_active_round,
     load_exception_contract_file,
+    load_objective_file,
     load_round_file,
+    find_rounds,
     locate_exception_contract_file,
     locate_round_file,
 )
@@ -18,6 +20,8 @@ from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_j
 
 FIXTURE_PROJECT_ID = "__adjudication_followups_smoke__"
 FIXTURE_PROJECT_DIR = ROOT / "projects" / FIXTURE_PROJECT_ID
+PHASE_BUNDLE_FIXTURE_PROJECT_ID = "__adjudication_phase_bundle_smoke__"
+PHASE_BUNDLE_FIXTURE_PROJECT_DIR = ROOT / "projects" / PHASE_BUNDLE_FIXTURE_PROJECT_ID
 
 
 def write_fixture_files() -> None:
@@ -103,6 +107,89 @@ def write_fixture_files() -> None:
     )
 
     ledger_path = FIXTURE_PROJECT_DIR / "control" / "exception-ledger.md"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(
+        "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
+
+
+def write_phase_bundle_fixture_files() -> None:
+    current_task_path = PHASE_BUNDLE_FIXTURE_PROJECT_DIR / "current" / "current-task.md"
+    current_task_path.parent.mkdir(parents=True, exist_ok=True)
+    current_task_path.write_text(
+        "\n".join(
+            [
+                "# Current Task",
+                "",
+                "## Goal",
+                "",
+                "Validate adjudication-driven execution bootstrap on a disposable fixture project.",
+                "",
+                "## Current State",
+                "",
+                f"- Project: `{PHASE_BUNDLE_FIXTURE_PROJECT_ID}`",
+                "- Workspace id: `ws-adjudication-phase-bundle-smoke`",
+                f"- Workspace root: `{PHASE_BUNDLE_FIXTURE_PROJECT_DIR.as_posix()}`",
+                "- Branch: `master`",
+                "- HEAD anchor: `adjudication-phase-bundle-smoke`",
+                "",
+                "## Validated Facts",
+                "",
+                "- Fixture project is disposable and should be deleted after validation.",
+                "",
+                "## Active Risks",
+                "",
+                "- None recorded yet.",
+                "",
+                "## Next Steps",
+                "",
+                "- Use adjudication to enter execution and bootstrap one bounded round through the plan compiler.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    blockers_path = PHASE_BUNDLE_FIXTURE_PROJECT_DIR / "current" / "blockers.md"
+    blockers_path.parent.mkdir(parents=True, exist_ok=True)
+    blockers_path.write_text(
+        "# Blockers\n\n## Active\n\n- None recorded yet.\n\n## Waiting\n\n- None recorded yet.\n\n## Cleared\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
+    constitution_path = PHASE_BUNDLE_FIXTURE_PROJECT_DIR / "control" / "constitution.md"
+    constitution_path.parent.mkdir(parents=True, exist_ok=True)
+    constitution_path.write_text(
+        "\n".join(
+            [
+                "# Constitution",
+                "",
+                "## Product Boundaries",
+                "",
+                "- This fixture exists only to validate adjudication-driven phase-side-effect bundles.",
+                "",
+                "## Architecture Invariants",
+                "",
+                "- Execution bootstrap should reuse existing set-phase and round bootstrap contracts.",
+                "",
+                "## Quality Bar",
+                "",
+                "- Adjudication must compile phase-side effects from durable truth instead of hand-authored payload JSON.",
+                "",
+                "## Validation Rules",
+                "",
+                "- The fixture must enter execution and open one bounded round through the bounded plan compiler path.",
+                "",
+                "## Forbidden Shortcuts",
+                "",
+                "- Do not preserve the fixture after validation.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    ledger_path = PHASE_BUNDLE_FIXTURE_PROJECT_DIR / "control" / "exception-ledger.md"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
     ledger_path.write_text(
         "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
@@ -469,6 +556,122 @@ def main() -> None:
         if final_boundary_audit["summary"]["errors"] != 0:
             raise SystemExit("final adjudication follow-up fixture audit reported errors after invalidation plan execution")
 
+        reset_fixture_repo(PHASE_BUNDLE_FIXTURE_PROJECT_DIR)
+        write_phase_bundle_fixture_files()
+        init_fixture_repo(PHASE_BUNDLE_FIXTURE_PROJECT_DIR, commit_message="Initialize adjudication phase-bundle fixture")
+
+        execution_bootstrap_objective_result = run_json(
+            "open_objective.py",
+            "--project-id",
+            PHASE_BUNDLE_FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable adjudication execution-bootstrap objective",
+            "--problem",
+            "Validate that adjudication can compile execution bootstrap into set-phase plus auto-open-round from durable round bootstrap fields.",
+            "--success-criterion",
+            "Adjudication phase-side-effect planning can move an exploration objective into execution.",
+            "--success-criterion",
+            "The same plan contract can auto-open one bounded round from adjudication bootstrap fields.",
+            "--non-goal",
+            "Hand-author a low-level set-phase executor payload for the fixture",
+            "--why-now",
+            "Phase-side-effect bundling should run through the same bounded plan compiler path as other adjudication rewrites.",
+            "--phase",
+            "exploration",
+            "--path",
+            "current/current-task.md",
+        )
+        execution_bootstrap_objective_id = str(execution_bootstrap_objective_result["objective_id"])
+
+        enter_execution_plan = json.dumps(
+            {
+                "plan_type": "enter-execution-with-round-bootstrap",
+                "reason": "Adjudication promotes the fixture objective into execution and boots one bounded round from durable round bootstrap fields.",
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+        execution_bootstrap_adjudication_result = run_json(
+            "adjudicate_control_state.py",
+            "--project-id",
+            PHASE_BUNDLE_FIXTURE_PROJECT_ID,
+            "--allow-clean",
+            "--title",
+            "Disposable execution bootstrap adjudication follow-up execution smoke",
+            "--question",
+            "Can adjudication compile execution bootstrap into set-phase plus auto-open-round from durable bootstrap fields?",
+            "--verdict",
+            "Enter execution for the new fixture objective and open one bounded round through the bounded phase-side-effect plan compiler path.",
+            "--retain-id",
+            execution_bootstrap_objective_id,
+            "--executor-plan-json",
+            enter_execution_plan,
+            "--round-title",
+            "Disposable adjudicated execution bootstrap round",
+            "--round-scope-item",
+            "Validate adjudication-driven execution bootstrap through the bounded plan compiler.",
+            "--round-scope-item",
+            "Reuse adjudication durable round bootstrap fields instead of hand-authored set-phase executor payloads.",
+            "--round-scope-path",
+            "current/",
+            "--round-scope-path",
+            "control/",
+            "--round-scope-path",
+            "memory/",
+            "--round-deliverable",
+            "A bounded round opened by adjudication-driven execution bootstrap.",
+            "--round-validation-plan",
+            "Execute adjudication followups, verify execution phase, and verify the opened round contract.",
+            "--round-status-note",
+            "Opened through the adjudication phase-side-effect plan bundle.",
+            "--follow-up",
+            "rerun audit-control-state",
+        )
+        execution_bootstrap_compile_result = run_json(
+            "compile_adjudication_executor_plan.py",
+            "--project-id",
+            PHASE_BUNDLE_FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(execution_bootstrap_adjudication_result["adjudication_id"]),
+        )
+        if int(execution_bootstrap_compile_result["compiled_followup_count"]) != 1:
+            raise SystemExit("execution bootstrap plan compiler did not emit the expected set-phase bundle")
+
+        execution_bootstrap_execute_result = run_json(
+            "execute_adjudication_followups.py",
+            "--project-id",
+            PHASE_BUNDLE_FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(execution_bootstrap_adjudication_result["adjudication_id"]),
+        )
+        if execution_bootstrap_execute_result["blocked"]:
+            raise SystemExit(
+                f"phase-side-effect plan execution reported blocked steps: {execution_bootstrap_execute_result['blocked']}"
+            )
+
+        execution_objective_path = None
+        for candidate in (PHASE_BUNDLE_FIXTURE_PROJECT_DIR / "memory" / "objectives").glob("*.md"):
+            candidate_meta, _candidate_sections = load_objective_file(candidate)
+            if str(candidate_meta.get("id") or "").strip() == execution_bootstrap_objective_id:
+                execution_objective_path = candidate
+                if str(candidate_meta.get("phase") or "").strip() != "execution":
+                    raise SystemExit("phase-side-effect plan did not move the objective into execution")
+                break
+        if execution_objective_path is None:
+            raise SystemExit("execution-bootstrap objective durable file disappeared")
+
+        execution_bootstrap_rounds = find_rounds(
+            PHASE_BUNDLE_FIXTURE_PROJECT_ID,
+            objective_id=execution_bootstrap_objective_id,
+            statuses={"draft", "active", "blocked", "validation_pending"},
+        )
+        if len(execution_bootstrap_rounds) != 1:
+            raise SystemExit("phase-side-effect plan did not leave exactly one open round for the bootstrap objective")
+        _bootstrap_round_path, bootstrap_round_meta, _bootstrap_round_sections = execution_bootstrap_rounds[0]
+        execution_bootstrap_round_id = str(bootstrap_round_meta.get("id") or "").strip()
+        if not execution_bootstrap_round_id:
+            raise SystemExit("phase-side-effect plan opened a round without an id")
+
         print(
             json.dumps(
                 {
@@ -479,10 +682,13 @@ def main() -> None:
                     "exception_contract_id": exception_contract_id,
                     "blocked_exception_contract_id": blocked_exception_id,
                     "invalidated_exception_contract_id": invalidated_exception_id,
+                    "execution_bootstrap_objective_id": execution_bootstrap_objective_id,
+                    "execution_bootstrap_round_id": execution_bootstrap_round_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
                     "compiled_followup_count": int(compile_result["compiled_followup_count"]),
                     "applied": execute_result["applied"],
                     "invalidated_applied": invalidating_execute_result["applied"],
+                    "execution_bootstrap_applied": execution_bootstrap_execute_result["applied"],
                     "blocked": blocked_execute_result["blocked"],
                     "fixture_audit": final_boundary_audit["status"],
                 },
@@ -492,6 +698,7 @@ def main() -> None:
         )
     finally:
         reset_fixture_repo(FIXTURE_PROJECT_DIR)
+        reset_fixture_repo(PHASE_BUNDLE_FIXTURE_PROJECT_DIR)
 
 
 if __name__ == "__main__":

@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - extending the bounded adjudication plan compiler so exception-contract rewrites also come from durable plan contracts instead of hand-authored payload JSON
-  - compiling supported `executor_plan_contracts` against adjudication durable context, not only raw plan fields
-  - keeping the adjudication executor honest by resolving exception-contract targets deterministically from durable invalidated object sets
-  - validating that adjudication smoke now exercises retire and invalidate exception-contract plans without hand-authored low-level exception payloads
+  - extending the bounded adjudication plan compiler so phase-side effects can also come from durable plan contracts instead of hand-authored set-phase payload JSON
+  - compiling supported `executor_plan_contracts` against adjudication durable context and existing adjudication round bootstrap fields
+  - keeping the adjudication executor honest by reusing the existing `set-phase` contract for execution bootstrap instead of inventing a parallel schema
+  - validating that adjudication smoke now exercises execution bootstrap through the plan compiler alongside round and exception-contract bundles
 
 ## Validated Facts
 
@@ -51,6 +51,9 @@ The immediate objective is:
   - retire one invalidated exception contract from adjudication durable truth
   - invalidate one invalidated exception contract from adjudication durable truth
   - keep one prose-only exception follow-up blocked instead of guessing a durable rewrite
+- `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded phase-side-effect compilation:
+  - enter `execution` for one exploration objective through an adjudication plan contract
+  - auto-open one bounded round from adjudication durable `round_*` bootstrap fields
 - `uv run python scripts/smoke_phase1.py` passes after the `round-close-chain` milestone landed.
 - `uv run python scripts/session_memory.py smoke` passes after the `round-close-chain` milestone landed.
 - The governed objective-close bundle round was abandoned before implementation:
@@ -194,6 +197,8 @@ The immediate objective is:
   - bounded exception-contract plans can now compile directly from adjudication
     `Objects Invalidated` instead of requiring one hand-authored low-level
     exception payload per contract
+  - bounded phase-side-effect plans can now compile `set-phase --auto-open-round`
+    from adjudication durable `round_*` bootstrap fields
   - current supported automatic execution covers:
     - `round-close-chain`
     - `refresh-round-scope`
@@ -216,6 +221,7 @@ The immediate objective is:
   - close a pre-adjudication round through a structured close chain
   - retire an active exception contract through a bounded exception plan contract
   - invalidate an active exception contract through a bounded exception plan contract
+  - enter execution and open one bounded round through a bounded phase-side-effect plan contract
   - open a successor round from adjudication bootstrap fields
   - block one prose-only follow-up instead of guessing a durable rewrite
   - finish with clean control audit
@@ -236,7 +242,7 @@ The immediate objective is:
 - The active real-project round has now been durably rewritten in place:
   - same round id retained
   - round title, summary, scope, deliverable, and validation plan updated through `rewrite-open-round`
-  - sample control files now track the bounded exception-contract plan milestone instead of the earlier adjudication-plan compiler milestone
+  - sample control files now track the bounded phase-side-effect plan milestone instead of the earlier exception-contract plan milestone
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -309,6 +315,9 @@ The immediate objective is:
   one adjudication object set maps deterministically to a bounded set of active
   exception contracts; broader mixed-object verdict plans still need clearer
   contracts before they should compile automatically.
+- Phase-side-effect planning now compiles execution bootstrap honestly, but it
+  still covers only one narrow bundle; broader pause/exploration fallback and
+  open-round rewrite combinations still remain outside the bounded automatic subset.
 - The compiler/executor boundary can still drift if future changes let in-place compilation overwrite explicit payloads or execute the same payload twice.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
@@ -321,7 +330,7 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extend adjudication plan compilation beyond round and exception-contract
+3. Extend adjudication plan compilation beyond round, exception-contract, and
    bundles toward the next bounded durable rewrite family without falling back
    to hand-authored payload JSON.
 4. Decide whether phase-side-effect bundles, hard-pivot-safe replacement
