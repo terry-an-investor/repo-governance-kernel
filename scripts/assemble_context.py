@@ -110,15 +110,15 @@ def extract_current_task_anchor(current_task_sections: dict[str, str]) -> dict[s
     current_state = current_task_sections.get("Current State", "")
     validated_facts = current_task_sections.get("Validated Facts", "")
     values = parse_keyed_bullets(current_state)
+    worktree_hint = values.get("worktree state", "") or infer_worktree_hint("\n".join([current_state, validated_facts]).strip())
     anchor = {
         "workspace_id": values.get("workspace id", ""),
         "workspace_root": values.get("workspace root", ""),
         "branch": values.get("branch", ""),
         "git_sha": values.get("head anchor", ""),
+        "worktree_hint": worktree_hint,
+        "changed_path_count": values.get("changed path count", ""),
     }
-    worktree_hint = infer_worktree_hint("\n".join([current_state, validated_facts]).strip())
-    if worktree_hint:
-        anchor["worktree_hint"] = worktree_hint
     return {key: value for key, value in anchor.items() if value}
 
 
@@ -229,6 +229,8 @@ def assess_packet_freshness(
     live_workspace: dict[str, str],
 ) -> tuple[str, list[str], list[str]]:
     warnings: list[str] = []
+    snapshot_warnings: list[str] = []
+    live_warnings: list[str] = []
     guidance: list[str] = []
 
     current_head = current_task_anchor.get("git_sha", "")
@@ -239,19 +241,20 @@ def assess_packet_freshness(
     snapshot_hint = snapshot_anchor.get("worktree_hint", "")
 
     if current_head and snapshot_head and current_head != snapshot_head:
-        warnings.append(
+        snapshot_warnings.append(
             f"current-task HEAD anchor `{current_head}` does not match latest snapshot git_sha `{snapshot_head}`"
         )
     if current_branch and snapshot_branch and current_branch != snapshot_branch:
-        warnings.append(
+        snapshot_warnings.append(
             f"current-task branch `{current_branch}` does not match latest snapshot branch `{snapshot_branch}`"
         )
     if current_hint and snapshot_hint and current_hint != snapshot_hint:
-        warnings.append(
+        snapshot_warnings.append(
             f"current-task worktree hint `{current_hint}` does not match latest snapshot worktree hint `{snapshot_hint}`"
         )
 
     if live_workspace.get("status") != "available":
+        warnings.extend(snapshot_warnings)
         if warnings:
             guidance.append("Current memory sources already disagree. Prefer live repo inspection before acting.")
         guidance.append("Live workspace inspection was unavailable. Treat this packet as orientation context only.")
@@ -265,18 +268,28 @@ def assess_packet_freshness(
     live_worktree = live_workspace.get("worktree_state", "")
 
     if packet_head and live_head and packet_head != live_head:
-        warnings.append(f"packet HEAD anchor `{packet_head}` does not match live workspace HEAD `{live_head}`")
+        live_warnings.append(f"packet HEAD anchor `{packet_head}` does not match live workspace HEAD `{live_head}`")
     if packet_branch and live_branch and packet_branch != live_branch:
-        warnings.append(f"packet branch `{packet_branch}` does not match live workspace branch `{live_branch}`")
+        live_warnings.append(f"packet branch `{packet_branch}` does not match live workspace branch `{live_branch}`")
     if packet_hint and live_worktree and packet_hint != live_worktree:
-        warnings.append(
+        live_warnings.append(
             f"packet worktree hint `{packet_hint}` does not match live workspace state `{live_worktree}`"
         )
 
-    if warnings:
+    warnings.extend(snapshot_warnings)
+    warnings.extend(live_warnings)
+
+    if live_warnings:
         guidance.append("Treat this packet as orientation context only until branch, HEAD, and worktree facts are revalidated.")
         guidance.append("Re-read live git status and the active project governance files before making code changes.")
         return "stale", warnings, guidance
+
+    if snapshot_warnings:
+        guidance.append("Packet anchor matches the live workspace, but the latest snapshot is behind current-task state.")
+        guidance.append("Use current-task plus live repo checks as truth. Treat the snapshot as historical context.")
+        if live_worktree == "dirty":
+            return "fresh_snapshot_behind_dirty", warnings, guidance
+        return "fresh_snapshot_behind", warnings, guidance
 
     if live_worktree == "dirty":
         guidance.append("Packet branch and HEAD still match, but the live workspace is dirty. Reconfirm scope before acting.")

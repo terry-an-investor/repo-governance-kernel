@@ -334,6 +334,13 @@ Recommended `Current State` anchor bullets:
 Optional but useful:
 
 - one explicit worktree hint such as `clean` or `dirty`
+- `Changed path count`
+- `Last anchor refresh`
+
+Recommended maintenance path:
+
+- refresh these anchor bullets from the live workspace without rewriting the
+  whole task narrative
 
 ### `projects/<project_id>/current/blockers.md`
 
@@ -445,6 +452,15 @@ Suggested fields:
 
 The verdict should tell a fresh session whether the packet still matches the
 live workspace or should only be treated as orientation context.
+
+Suggested initial verdicts:
+
+- `fresh`
+- `live_match_dirty`
+- `fresh_snapshot_behind`
+- `fresh_snapshot_behind_dirty`
+- `stale`
+- `workspace_unavailable`
 
 ## File Naming
 

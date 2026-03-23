@@ -147,6 +147,25 @@ An assembled packet should include:
 - freshness verdict
 - operator guidance when the packet is stale
 
+The current-task anchor should also have a maintenance path.
+
+At minimum, the system should support refreshing:
+
+- branch
+- git sha
+- worktree state
+- changed path count
+
+without forcing a new snapshot every time the workspace moves.
+
+That creates a useful distinction:
+
+- `stale`
+  - packet anchor no longer matches the live workspace
+- `fresh_snapshot_behind`
+  - current-task matches the live workspace, but the latest snapshot is now
+    historical
+
 ## Memory Types
 
 The initial schema should stay coding-oriented.
