@@ -1,13 +1,13 @@
 ---
 id: obj-2026-03-23-0002
 type: objective
-title: Coding control system built on a memory substrate
+title: "Coding control system built on a memory substrate"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
+git_sha: a0a5946b91a2476c7e5515f30ecf0e0058296574
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,11 +29,11 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-23T21:10:00+08:00
+updated_at: 2026-03-23T22:05:08+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
-phase: execution
 ---
 
 ## Summary
@@ -68,8 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-Execution. The objective is clear enough to guide implementation, but the
-control layer still needs to be wired into scripts and evaluation.
+paused
 
 ## Active Risks
 
@@ -81,3 +80,5 @@ control layer still needs to be wired into scripts and evaluation.
 
 This objective replaces the narrower memory-and-handoff framing while retaining
 its file-first storage and retrieval foundation.
+
+Phase changed from `execution` to `paused` because Development is intentionally paused after closing the last bounded execution round, so the active objective should not remain marked as execution.
