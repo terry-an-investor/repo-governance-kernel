@@ -16,6 +16,10 @@ This document does not implement enforcement. It defines:
 - side effects
 - canonical file ownership
 
+The current milestone also adds one first enforcement owner layer:
+
+- worktree enforcement before round promotion or closure
+
 ## Design Position
 
 Commands should map to state transitions, not to ad hoc file edits.
@@ -290,11 +294,17 @@ Guards:
 
 - round must exist
 - status transition must be legal from the current round status
+- `captured` and `closed` must pass automatic worktree enforcement
+  - dirty non-control paths must stay inside active round scope
+  - dirty projected control files must still match durable truth
+  - control audit must not already be blocked
 
 Side effects:
 
 - `blocked` should require blocker recording
 - `closed` should require validation or explicit abandonment history
+- `captured` or `closed` should fail fast instead of silently promoting a dirty
+  dishonest worktree
 
 ### `refresh-round`
 
@@ -470,6 +480,33 @@ It should report at least:
 - placeholder control surfaces that still do not restore real project law
 - constitution-derived machine-checkable hooks such as live round-scope
   coverage against dirty paths
+
+### `enforce-worktree`
+
+Purpose:
+
+- block dishonest promotion when the live worktree no longer matches the active
+  round contract or projected control truth
+
+Primary checks:
+
+- dirty non-control paths are covered by active round `paths`
+- dirty projected control files still equal the projection implied by durable truth
+- control audit is not already blocked
+
+Primary users:
+
+- `update-round-status` before `captured`
+- `update-round-status` before `closed`
+- git hooks and CI before commit or push
+
+Owner-layer note:
+
+- the canonical enforcement owner is the repository command itself, not a
+  harness-native tool hook API
+- runtimes with native lifecycle hooks may call this command earlier, but
+  correctness must still hold when only repo-local hooks or direct CLI
+  invocation exist
 
 ### `adjudicate-control-state`
 

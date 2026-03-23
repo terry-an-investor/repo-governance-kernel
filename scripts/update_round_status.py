@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 
+from control_enforcement import assert_worktree_enforcement
 from round_control import (
     OPEN_ROUND_STATUSES,
     active_round_path,
@@ -72,6 +73,13 @@ def main() -> int:
     allowed = ALLOWED_TRANSITIONS.get(previous_status, set())
     if args.status not in allowed:
         raise SystemExit(f"illegal transition `{previous_status} -> {args.status}` for round `{round_id}`")
+
+    if args.status in {"captured", "closed"}:
+        assert_worktree_enforcement(
+            args.project_id,
+            transition_target=f"round {round_id} -> {args.status}",
+            round_id=round_id,
+        )
 
     if args.status == "captured" and not args.validated_by:
         raise SystemExit("captured status requires at least one --validated-by entry")

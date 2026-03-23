@@ -36,6 +36,8 @@ COMMAND_MAP = {
     "invalidate-exception-contract": SCRIPTS / "invalidate_exception_contract.py",
     "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",
     "execute-adjudication-followups": SCRIPTS / "execute_adjudication_followups.py",
+    "enforce-worktree": SCRIPTS / "enforce_worktree.py",
+    "install-hooks": SCRIPTS / "install_hooks.py",
 }
 
 

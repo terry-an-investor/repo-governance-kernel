@@ -341,6 +341,13 @@ Current implementation already does these things:
   - execution without a bounded round
   - missing control surfaces such as constitution or exception ledger
   - placeholder constitution files that still lack real invariants
+- now has one first automatic enforcement gate through:
+  - `enforce-worktree`
+  - dirty non-control paths outside the active round scope become an explicit blocked state
+  - dirty projected control files that drift from durable truth become an explicit blocked state
+  - blocked control audit prevents round promotion from pretending the worktree is honest
+  - repo-local git hooks reuse the same enforcement owner layer before commit or push
+  - this enforcement is harness-agnostic rather than dependent on native Claude-style `PreToolUse` or `PostToolUse` hooks
 - enforces one first exception-contract slice through:
   - `activate-exception-contract`
   - `retire-exception-contract`
@@ -369,7 +376,9 @@ Current implementation does not yet do these things:
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots or soft pivots
 - enforce guards before phase changes
+- enforce the same worktree gate before every repository mutation path such as commit or push
 - cover objective, pivot, round, and exception-contract domains with the same unified enforcement depth
+- provide a richer harness integration layer for runtimes that do expose native hooks, without making correctness depend on them
 
 This gap should remain explicit until enforcement exists.
 

@@ -114,6 +114,40 @@ Transition execution is the command layer that writes the new honest state:
 - activate, retire, or invalidate exception contracts
 - rebuild projections after the durable state is coherent
 
+### Enforcement Gates
+
+Enforcement gates are the lightweight automatic penalties that raise the cost of
+uncontrolled code changes before dishonest state is ratified.
+
+This design should not depend on a specific agent harness exposing native tool
+lifecycle hooks.
+
+Harness-specific native hooks are useful when they exist, but they are not the
+owner layer in this system.
+
+The owner layer here is repository-local and harness-agnostic:
+
+- transition gates inside control commands
+- repo-local git hooks that call the same enforcement primitive
+- later CI jobs that call the same enforcement primitive again
+
+That means the system can borrow the hooks idea without coupling project
+control to one vendor's runtime semantics.
+
+They should run before important promotions such as:
+
+- round capture
+- round closure
+- commit or push
+
+The first enforcement slice should block at least these failures:
+
+- dirty non-control paths outside the active round scope
+- direct manual edits to projected control files that drift from durable truth
+- promotion or closure while control audit is already blocked
+
+These gates are not advisory lint. They are transition blockers.
+
 ## Control Model
 
 The control model has four layers:
@@ -396,6 +430,25 @@ The system should detect at least three different failure modes:
 
 These are different failures and should not be collapsed into one generic
 "staleness" label.
+
+## Automatic Penalties
+
+The system should not rely on etiquette to prevent sloppy implementation.
+
+Instead, it should make disorder expensive through automatic consequences:
+
+- illegal worktree state blocks `captured` and `closed`
+- out-of-scope dirty paths block round promotion until scope is narrowed,
+  refreshed, or split
+- projected control file drift blocks promotion until the projection is repaired
+  or the durable source of truth is updated through commands
+- a blocked audit prevents the system from pretending progress is honest
+
+This is the core "punishment" model:
+
+- not social disapproval
+- not a long review comment
+- but refusal to advance the control state for free
 
 ## Retrieval Consequence
 

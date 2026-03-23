@@ -2,12 +2,12 @@
 id: round-2026-03-23-1711-govern-objective-close-adjudication-bundles
 type: round-contract
 title: "Govern objective-close adjudication bundles"
-status: active
+status: abandoned
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 29a8c54cb9f1ec6a7b3854d33f509a8e05ed442d
+git_sha: 5988e6c5379a0def14b1c1cfc47c19ddc6172c06
 paths:
   - scripts/execute_adjudication_followups.py
   - TRANSITION_COMMANDS.md
@@ -19,7 +19,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T17:11:07+08:00
-updated_at: 2026-03-23T17:11:07+08:00
+updated_at: 2026-03-23T17:32:27+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -55,3 +55,5 @@ _none recorded_
 ## Status Notes
 
 Successor milestone opened after closing the first bounded multi-step adjudication round-close bundle.
+
+active -> abandoned: User redirected the immediate priority from objective-close bundles to automatic enforcement against uncontrolled code changes, so this round is superseded before implementation began.

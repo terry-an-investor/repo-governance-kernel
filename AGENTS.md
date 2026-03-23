@@ -36,8 +36,25 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 
 - Manage Python execution in this project with `uv`.
 - Prefer `uv run python ...` over direct `python ...`.
+- Install and keep repository git hooks active through `uv run python scripts/install_hooks.py`.
+- Treat `.githooks/pre-commit` and `.githooks/pre-push` as part of the control
+  plane, not optional local convenience.
 
-## 6. Round Closure
+## 6. Automatic Enforcement
+
+- Do not hand-wave uncontrolled code changes as "just temporary".
+- Dirty non-control paths outside the active round scope are a blocked state.
+- Direct manual edits to projected control files such as `control/active-round.md`
+  are a blocked state unless the file still exactly matches the durable
+  projection rebuilt by commands.
+- `captured` and `closed` round transitions must pass automatic worktree
+  enforcement before promotion is allowed.
+- Treat repository-local enforcement as the canonical owner layer.
+- Do not rely on Codex or Claude harness-specific native hooks for correctness.
+- When a harness offers native hooks, use them only as an extra trigger path
+  into the same repo-owned enforcement command.
+
+## 7. Round Closure
 
 - At the end of each meaningful round, inspect the current project for remaining
   problems before closing the turn.

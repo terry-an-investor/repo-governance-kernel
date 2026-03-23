@@ -1,26 +1,26 @@
 # Active Round
 
-- Round id: `round-2026-03-23-1711-govern-objective-close-adjudication-bundles`
+- Round id: `round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- Design the next bounded adjudication bundle around governed objective-close paths instead of only round close chains.
-- Decide whether executor_followups should remain serialized JSON strings or evolve into a richer structured contract.
-- Keep the schema project-agnostic while broadening adjudication execution coverage.
+- Add the next enforcement slice for workaround or exception-contract coverage instead of only scope and projection drift.
+- Decide how CI and commit-time enforcement should share the same owner-layer checks.
+- Keep the enforcement model project-agnostic while broadening what counts as blocked dishonest work.
 
 ## Deliverable
 
-A validated milestone plan and first implementation slice for governed objective-close adjudication bundles.
+A successor enforcement milestone that extends automatic penalties beyond the first worktree gate.
 
 ## Validation Plan
 
-Define the next bounded bundle, update canonical docs, and prove the path with targeted validation before broader automation.
+Define the next blocked-state class, connect it to the same enforcement owner layer, and prove it with targeted validation before broader smoke.
 
 ## Active Risks
 
-- Objective-close bundles could overreach and mutate durable truth without enough explicit inputs if the contract stays underspecified.
+- Broader enforcement could become noisy if workaround detection is based on weak heuristics rather than explicit durable objects.
 
 ## Blockers
 
