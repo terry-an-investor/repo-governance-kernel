@@ -326,11 +326,15 @@ Current implementation already does these things:
   - hard pivots reject durable still-open rounds tied to the previous objective
   - objective close rejects durable open rounds and active exception contracts tied to the objective
   - soft pivots preserve the same durable objective id while refreshing durable and projected active-objective state together
+  - soft pivots can rewrite one open round durably through `rewrite-open-round`
+    when objective-shape changes must stay aligned without changing round identity
 - enforces one first round slice through:
   - `open-round`
   - `update-round-status`
+  - `rewrite-open-round`
   - legal round transitions are rejected
   - round-contract metadata is preserved during status rewrites
+  - one open round contract can be durably rewritten while preserving round id
 - can repair projected control files from durable state through:
   - `reconcile-control-state`
   - only when durable objective and round truth is unambiguous
@@ -364,13 +368,16 @@ Current implementation already does these things:
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states
-  - can retire or invalidate one exception contract, refresh one round scope, change phase explicitly, and then open one successor round when the adjudication record is structured enough
+  - can rewrite one open round, retire or invalidate one exception contract,
+    refresh one round scope, change phase explicitly, and then open one
+    successor round when the adjudication record is structured enough
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - now enforces explicit phase changes through:
   - `set-phase`
   - entering `execution` requires one bounded round or command-owned bootstrap
-  - leaving `execution` with open rounds requires explicit scope review notes
+  - leaving `execution` with open rounds requires explicit scope review notes or
+    explicit round rewrites
 - now enforces explicit scope repair through:
   - `refresh-round-scope`
   - rewrites durable round `paths` and active-round projection from live dirty-path evidence
@@ -383,7 +390,8 @@ Current implementation does not yet do these things:
 - apply adjudication verdicts as a fully general automatic rewrite engine
 - infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
-- auto-invalidate stale round contracts after hard pivots or soft pivots
+- auto-invalidate or automatically replace stale round contracts after hard pivots
+  or broader verdict bundles without an explicit rewrite contract
 - enforce the same worktree gate before every repository mutation path such as commit or push
 - cover objective, pivot, round, and exception-contract domains with the same unified enforcement depth
 - provide a richer harness integration layer for runtimes that do expose native hooks, without making correctness depend on them

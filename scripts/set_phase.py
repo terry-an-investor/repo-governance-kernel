@@ -34,7 +34,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reason", required=True)
     parser.add_argument("--evidence", action="append", default=[])
     parser.add_argument("--scope-review-note", action="append", default=[])
+    parser.add_argument("--rewrite-open-round", action="store_true")
     parser.add_argument("--round-title", default="")
+    parser.add_argument("--round-summary", default="")
     parser.add_argument("--round-scope-item", action="append", default=[])
     parser.add_argument("--round-scope-path", action="append", default=[])
     parser.add_argument("--round-deliverable", default="")
@@ -42,6 +44,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--round-risk", action="append", default=[])
     parser.add_argument("--round-blocker", action="append", default=[])
     parser.add_argument("--round-status-note", default="")
+    parser.add_argument("--replace-round-scope-items", action="store_true")
+    parser.add_argument("--replace-round-scope-paths", action="store_true")
+    parser.add_argument("--replace-round-risks", action="store_true")
+    parser.add_argument("--replace-round-blockers", action="store_true")
     parser.add_argument("--auto-open-round", action="store_true")
     return parser.parse_args()
 
@@ -88,6 +94,58 @@ def _run_open_round(args: argparse.Namespace) -> dict[str, object]:
         raise SystemExit(f"auto-open-round returned invalid json: {exc}") from exc
 
 
+def _run_rewrite_open_round(args: argparse.Namespace, round_id: str) -> dict[str, object]:
+    cmd = [
+        sys.executable,
+        str(SCRIPTS_DIR / "rewrite_open_round.py"),
+        "--project-id",
+        args.project_id,
+        "--round-id",
+        round_id,
+        "--reason",
+        args.reason.strip(),
+    ]
+    if args.round_title.strip():
+        cmd.extend(["--title", args.round_title.strip()])
+    if args.round_summary.strip():
+        cmd.extend(["--summary", args.round_summary.strip()])
+    if args.round_deliverable.strip():
+        cmd.extend(["--deliverable", args.round_deliverable.strip()])
+    if args.round_validation_plan.strip():
+        cmd.extend(["--validation-plan", args.round_validation_plan.strip()])
+    for item in _clean_list(args.round_scope_item):
+        cmd.extend(["--scope-item", item])
+    for item in _clean_list(args.round_scope_path):
+        cmd.extend(["--scope-path", item])
+    for item in _clean_list(args.round_risk):
+        cmd.extend(["--risk", item])
+    for item in _clean_list(args.round_blocker):
+        cmd.extend(["--blocker", item])
+    if args.round_status_note.strip():
+        cmd.extend(["--status-note", args.round_status_note.strip()])
+    if args.replace_round_scope_items:
+        cmd.append("--replace-scope-items")
+    if args.replace_round_scope_paths:
+        cmd.append("--replace-scope-paths")
+    if args.replace_round_risks:
+        cmd.append("--replace-risks")
+    if args.replace_round_blockers:
+        cmd.append("--replace-blockers")
+    completed = subprocess.run(
+        cmd,
+        cwd=str(SCRIPTS_DIR.parent),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise SystemExit(completed.stderr.strip() or completed.stdout.strip() or "rewrite-open-round failed")
+    try:
+        return json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"rewrite-open-round returned invalid json: {exc}") from exc
+
+
 def main() -> int:
     args = parse_args()
     objective_path, meta, sections, objective_id = resolve_active_objective_record(
@@ -132,15 +190,15 @@ def main() -> int:
     if current_phase == "execution" and next_phase == "exploration":
         if not args.reason.strip():
             raise SystemExit("execution -> exploration requires an explicit reason")
-        if open_rounds and not _clean_list(args.scope_review_note):
+        if open_rounds and not (_clean_list(args.scope_review_note) or args.rewrite_open_round):
             raise SystemExit(
-                "execution -> exploration with open rounds requires at least one --scope-review-note explaining the round re-evaluation path"
+                "execution -> exploration with open rounds requires either --rewrite-open-round or at least one --scope-review-note"
             )
 
     if current_phase == "execution" and next_phase == "paused":
-        if open_rounds and not _clean_list(args.scope_review_note):
+        if open_rounds and not (_clean_list(args.scope_review_note) or args.rewrite_open_round):
             raise SystemExit(
-                "execution -> paused with open rounds requires at least one --scope-review-note explaining how the rounds remain intentionally suspended"
+                "execution -> paused with open rounds requires either --rewrite-open-round or at least one --scope-review-note"
             )
 
     if current_phase == "paused" and next_phase == "execution":
@@ -242,8 +300,13 @@ def main() -> int:
     )
 
     auto_round_result: dict[str, object] | None = None
+    rewritten_rounds: list[dict[str, object]] = []
     if args.auto_open_round:
         auto_round_result = _run_open_round(args)
+    elif args.rewrite_open_round:
+        for round_path, round_meta, _round_sections in open_rounds:
+            round_id = str(round_meta.get("id") or round_path.stem).strip()
+            rewritten_rounds.append(_run_rewrite_open_round(args, round_id))
 
     print(
         json.dumps(
@@ -257,6 +320,7 @@ def main() -> int:
                 "transition_event_id": event_id,
                 "transition_event_path": str(event_path),
                 "auto_open_round": auto_round_result,
+                "rewritten_rounds": rewritten_rounds,
             },
             ensure_ascii=True,
             indent=2,

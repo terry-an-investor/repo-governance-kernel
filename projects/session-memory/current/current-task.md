@@ -21,10 +21,10 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `18d7be1e7f239ea9510af46c5387d9e33de0006a`
+- HEAD anchor: `fdf1e471848c4861dc071dc5627340b551b1bb89`
 - Worktree state: `dirty`
-- Changed path count: `7`
-- Last anchor refresh: `2026-03-23T19:01:17+08:00`
+- Changed path count: `15`
+- Last anchor refresh: `2026-03-23T19:49:41+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,15 +34,15 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - broadening automatic enforcement beyond the first worktree gate
-  - defining a durable blocked-state class for workaround or exception-contract dishonesty
-  - using constitution-declared guarded exception paths for selected temporary-deviation zones instead of heuristics
-  - unifying commit-time and future CI-time enforcement around the same owner-layer checks
+  - landing `rewrite-open-round` as the durable owner-layer primitive for mutating one open round contract without changing round identity
+  - integrating that primitive into `record-soft-pivot`, `set-phase`, and adjudication follow-up execution
+  - keeping canonical docs, current-task, and sample control files aligned with the new rewrite behavior
+  - closing the gap where round review existed only as prose but not as durable executable control
 
 ## Validated Facts
 
 - The latest committed baseline is:
-  - `5988e6c Add adjudication round-close bundle milestone`
+  - `fdf1e47 Add explicit phase and round-scope control commands`
 - `uv run python scripts/session_memory.py smoke` passes on the current working tree after frontmatter `executor_followups` and the prose-only blocked boundary landed.
 - `uv run python scripts/smoke_adjudication_followups.py` now passes with the first bounded multi-step bundle:
   - `round-close-chain`
@@ -134,6 +134,7 @@ The immediate objective is:
 - The round and exception-control slices remain live:
   - `open-round`
   - `refresh-round-scope`
+  - `rewrite-open-round`
   - `update-round-status`
   - `activate-exception-contract`
   - `retire-exception-contract`
@@ -187,17 +188,20 @@ The immediate objective is:
   - current supported automatic execution covers:
     - `round-close-chain`
     - `refresh-round-scope`
+    - `rewrite-open-round`
     - `set-phase`
     - `update-round-status`
     - `retire-exception-contract`
     - `invalidate-exception-contract`
     - `close-objective`
+  - `rewrite-open-round` is now the owner-layer primitive for durable round-contract mutation without changing round identity
   - `round-close-chain` is the first bounded multi-step executor bundle:
     - legal path today is `active -> validation_pending -> captured -> closed`
     - can resume from `validation_pending` or `captured`
     - still refuses unsupported statuses instead of guessing
   - structured round bootstrap can still open one successor round after those rewrites
 - Disposable adjudication-followup fixture validation now exercises:
+  - rewrite a predecessor round through explicit executor payload before closure
   - close a pre-adjudication round through a structured close chain
   - retire an active exception contract
   - open a successor round from adjudication bootstrap fields
@@ -209,7 +213,7 @@ The immediate objective is:
   - `activate -> invalidate`
   - exception-ledger projection and audit on a temporary project
 - Disposable objective-line fixture validation now exercises:
-  - open objective -> set phase into execution with auto-opened round -> soft pivot with the same objective id
+  - open objective -> set phase into execution with auto-opened round -> soft pivot with the same objective id plus durable open-round rewrite
   - round closure before objective close
   - explicit objective close with zero active objectives and clean audit
 - Disposable phase/scope-control fixture validation now exercises:
@@ -217,6 +221,10 @@ The immediate objective is:
   - blocked enforcement when one dirty source path remains outside round scope
   - `refresh-round-scope` rewriting durable round `paths`
   - clean enforcement and audit after scope refresh
+- The active real-project round has now been durably rewritten in place:
+  - same round id retained
+  - round title, summary, scope, deliverable, and validation plan updated through `rewrite-open-round`
+  - sample control files now track the current milestone instead of the previous enforcement milestone
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -254,6 +262,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_soft_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/reconcile_control_state.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/rewrite_open_round.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_adjudication_followups.py`
@@ -279,19 +288,19 @@ The immediate objective is:
   knows the project context.
 - Adjudication follow-ups now execute a bounded structured subset, but they
   still cannot infer rewrites from verdict prose or handle broader multi-object
-  rewrite plans automatically beyond the first bounded close-chain bundle.
+  rewrite plans automatically beyond explicit bounded command contracts.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
-  - round scope refresh now exists, but stale scope still is not auto-reconciled after pivots or other objective-shape changes
+  - round scope refresh and round rewrite now exist, but broader multi-round replacement or hard-pivot-driven rewrite bundles still are not automatic
 - Phase transitions are now explicit, but phase-side effects are still conservative:
-  - the system records review notes and optional bootstrap, but it still does not auto-close or auto-re-scope open rounds on phase fallback
+  - the system records review notes, optional bootstrap, and bounded round rewrites, but it still does not auto-close or auto-re-scope open rounds without explicit rewrite inputs
 
 ## Next Steps
 
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Teach adjudication and pivots how to drive durable round rewrites beyond the
-   current bounded executor subset.
+3. Extend the rewrite engine from single-round bounded rewrites to broader
+   adjudication bundles and hard-pivot-safe replacement flows.
 4. Decide whether reviewer/orchestrator automatic checks or broader
-   adjudication-driven rewrites are the next higher-leverage control slice.
+   durable adjudication execution is the next higher-leverage control slice.

@@ -33,7 +33,7 @@ to know:
 - whether the project is still on the same objective line
 - whether a pivot has already happened
 
-The system also needs one layer that is still mostly missing in code today:
+The system still needs one layer that remains only partially implemented in code today:
 
 - adjudication
   - when durable control objects conflict, decide which line remains active,
@@ -178,6 +178,9 @@ manual edits:
   the same command
 - `refresh-round-scope` rewrites durable round `paths` from live dirty-path
   evidence instead of relying on manual frontmatter edits
+- `rewrite-open-round` rewrites one open round contract durably while preserving
+  round identity, so pivots and adjudication can mutate round truth through a
+  bounded owner-layer primitive instead of ad hoc file edits
 
 ### 1. Constitution
 
@@ -293,6 +296,8 @@ A soft pivot should usually:
 - update the active objective fields
 - record why the same objective id still holds
 - force an explicit round review path when the objective shape changed under an open round
+- use `rewrite-open-round` when the project intends to keep the same round id
+  but must durably rewrite the round contract to match the new objective shape
 
 ### Hard Pivot
 
@@ -430,6 +435,13 @@ For conflicting durable truth, the lifecycle needs one extra control step:
 8. record an adjudication verdict
 9. execute only the explicit, structured subset of follow-up rewrites that the
    system can map onto existing transition commands without guessing intent
+
+The current implementation now includes one real durable rewrite primitive in
+that subset:
+
+- `rewrite-open-round`
+  - a bounded owner-layer round-contract rewrite that preserves round identity
+  - reusable by soft pivots, phase fallback, and adjudication follow-ups
 
 That means adjudication should separate:
 

@@ -156,7 +156,9 @@ Side effects:
 - update the durable active objective in place
 - refresh `control/active-objective.md`
 - record a durable pivot that explains both the change and the preserved objective identity
-- force explicit round review notes instead of silently mutating round contracts
+- force an explicit round review path instead of silently mutating round contracts
+- when the operator chooses the rewrite path, delegate bounded round-contract mutation
+  to `rewrite-open-round` instead of relying on manual edits
 
 ### `record-hard-pivot`
 
@@ -221,6 +223,8 @@ Primary writes:
 - optional transition event record
 - optional bounded round contract and `control/active-round.md` when entering
   `execution` through bootstrap
+- optional rewritten open round contracts and `control/active-round.md` when
+  phase fallback or pause must keep an existing round honest
 
 Guards:
 
@@ -235,10 +239,12 @@ Guards:
   - one bounded open round, either already present or bootstrapped by the command
 - `execution -> exploration` requires:
   - explicit mismatch or ambiguity reason
-  - explicit round review note when open rounds still exist
+  - explicit round review note or explicit round rewrite when open rounds still
+    exist
 - `execution -> paused` requires:
   - explicit suspension reason
-  - explicit round review note when open rounds still exist
+  - explicit round review note or explicit round rewrite when open rounds still
+    exist
 - `paused -> execution` requires:
   - one bounded open round, either already present or bootstrapped by the command
 
@@ -247,6 +253,8 @@ Side effects:
 - rewrite durable objective phase and active-objective projection together
 - emit one transition event
 - optionally bootstrap one bounded round when entering `execution`
+- optionally rewrite existing open rounds through `rewrite-open-round` when the
+  phase change must keep those contracts aligned
 
 ## 4. Round Commands
 
@@ -345,31 +353,40 @@ Side effects:
 - `captured` or `closed` should fail fast instead of silently promoting a dirty
   dishonest worktree
 
-### `refresh-round`
+### `rewrite-open-round`
 
 Purpose:
 
-- adjust round metadata without changing round identity
+- rewrite one open round contract without changing round identity
 
 Required inputs:
 
 - `project_id`
 - `round_id`
+- `reason`
 - one or more mutable fields:
+  - `title`
   - `scope`
+  - `scope_paths`
   - `deliverable`
   - `validation_plan`
   - `risks`
+  - `blockers`
+  - `status_notes`
 
 Primary writes:
 
 - round contract file
 - `control/active-round.md`
+- transition event record
 
 Guards:
 
-- round must be active or blocked
-- refresh must not quietly perform a hard pivot
+- round must remain in one open status
+- rewrite reason must be explicit
+- rewritten round must still have scope, deliverable, validation plan, and
+  scope paths
+- rewrite must not quietly perform a hard pivot or change round identity
 
 ## 5. Exception-Contract Commands
 
@@ -581,6 +598,8 @@ Current implementation status:
   record
 - can carry explicit machine-executable follow-up entries in adjudication frontmatter
   `executor_followups`
+- can already drive durable rewrites through that structured subset when the
+  verdict carries an explicit executable contract
 - still does not decide those follow-up rewrites automatically from verdict text alone
 
 This design still matters because refusing ambiguous repair is not the same
@@ -601,10 +620,15 @@ Current implementation status:
   `executor_followups`
 - currently supports structured execution for:
   - `close-objective`
+  - `rewrite-open-round`
   - `round-close-chain`
+  - `refresh-round-scope`
+  - `set-phase`
   - `update-round-status`
   - `retire-exception-contract`
   - `invalidate-exception-contract`
+- `rewrite-open-round` is the first owner-layer primitive for durable round
+  contract mutation without changing round identity
 - `round-close-chain` is the first bounded multi-step bundle:
   - reuses legal `update-round-status` transitions only
   - supports `active -> validation_pending -> captured -> closed`
@@ -631,15 +655,19 @@ This set is enough to make the control plane materially real.
 
 ## Current Implementation Status
 
-The current implementation now includes real enforced slices in three command domains:
+The current implementation now includes real enforced slices in four command domains:
 
 - objective-line:
   - `open-objective`
   - `close-objective`
   - `record-soft-pivot`
   - `record-hard-pivot`
+- phase:
+  - `set-phase`
 - round:
   - `open-round`
+  - `refresh-round-scope`
+  - `rewrite-open-round`
   - `update-round-status`
 - exception-contract:
   - `activate-exception-contract`
@@ -656,14 +684,16 @@ These slices already do these things:
 - refuse opening a second active objective when a durable active objective already exists
 - refuse retiring or invalidating exception contracts that are not currently active
 - preserve existing round metadata when rewriting status
+- rewrite one open round contract durably through `rewrite-open-round`
 - record `transition-event` files for both objective-line and round operations
 - record `transition-event` files for exception-contract operations
 
 It does not yet implement:
 
-- explicit phase transition commands
-- adjudication-driven automatic follow-up rewrites
-- automatic round rewrites from soft-pivot or hard-pivot verdicts
+- adjudication-driven automatic follow-up rewrites beyond the explicit bounded
+  command subset already encoded in `executor_followups`
+- hard-pivot-driven automatic round rewrites or broader multi-round replacement
+  bundles
 
 ## Explicit Non-Goal
 

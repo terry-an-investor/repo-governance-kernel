@@ -6,25 +6,22 @@
 
 ## Scope
 
-- Add the next enforcement slice for workaround or exception-contract coverage instead of only scope and projection drift.
-- Reuse the same owner-layer enforcement commands across local hooks and CI without adding a second policy implementation.
-- Keep the enforcement model project-agnostic while broadening what counts as blocked dishonest work.
-- Use constitution-declared guarded exception paths instead of heuristics so blocked workaround debt is backed by durable project law.
-- Add first-class `set-phase` and `refresh-round-scope` commands so phase and scope no longer rely on manual file edits.
+- Land rewrite-open-round as the owner-layer primitive for rewriting one open round contract without changing round identity.
+- Integrate that primitive into record-soft-pivot, set-phase, and adjudication follow-up execution instead of leaving round review as prose only.
+- Validate the rewrite path on disposable fixtures and update canonical control docs plus current project state to match the new capability.
 
 ## Deliverable
 
-A successor enforcement milestone that extends automatic penalties beyond the first worktree gate.
+A durable round rewrite milestone with one reusable rewrite primitive, real integrations for soft pivot and adjudication follow-ups, and canonical docs plus sample state updated to match observed behavior.
 
 ## Validation Plan
 
-Define the next blocked-state class, connect it to the same enforcement owner layer, wire the same commands into CI, and prove it with targeted validation before broader smoke.
-Prove one blocked case and one allowed case on a disposable fixture where guarded dirty paths only pass after an active exception contract explicitly covers them.
-Prove one fixture where execution phase bootstrap and round-scope refresh both work as command-owned transitions.
+Run targeted smokes for objective-line and adjudication rewrite flows, then rerun phase-1 smoke, worktree enforcement, and control audit on the real project.
 
 ## Active Risks
 
-- Broader enforcement could become noisy if workaround detection is based on weak heuristics rather than explicit durable objects.
+- The rewrite primitive could stay too narrow and only patch symptoms instead of becoming the reusable owner-layer mutation path.
+- Project samples and canonical docs could drift from the new rewrite behavior if the round narrative is not durably updated in the same milestone.
 
 ## Blockers
 

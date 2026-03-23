@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
+from pathlib import Path
 
 from round_control import (
     OPEN_ROUND_STATUSES,
@@ -27,6 +30,7 @@ from round_control import (
 
 ALLOWED_PHASES = {"exploration", "execution"}
 OBJECTIVE_SHAPE_FIELDS = {"problem", "success_criteria", "non_goals", "why_now", "phase"}
+SCRIPTS_DIR = Path(__file__).resolve().parent
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,6 +55,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--retained-decision", action="append", default=[])
     parser.add_argument("--invalidated-assumption", action="append", default=[])
     parser.add_argument("--next-control-change", action="append", default=[])
+    parser.add_argument("--rewrite-open-round", action="store_true")
+    parser.add_argument("--round-title", default="")
+    parser.add_argument("--round-summary", default="")
+    parser.add_argument("--round-scope-item", action="append", default=[])
+    parser.add_argument("--round-scope-path", action="append", default=[])
+    parser.add_argument("--round-deliverable", default="")
+    parser.add_argument("--round-validation-plan", default="")
+    parser.add_argument("--round-risk", action="append", default=[])
+    parser.add_argument("--round-blocker", action="append", default=[])
+    parser.add_argument("--round-status-note", action="append", default=[])
+    parser.add_argument("--replace-round-scope-items", action="store_true")
+    parser.add_argument("--replace-round-scope-paths", action="store_true")
+    parser.add_argument("--replace-round-risks", action="store_true")
+    parser.add_argument("--replace-round-blockers", action="store_true")
     return parser.parse_args()
 
 
@@ -63,6 +81,62 @@ def resolve_optional_string(value: str | None, fallback: str) -> str:
 def resolve_optional_list(values: list[str], fallback: list[str]) -> list[str]:
     cleaned = [value.strip() for value in values if value.strip()]
     return cleaned or list(fallback)
+
+
+def _clean_list(values: list[str]) -> list[str]:
+    return [value.strip() for value in values if value.strip()]
+
+
+def _rewrite_open_round(args: argparse.Namespace, round_id: str, reason: str) -> dict[str, object]:
+    cmd = [
+        sys.executable,
+        str(SCRIPTS_DIR / "rewrite_open_round.py"),
+        "--project-id",
+        args.project_id,
+        "--round-id",
+        round_id,
+        "--reason",
+        reason,
+    ]
+    if args.round_title.strip():
+        cmd.extend(["--title", args.round_title.strip()])
+    if args.round_summary.strip():
+        cmd.extend(["--summary", args.round_summary.strip()])
+    if args.round_deliverable.strip():
+        cmd.extend(["--deliverable", args.round_deliverable.strip()])
+    if args.round_validation_plan.strip():
+        cmd.extend(["--validation-plan", args.round_validation_plan.strip()])
+    for item in _clean_list(args.round_scope_item):
+        cmd.extend(["--scope-item", item])
+    for item in _clean_list(args.round_scope_path):
+        cmd.extend(["--scope-path", item])
+    for item in _clean_list(args.round_risk):
+        cmd.extend(["--risk", item])
+    for item in _clean_list(args.round_blocker):
+        cmd.extend(["--blocker", item])
+    for item in _clean_list(args.round_status_note):
+        cmd.extend(["--status-note", item])
+    if args.replace_round_scope_items:
+        cmd.append("--replace-scope-items")
+    if args.replace_round_scope_paths:
+        cmd.append("--replace-scope-paths")
+    if args.replace_round_risks:
+        cmd.append("--replace-risks")
+    if args.replace_round_blockers:
+        cmd.append("--replace-blockers")
+    completed = subprocess.run(
+        cmd,
+        cwd=str(SCRIPTS_DIR.parent),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise SystemExit(completed.stderr.strip() or completed.stdout.strip() or "rewrite-open-round failed during soft pivot")
+    try:
+        return json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"rewrite-open-round returned invalid json during soft pivot: {exc}") from exc
 
 
 def main() -> int:
@@ -129,11 +203,11 @@ def main() -> int:
                 f"execution-phase soft pivot requires the durable open round to stay aligned with objective `{objective_id}`; "
                 f"found round objective `{round_objective_id}`"
             )
-    if open_round_record is not None and OBJECTIVE_SHAPE_FIELDS.intersection(changed_fields) and not args.next_control_change:
+    if open_round_record is not None and OBJECTIVE_SHAPE_FIELDS.intersection(changed_fields) and not (args.next_control_change or args.rewrite_open_round):
         round_id = str(open_round_record[1].get("id") or open_round_record[0].stem).strip()
         raise SystemExit(
             f"soft pivot changed objective shape while durable open round `{round_id}` remains active; "
-            "record at least one --next-control-change item that explains the round review path"
+            "record at least one --next-control-change item or pass --rewrite-open-round"
         )
 
     anchor = resolve_anchor(args.project_id)
@@ -235,6 +309,14 @@ def main() -> int:
         event_file_stem=f"{timestamp.strftime('%Y-%m-%d-%H%M%S')}-{objective_id}-soft-pivot",
     )
 
+    rewrite_result: dict[str, object] | None = None
+    if open_round_record is not None and OBJECTIVE_SHAPE_FIELDS.intersection(changed_fields) and args.rewrite_open_round:
+        round_id = str(open_round_record[1].get("id") or open_round_record[0].stem).strip()
+        rewrite_result = _rewrite_open_round(
+            args,
+            round_id,
+            f"Soft pivot `{pivot_id}` changed objective shape and the bounded round must be rewritten to stay aligned.",
+        )
     print(
         json.dumps(
             {
@@ -248,6 +330,7 @@ def main() -> int:
                 "pivot_log_path": str(pivot_path_projection),
                 "transition_event_id": event_id,
                 "transition_event_path": str(event_path),
+                "round_rewrite": rewrite_result,
             },
             ensure_ascii=True,
             indent=2,

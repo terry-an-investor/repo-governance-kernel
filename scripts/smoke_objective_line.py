@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from round_control import active_objective_path, load_objective_file, load_pivot_file, pivot_log_path
+from round_control import active_objective_path, load_objective_file, load_pivot_file, load_round_file, locate_round_file, pivot_log_path
 from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_json
 
 
@@ -209,11 +209,20 @@ def main() -> None:
             "The fixture could accidentally require a hard pivot if identity preservation is not explicit.",
             "--next-control-change",
             "Review the existing open round against the refined execution framing and then close it before objective closeout.",
+            "--rewrite-open-round",
+            "--round-deliverable",
+            "A disposable round that proves objective-line transitions keep durable truth, projections, and round contract rewrites aligned.",
+            "--round-validation-plan",
+            "Run soft pivot, confirm the open round was rewritten, then close the round honestly before objective closeout.",
+            "--round-status-note",
+            "Rewritten during soft pivot so the open round stays aligned with the refined objective framing.",
             "--evidence",
             "The same disposable objective id is still the correct owner for the work.",
         )
         if str(soft_pivot_result["objective_id"]) != objective_id:
             raise SystemExit("soft pivot unexpectedly changed objective id")
+        if not soft_pivot_result.get("round_rewrite"):
+            raise SystemExit("soft pivot did not rewrite the open round")
 
         objective_meta, objective_sections = load_objective_file(Path(soft_pivot_result["objective_path"]))
         if str(objective_meta.get("id") or "") != objective_id:
@@ -228,6 +237,14 @@ def main() -> None:
             raise SystemExit("soft pivot durable pivot does not point at the preserved objective id")
         if "same" not in str(pivot_sections.get("Identity Rationale", "")).lower():
             raise SystemExit("soft pivot pivot record is missing identity rationale content")
+        round_path = locate_round_file(FIXTURE_PROJECT_ID, round_id)
+        if round_path is None:
+            raise SystemExit("fixture round disappeared during soft pivot rewrite")
+        round_meta, round_sections = load_round_file(round_path)
+        if "round contract rewrites aligned" not in str(round_sections.get("Deliverable", "")):
+            raise SystemExit("soft pivot did not rewrite the round deliverable")
+        if "confirm the open round was rewritten" not in str(round_sections.get("Validation Plan", "")):
+            raise SystemExit("soft pivot did not rewrite the round validation plan")
 
         interim_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)
         if interim_audit["summary"]["errors"] != 0:

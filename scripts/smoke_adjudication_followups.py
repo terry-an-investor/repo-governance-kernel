@@ -222,6 +222,20 @@ def main() -> None:
             ensure_ascii=True,
             sort_keys=True,
         )
+        rewrite_followup = json.dumps(
+            {
+                "command": "rewrite-open-round",
+                "round_id": initial_round_id,
+                "reason": "Adjudication narrows the active round before it is closed so the durable round contract matches the verdict.",
+                "deliverable": "A narrowed predecessor round that was rewritten by adjudication before closure.",
+                "validation_plan": "Rewrite the predecessor round, then close it through the governed close chain.",
+                "status_note": [
+                    "Adjudication rewrote the predecessor round before closure.",
+                ],
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
         exception_followup = json.dumps(
             {
                 "command": "retire-exception-contract",
@@ -249,6 +263,8 @@ def main() -> None:
             initial_round_id,
             "--invalidate-id",
             exception_contract_id,
+            "--executor-followup-json",
+            rewrite_followup,
             "--executor-followup-json",
             round_followup,
             "--executor-followup-json",
@@ -298,9 +314,11 @@ def main() -> None:
         predecessor_round_path = locate_round_file(FIXTURE_PROJECT_ID, initial_round_id)
         if predecessor_round_path is None:
             raise SystemExit("predecessor round disappeared after adjudication execution")
-        predecessor_meta, _predecessor_sections = load_round_file(predecessor_round_path)
+        predecessor_meta, predecessor_sections = load_round_file(predecessor_round_path)
         if str(predecessor_meta.get("status") or "").strip() != "closed":
             raise SystemExit("round-close-chain did not close the predecessor round")
+        if "rewritten by adjudication before closure" not in str(predecessor_sections.get("Deliverable", "")):
+            raise SystemExit("adjudication did not rewrite the predecessor round before closing it")
 
         final_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)
         if final_audit["summary"]["errors"] != 0:

@@ -23,6 +23,7 @@ SCRIPTS = ROOT / "scripts"
 SUPPORTED_EXECUTOR_COMMANDS = {
     "close-objective",
     "refresh-round-scope",
+    "rewrite-open-round",
     "round-close-chain",
     "set-phase",
     "update-round-status",
@@ -374,6 +375,46 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
             cmd.append("--no-live-dirty-paths")
         return cmd
 
+    if command_name == "rewrite-open-round":
+        reason = str(payload.get("reason") or "").strip()
+        if not reason:
+            raise SystemExit("executor rewrite-open-round requires `reason`")
+        round_id = str(payload.get("round_id") or "").strip()
+        if round_id:
+            cmd.extend(["--round-id", round_id])
+        cmd.extend(["--reason", reason])
+        title = str(payload.get("title") or "").strip()
+        if title:
+            cmd.extend(["--title", title])
+        summary = str(payload.get("summary") or "").strip()
+        if summary:
+            cmd.extend(["--summary", summary])
+        deliverable = str(payload.get("deliverable") or "").strip()
+        if deliverable:
+            cmd.extend(["--deliverable", deliverable])
+        validation_plan = str(payload.get("validation_plan") or "").strip()
+        if validation_plan:
+            cmd.extend(["--validation-plan", validation_plan])
+        for item in _string_list(payload.get("scope_item")):
+            cmd.extend(["--scope-item", item])
+        for item in _string_list(payload.get("scope_path")):
+            cmd.extend(["--scope-path", item])
+        for item in _string_list(payload.get("risk")):
+            cmd.extend(["--risk", item])
+        for item in _string_list(payload.get("blocker")):
+            cmd.extend(["--blocker", item])
+        for item in _string_list(payload.get("status_note")):
+            cmd.extend(["--status-note", item])
+        if bool(payload.get("replace_scope_items")):
+            cmd.append("--replace-scope-items")
+        if bool(payload.get("replace_risks")):
+            cmd.append("--replace-risks")
+        if bool(payload.get("replace_blockers")):
+            cmd.append("--replace-blockers")
+        if bool(payload.get("replace_scope_paths")):
+            cmd.append("--replace-scope-paths")
+        return cmd
+
     if command_name == "set-phase":
         phase = str(payload.get("phase") or "").strip()
         reason = str(payload.get("reason") or "").strip()
@@ -392,6 +433,9 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
         round_title = str(payload.get("round_title") or "").strip()
         if round_title:
             cmd.extend(["--round-title", round_title])
+        round_summary = str(payload.get("round_summary") or "").strip()
+        if round_summary:
+            cmd.extend(["--round-summary", round_summary])
         for item in _string_list(payload.get("round_scope_item")):
             cmd.extend(["--round-scope-item", item])
         for item in _string_list(payload.get("round_scope_path")):

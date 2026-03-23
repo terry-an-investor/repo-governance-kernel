@@ -30,6 +30,7 @@ COMMAND_MAP = {
     "record-soft-pivot": SCRIPTS / "record_soft_pivot.py",
     "reconcile-control-state": SCRIPTS / "reconcile_control_state.py",
     "refresh-round-scope": SCRIPTS / "refresh_round_scope.py",
+    "rewrite-open-round": SCRIPTS / "rewrite_open_round.py",
     "retire-exception-contract": SCRIPTS / "retire_exception_contract.py",
     "set-phase": SCRIPTS / "set_phase.py",
     "refresh-current-task-anchor": SCRIPTS / "refresh_current_task_anchor.py",
