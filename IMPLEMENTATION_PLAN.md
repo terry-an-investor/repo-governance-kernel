@@ -34,6 +34,8 @@ frozen design:
   memory
 - ensure assembled context compiles through active objective and freshness
   signals rather than raw recency alone
+- add role-context compilation so reviewer / architect / orchestrator can read
+  project control state instead of relying on prompt text alone
 
 ## Phase 1 Out Of Scope
 
@@ -52,6 +54,9 @@ frozen design:
 - add canonical project-agnostic control files under `projects/<project_id>/control/`
 - make `assemble` read active objective and workaround state
 - keep pivot handling explicit before any automation tries to infer it
+- keep constitution out of the default handoff packet unless later evidence
+  proves that always inlining it helps more than it bloats
+- compile constitution into role-specific contexts instead
 
 ### `scripts/build_index.py`
 
@@ -87,7 +92,8 @@ frozen design:
 3. add FTS5 population in the builder
 4. switch query path from `LIKE` to FTS5
 5. teach context assembly to compile through active objective state
-6. rerun real builds and queries
+6. add role-context compilers over the same control substrate
+7. rerun real builds and queries
 
 ## Validation Standard
 

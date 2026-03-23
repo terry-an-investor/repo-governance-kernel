@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 WIND_ARTIFACT_PATH = ROOT / "artifacts" / "wind-agent" / "session-context-smoke.md"
 SELF_ARTIFACT_PATH = ROOT / "artifacts" / "session-memory" / "session-context-smoke.md"
+ROLE_ARTIFACT_PATH = ROOT / "artifacts" / "session-memory" / "reviewer-context-smoke.md"
 
 
 def run_json(script_name: str, *args: str) -> dict:
@@ -78,6 +79,15 @@ def main() -> None:
         "--output",
         str(SELF_ARTIFACT_PATH),
     )
+    run_plain(
+        "compile_role_context.py",
+        "--project-id",
+        "session-memory",
+        "--role",
+        "reviewer",
+        "--output",
+        str(ROLE_ARTIFACT_PATH),
+    )
 
     if build_result["memory_items"] < 1:
         raise SystemExit("memory_items is empty")
@@ -95,6 +105,8 @@ def main() -> None:
         raise SystemExit("wind-agent assemble output missing")
     if not SELF_ARTIFACT_PATH.exists():
         raise SystemExit("session-memory assemble output missing")
+    if not ROLE_ARTIFACT_PATH.exists():
+        raise SystemExit("session-memory reviewer context output missing")
 
     print(
         json.dumps(
@@ -113,6 +125,7 @@ def main() -> None:
                 "artifacts": {
                     "wind-agent": str(WIND_ARTIFACT_PATH),
                     "session-memory": str(SELF_ARTIFACT_PATH),
+                    "session-memory-reviewer": str(ROLE_ARTIFACT_PATH),
                 },
             },
             ensure_ascii=True,

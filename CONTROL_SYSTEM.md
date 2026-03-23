@@ -287,6 +287,29 @@ That means:
 Historical memory still matters, but it should be loaded through the active
 objective line so obsolete context does not dominate the session.
 
+## Constitution Routing
+
+The constitution should not be injected into every default handoff packet.
+
+Why:
+
+- default handoff should stay compact and orientation-first
+- long-lived rules can drown out live execution state if always inlined
+- many sessions need current direction more urgently than project law
+
+So the routing rule should be:
+
+- default handoff packet:
+  - active objective
+  - pivot lineage
+  - current execution state
+  - freshness
+- role-specific compiled context for reviewer, architect, orchestrator:
+  - constitution
+  - active objective
+  - pivot lineage
+  - role-relevant execution state and memory
+
 ## Design Consequence
 
 This project should be framed as a coding control system built on top of a

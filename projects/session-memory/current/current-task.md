@@ -32,6 +32,7 @@ The immediate objective is:
 - Current work is focused on:
   - validating the first real control-state sample under `projects/session-memory/control/`
   - tightening packet shape now that `assemble` reads active objective and pivot lineage
+  - compiling role-specific contexts from the same control substrate
 
 ## Validated Facts
 
@@ -52,6 +53,16 @@ The immediate objective is:
   - active objective
   - pivot lineage
   - workaround ledger when present
+- `compile_role_context.py` now exists for:
+  - reviewer
+  - architect
+  - orchestrator
+- Constitution routing is now explicit:
+  - excluded from the default handoff packet
+  - included in role-specific compiled contexts
+- Role-context compilation also degrades cleanly on `wind-agent`:
+  - no `control/` directory required
+  - current-task, blockers, snapshot, and durable memory still compile
 
 ## Important Files
 
@@ -84,8 +95,8 @@ The immediate objective is:
 
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-2. Decide whether active constitution belongs in assembled context or should
-   stay recall-only.
+2. Decide what evaluator rubric should judge reviewer/orchestrator context
+   quality beyond generic orientation.
 3. Run and record the first bootstrap control-vs-treatment experiment against
    live project state.
 4. Add a first real workaround or validation-report sample only when a live

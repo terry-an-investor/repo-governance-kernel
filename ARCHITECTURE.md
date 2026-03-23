@@ -152,6 +152,11 @@ This keeps the system grounded in explicit work state.
 Context assembly should compile through the active objective line, not only
 through recency.
 
+The default handoff packet should stay orientation-first.
+
+That means project constitution is usually recall-only for the generic packet,
+while reviewer / architect / orchestrator contexts may inline it explicitly.
+
 Context injection should surface freshness explicitly.
 
 An assembled packet should include:
