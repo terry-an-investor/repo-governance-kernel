@@ -1,17 +1,17 @@
 # Session Memory Design Principles
 
 Date: 2026-03-22
-Scope: Multi-project coding-agent memory
+Scope: Multi-project coding-agent memory and control
 
 ## Goal
 
-Build a memory system that helps a fresh coding-agent session quickly recover the
-real engineering state of the current project and workspace without replaying
-entire chat transcripts.
+Build a memory and control system that helps a fresh coding-agent session
+quickly recover the real engineering state of the current project and workspace
+without replaying entire chat transcripts.
 
 The system is not a generic personal memory product. It is a coding-work memory
-layer for implementation, debugging, architecture review, handoff, and
-multi-project continuity.
+and control layer for implementation, debugging, architecture review, handoff,
+project pivots, and multi-project continuity.
 
 ## Core Position
 
@@ -29,6 +29,18 @@ session, but the durable work state extracted from that session:
 - what the next session needs to know to continue
 
 ## Principles
+
+### 0. Control state matters as much as recall
+
+Useful coding memory is not only a search layer. It must preserve enough
+control state to answer:
+
+- what objective is currently active
+- whether the project is in exploration or execution
+- which workarounds are temporary debt
+- whether the project has pivoted
+
+Without this layer, retrieval can recover facts while still accelerating drift.
 
 ### 1. Files are the source of truth
 
@@ -75,6 +87,18 @@ We need at least:
   - long-lived handoff facts
 
 This separation reduces contamination from temporary noise.
+
+The same split should exist for control state:
+
+- durable control
+  - constitution
+  - objective lineage
+  - pivot history
+- mutable control
+  - active round contract
+  - workaround ledger
+  - idea inbox
+  - current blockers
 
 ### 4. Multi-project identity must be first-class
 
@@ -171,6 +195,14 @@ The system must help with:
 
 Search matters, but handoff is the first-class workflow.
 
+Handoff must also preserve control continuity:
+
+- the active objective
+- whether the project is exploring or executing
+- recent pivots
+- active workarounds
+- the current round boundary
+
 ### 9. Start narrow and real
 
 The first system should solve a real coding-memory problem, not attempt to be a
@@ -179,6 +211,8 @@ full Memory OS.
 Focus first on:
 
 - current state
+- current objective
+- pivot lineage
 - decisions
 - failures
 - constraints

@@ -1,12 +1,12 @@
 # Session Memory Schema
 
 Date: 2026-03-22
-Scope: Multi-project coding-agent memory
+Scope: Multi-project coding-agent memory and control
 
 ## Purpose
 
 This document defines the canonical file schema for multi-project coding-agent
-memory.
+memory and control.
 
 The design goal is to keep memory:
 
@@ -22,6 +22,7 @@ The source of truth is Markdown files with structured YAML frontmatter.
 
 Memory is split into:
 
+- mutable control-state files
 - mutable working-state files
 - immutable or append-mostly durable memory items
 - phase-oriented handoff snapshots
@@ -37,17 +38,26 @@ Memory is also split by scope:
 session-memory/
 ├── projects/
 │   ├── <project_id>/
+│   │   ├── control/
+│   │   │   ├── constitution.md
+│   │   │   ├── active-objective.md
+│   │   │   ├── pivot-log.md
+│   │   │   └── workaround-ledger.md
 │   │   ├── current/
 │   │   │   ├── current-task.md
 │   │   │   ├── blockers.md
 │   │   │   └── idea-inbox.md
 │   │   ├── snapshots/
 │   │   ├── memory/
+│   │   │   ├── objectives/
+│   │   │   ├── pivots/
 │   │   │   ├── decisions/
 │   │   │   ├── failures/
 │   │   │   ├── constraints/
+│   │   │   ├── workarounds/
 │   │   │   ├── patterns/
-│   │   │   └── handoffs/
+│   │   │   ├── handoffs/
+│   │   │   └── validation-reports/
 │   │   └── artifacts/
 ├── cross-project/
 │   ├── decisions/
@@ -62,13 +72,19 @@ session-memory/
 
 Initial memory object types:
 
+- `constitution`
+- `objective`
+- `pivot`
 - `decision`
 - `failure`
 - `constraint`
+- `workaround`
 - `pattern`
 - `handoff`
 - `task`
 - `artifact`
+- `validation-report`
+- `hypothesis`
 
 ## Identity Model
 
@@ -122,6 +138,18 @@ supersedes: []
 superseded_by: []
 ```
 
+Control-bearing objects may also add these optional linkage fields when they
+matter:
+
+- `objective_id`
+  - the objective line this item belongs to
+- `pivot_id`
+  - the pivot event that introduced or invalidated this item
+- `phase`
+  - suggested values:
+    - `exploration`
+    - `execution`
+
 ## Shared Field Definitions
 
 - `id`
@@ -168,8 +196,76 @@ superseded_by: []
   - memory ids replaced by this item
 - `superseded_by`
   - memory ids that replaced this item
+- `objective_id`
+  - optional linkage to the active or historical objective line
+- `pivot_id`
+  - optional linkage to the pivot record that changed context
+- `phase`
+  - optional project phase at extraction time, usually `exploration` or
+    `execution`
 
 ## Durable Memory File Shapes
+
+### Objective
+
+Use for the current or historical project objective line.
+
+Suggested sections:
+
+- summary
+- problem
+- success criteria
+- non-goals
+- current phase
+- active risks
+- supersession notes
+
+### Pivot
+
+Use for explicit changes to the project's objective line.
+
+Suggested sections:
+
+- summary
+- pivot type
+- trigger
+- previous objective
+- new objective
+- evidence
+- decisions retained
+- assumptions invalidated
+- next control changes
+
+### Workaround
+
+Use for temporary compromises that are intentionally not the target design.
+
+Suggested sections:
+
+- summary
+- reason
+- temporary behavior
+- risk
+- exit condition
+- owner scope
+- evidence
+
+### Validation Report
+
+Use for structured evidence about what was actually checked.
+
+Suggested sections:
+
+- claim
+- command or procedure
+- result
+- coverage
+- gaps
+- artifacts
+
+### Hypothesis
+
+Use for exploration-stage framings that are not yet promoted to objective.
 
 ### Decision
 
@@ -295,6 +391,95 @@ Use for session-to-session transfer state.
 Handoff is special: it can be snapshot-like, but it should still be treated as
 an object with provenance.
 
+## Control-State Files
+
+Control-state files are mutable and optimize for current project governance.
+
+### `projects/<project_id>/control/constitution.md`
+
+Purpose:
+
+- capture durable rules, invariants, and quality bars for one project
+
+Suggested shape:
+
+```markdown
+# Constitution
+
+## Product Boundaries
+
+## Architecture Invariants
+
+## Quality Bar
+
+## Validation Rules
+
+## Forbidden Shortcuts
+```
+
+### `projects/<project_id>/control/active-objective.md`
+
+Purpose:
+
+- state the currently active objective line and whether the project is in
+  exploration or execution
+
+Suggested shape:
+
+```markdown
+# Active Objective
+
+- Objective id:
+- Phase: exploration | execution
+- Status: active
+
+## Problem
+
+## Success Criteria
+
+## Non-Goals
+
+## Why Now
+
+## Current Risks
+```
+
+### `projects/<project_id>/control/pivot-log.md`
+
+Purpose:
+
+- provide a compact chronological view of objective-line changes
+
+Suggested shape:
+
+```markdown
+# Pivot Log
+
+## Active Lineage
+
+## Recent Pivots
+
+## Historical Objectives
+```
+
+### `projects/<project_id>/control/workaround-ledger.md`
+
+Purpose:
+
+- track temporary compromises separately from real architecture
+
+Suggested shape:
+
+```markdown
+# Workaround Ledger
+
+## Active
+
+## Retired
+
+## Invalidated By Pivot
+```
+
 ## Working-State Files
 
 Working-state files are mutable and optimized for live use, not immutable
@@ -326,6 +511,8 @@ Suggested shape:
 
 Recommended `Current State` anchor bullets:
 
+- `Objective id`
+- `Phase`
 - `Workspace id`
 - `Workspace root`
 - `Branch`

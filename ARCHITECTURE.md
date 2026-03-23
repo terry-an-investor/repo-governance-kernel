@@ -1,20 +1,27 @@
 # Session Memory Architecture
 
 Date: 2026-03-22
-Scope: Multi-project coding-agent memory
+Scope: Multi-project coding-agent memory and control
 
 ## Goal
 
-Turn raw coding-agent activity into reusable memory that supports:
+Turn raw coding-agent activity into reusable memory and control state that
+supports:
 
 - new-session recovery
 - side-session review
 - architecture continuity
 - failure recall
 - decision traceability
+- controlled project pivots
 - multi-project switching without context contamination
 
 ## Architectural Summary
+
+The system should be read together with [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md).
+
+Memory is the storage substrate. Control state is the thing that keeps the
+project direction coherent.
 
 The system has four layers:
 
@@ -65,6 +72,9 @@ Extraction outputs should include:
 - decision records
 - failure records
 - constraint records
+- objective records
+- pivot records
+- workaround records
 - task state
 - reusable patterns
 
@@ -90,6 +100,7 @@ Preferred source-of-truth storage:
 Suggested store split:
 
 - `projects/<project_id>/`
+  - project-local control state
   - project-local working memory
   - project-local snapshots
   - project-local durable memory
@@ -117,6 +128,9 @@ This layer should answer:
 - what memory matters for these files
 - what memory matters for the current task topic
 - what handoff summary should a fresh session read first
+- what objective line is currently active
+- whether the project is in exploration or execution
+- whether a pivot invalidated older assumptions
 
 Before a handoff packet is trusted as current state, this layer should also
 answer:
@@ -134,6 +148,9 @@ Retrieval priority:
 4. reranking
 
 This keeps the system grounded in explicit work state.
+
+Context assembly should compile through the active objective line, not only
+through recency.
 
 Context injection should surface freshness explicitly.
 
@@ -191,12 +208,20 @@ The initial schema should stay coding-oriented.
 
 Suggested types:
 
+- `constitution`
+  - durable project operating rules and invariants
+- `objective`
+  - current or historical project goal line
+- `pivot`
+  - explicit objective-line change record
 - `decision`
   - architecture and implementation choices
 - `failure`
   - failed attempts, bad assumptions, invalid approaches
 - `constraint`
   - environment, product, repo, or tool limitations
+- `workaround`
+  - temporary compromise with risk and exit condition
 - `task`
   - current or pending work state
 - `artifact`
@@ -205,6 +230,8 @@ Suggested types:
   - what a new session should know before continuing
 - `pattern`
   - reusable tactics or workflow fragments
+- `validation-report`
+  - structured evidence about what was actually proven
 
 ## Required Metadata
 
@@ -244,22 +271,32 @@ Suggested root directory:
 
 ```text
 session-memory/
+├── CONTROL_SYSTEM.md
 ├── DESIGN_PRINCIPLES.md
 ├── ARCHITECTURE.md
 ├── SCHEMA.md
 ├── projects/
 │   ├── wind-agent/
+│   │   ├── control/
+│   │   │   ├── constitution.md
+│   │   │   ├── active-objective.md
+│   │   │   ├── pivot-log.md
+│   │   │   └── workaround-ledger.md
 │   │   ├── current/
 │   │   │   ├── current-task.md
 │   │   │   ├── blockers.md
 │   │   │   └── idea-inbox.md
 │   │   ├── snapshots/
 │   │   ├── memory/
+│   │   │   ├── objectives/
+│   │   │   ├── pivots/
 │   │   │   ├── decisions/
 │   │   │   ├── failures/
 │   │   │   ├── constraints/
+│   │   │   ├── workarounds/
 │   │   │   ├── patterns/
-│   │   │   └── handoffs/
+│   │   │   ├── handoffs/
+│   │   │   └── validation-reports/
 │   │   └── artifacts/
 │   └── another-project/
 ├── cross-project/
@@ -274,6 +311,7 @@ session-memory/
 Notes:
 
 - `projects/<project_id>/current/` is mutable working memory
+- `projects/<project_id>/control/` is mutable control state
 - `projects/<project_id>/snapshots/` is phase-oriented handoff output
 - `projects/<project_id>/memory/` stores project-local durable memory
 - `cross-project/` stores memories that generalize across projects

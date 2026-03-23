@@ -2,19 +2,21 @@
 
 ## Goal
 
-Turn `session-memory` from a design-only workspace into a stable phase-1 system
-for multi-project coding-agent memory.
+Turn `session-memory` into a stable phase-1 coding control system built on a
+file-first memory substrate.
 
 The immediate objective is:
 
 - keep the design frozen around Markdown plus SQLite plus FTS5
+- add first-class control-state files for objective, pivot, and workaround
 - improve fresh-session context assembly quality
-- validate the schema on more than one project sample
-- prove the first real linked-memory path with `supersedes` / `superseded_by`
+- compile handoff through active objective state instead of recency alone
 
 ## Current State
 
 - Project: `session-memory`
+- Objective id: `obj-2026-03-23-0002`
+- Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
@@ -24,9 +26,12 @@ The immediate objective is:
   - `wind-agent` is indexed as the first project sample
   - SQLite plus FTS5 build/query/assemble path is working
   - unified CLI and smoke command exist
-- Current dirty work is focused on:
-  - validating the first real linked-memory sample
-  - preserving clean multi-project evaluation artifacts
+- Control-system framing is now explicit:
+  - durable docs define objective, pivot, and workaround as first-class objects
+  - this project is the first real sample for a hard pivot in objective line
+- Current work is focused on:
+  - validating the first real control-state sample under `projects/session-memory/control/`
+  - teaching later implementation to compile through active objective state
 
 ## Validated Facts
 
@@ -40,14 +45,20 @@ The immediate objective is:
   - `memory_evidence_refs = 8`
   - `memory_fts = 6`
 - The first real linked-memory pair now exists in `projects/session-memory/`.
+- The project direction is now clarified:
+  - from multi-project coding-agent memory
+  - to coding control system built on top of that memory substrate
 
 ## Important Files
 
 - `C:/Users/terryzzb/Desktop/session-memory/DESIGN_PRINCIPLES.md`
 - `C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md`
+- `C:/Users/terryzzb/Desktop/session-memory/CONTROL_SYSTEM.md`
 - `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
 - `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
 - `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
+- `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-objective.md`
+- `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/pivot-log.md`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/build_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
@@ -60,17 +71,17 @@ The immediate objective is:
 
 - The current assembler still risks over-including repeated information when
   current-task and snapshot overlap.
-- The repo has only one committed project sample so far; without a second
-  sample, multi-project claims are still under-proven.
+- The new control schema can still drift into prompt vocabulary if later
+  implementation fails to ground it in concrete files and evidence.
 - The evaluation protocol is still a biased pilot because the evaluator already
   knows the project context.
 
 ## Next Steps
 
-1. Rebuild and validate the index across both projects after the linked-memory
-   sample lands.
+1. Teach `assemble` to read active objective and workaround state.
 2. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-3. Run and record the first bootstrap control-vs-treatment experiment.
-4. Add the first cross-project pattern only if the evaluation produces a stable
-   lesson.
+3. Run and record the first bootstrap control-vs-treatment experiment against
+   live project state.
+4. Add a first real workaround or validation-report sample only when a live
+   implementation round creates one honestly.
