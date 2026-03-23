@@ -2,12 +2,12 @@
 id: round-2026-03-24-0728-unify-remaining-command-domains-under-registry-owned-owner-layer-semantics
 type: round-contract
 title: "Unify remaining command domains under registry-owned owner-layer semantics"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 4ed6b4d8cfa328fc6e8c9b3ee4cf5882fd09421d
+git_sha: b9d5208d360a69a2b504363441d351ef65529e41
 paths:
   - scripts/transition_specs.py
   - scripts/round_control.py
@@ -38,7 +38,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T07:28:55+08:00
-updated_at: 2026-03-24T07:28:55+08:00
+updated_at: 2026-03-24T07:41:30+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -61,6 +61,12 @@ All implemented transition command domains consume registry-backed owner-layer c
 ## Validation Plan
 
 Run real-project audit and enforce-worktree, exercise anchor-maintenance commands and capture-handoff on the real project, then close the round and return the objective to paused.
+uv run python scripts/audit_control_state.py --project-id session-memory => status ok
+uv run python scripts/enforce_worktree.py --project-id session-memory => status ok
+uv run python scripts/refresh_current_task_anchor.py --project-id session-memory => refreshed current-task anchor
+uv run python scripts/render_live_workspace_projection.py --project-id session-memory --output artifacts/session-memory/registry-owner-layer-live-workspace.md => artifact written
+uv run python scripts/create_snapshot.py --project-id session-memory --slug registry-owner-layer-check --output artifacts/session-memory/registry-owner-layer-snapshot.md => artifact written
+uv run python scripts/capture_handoff.py --project-id session-memory --slug registry-owner-layer-handoff --artifact-dir artifacts/session-memory/registry-owner-layer-handoff => packet captured
 
 ## Active Risks
 
@@ -72,4 +78,16 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> validation_pending: Registry-owner unification implementation landed and validation evidence is ready for capture.
+
+validation_pending -> captured: Owner-layer registry unification passed real validation and artifacts were captured.
+
+validated by:
+- uv run python scripts/audit_control_state.py --project-id session-memory => status ok
+- uv run python scripts/enforce_worktree.py --project-id session-memory => status ok
+- uv run python scripts/refresh_current_task_anchor.py --project-id session-memory => refreshed current-task anchor
+- uv run python scripts/render_live_workspace_projection.py --project-id session-memory --output artifacts/session-memory/registry-owner-layer-live-workspace.md => artifact written
+- uv run python scripts/create_snapshot.py --project-id session-memory --slug registry-owner-layer-check --output artifacts/session-memory/registry-owner-layer-snapshot.md => artifact written
+- uv run python scripts/capture_handoff.py --project-id session-memory --slug registry-owner-layer-handoff --artifact-dir artifacts/session-memory/registry-owner-layer-handoff => packet captured
+
+captured -> closed: Registry-owner unification round is complete and its validation evidence is durably captured.
