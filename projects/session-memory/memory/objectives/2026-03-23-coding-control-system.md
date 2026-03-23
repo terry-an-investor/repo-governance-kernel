@@ -60,6 +60,12 @@ without losing provenance.
 - replacing git or project docs
 - broad semantic retrieval before file workflow proves itself
 
+## Why Now
+
+The file-first memory path is already proven enough to expose the real next
+bottleneck: objective drift, uncontrolled workaround debt, and fresh sessions
+that still lack an explicit control line.
+
 ## Current Phase
 
 Execution. The objective is clear enough to guide implementation, but the

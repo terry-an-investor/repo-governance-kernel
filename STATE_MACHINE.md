@@ -15,7 +15,7 @@ Today the system is:
 
 - state-machine oriented
 
-It is not yet:
+Today it is only partially:
 
 - state-machine enforced
 
@@ -289,6 +289,10 @@ Current implementation already does these things:
 - stores workaround ledger state
 - compiles contexts from active control files
 - computes freshness verdicts for assembled packets
+- enforces a first objective-line slice through:
+  - `open-objective`
+  - `record-hard-pivot`
+  - hard pivots reject still-open rounds tied to the previous objective
 - enforces one first round slice through:
   - `open-round`
   - `update-round-status`
@@ -299,10 +303,11 @@ Current implementation already does these things:
 Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
+- auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots
 - enforce guards before phase changes
 - update status fields through a single transition engine
-- cover objective, pivot, and workaround domains with the same enforcement depth
+- cover objective, pivot, round, and workaround domains with the same enforcement depth
 
 This gap should remain explicit until enforcement exists.
 

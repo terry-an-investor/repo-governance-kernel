@@ -18,6 +18,8 @@ This phase is now partially state-machine enforced.
 
 Today that enforcement is intentionally narrow:
 
+- the objective-line domain can open a first active objective
+- the objective-line domain can record a guarded hard pivot
 - the round domain has real transition commands
 - illegal round-status transitions are rejected
 - transition events are recorded as durable files
@@ -71,11 +73,15 @@ It is not yet a unified transition engine across every domain.
   proves that always inlining it helps more than it bloats
 - compile constitution into role-specific contexts instead
 - define the future transition command surface before implementing enforcement
+- first objective/pivot transition slice is now real:
+  - `open-objective`
+  - `record-hard-pivot`
+  - hard pivots now refuse to outrun an active round still tied to the old objective
 - first round transition slice is now real:
   - `open-round`
   - `update-round-status`
   - rewrite path now preserves round metadata instead of degrading frontmatter
-- next enforcement slice should target objective and pivot commands
+- next enforcement slice should target workaround commands or a shared transition engine
 
 ### `scripts/build_index.py`
 

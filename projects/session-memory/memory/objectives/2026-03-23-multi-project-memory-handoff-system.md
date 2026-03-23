@@ -56,6 +56,12 @@ without replaying large transcripts.
 - generalized Memory OS
 - embedding-first architecture in phase 1
 
+## Why Now
+
+Fresh sessions and side sessions needed a project-scoped recovery path that was
+cheaper than replaying large transcripts and concrete enough to prove on a real
+repo before larger control ambitions were justified.
+
 ## Current Phase
 
 This objective reached a valid phase-1 memory baseline, then became too narrow.

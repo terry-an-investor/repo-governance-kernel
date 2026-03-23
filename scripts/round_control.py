@@ -83,8 +83,20 @@ def active_round_path(project_id: str) -> Path:
     return project_dir(project_id) / "control" / "active-round.md"
 
 
+def pivot_log_path(project_id: str) -> Path:
+    return project_dir(project_id) / "control" / "pivot-log.md"
+
+
 def rounds_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "rounds"
+
+
+def objectives_dir(project_id: str) -> Path:
+    return project_dir(project_id) / "memory" / "objectives"
+
+
+def pivots_dir(project_id: str) -> Path:
+    return project_dir(project_id) / "memory" / "pivots"
 
 
 def transition_events_dir(project_id: str) -> Path:
@@ -170,17 +182,54 @@ def build_round_frontmatter(
     confidence: str = "high",
     phase: str = "execution",
 ) -> str:
+    return build_memory_frontmatter(
+        item_id=round_id,
+        memory_type="round-contract",
+        title=title,
+        status=status,
+        project_id=project_id,
+        anchor=anchor,
+        paths=paths,
+        created_at=created_at,
+        evidence_refs=evidence_refs,
+        tags=tags,
+        confidence=confidence,
+        phase=phase,
+        objective_id=objective_id,
+    )
+
+
+def build_memory_frontmatter(
+    *,
+    item_id: str,
+    memory_type: str,
+    title: str,
+    status: str,
+    project_id: str,
+    anchor: dict[str, str],
+    paths: list[str],
+    created_at: str | None = None,
+    evidence_refs: list[dict[str, str]] | None = None,
+    tags: list[str] | None = None,
+    confidence: str = "high",
+    phase: str = "",
+    objective_id: str = "",
+    supersedes: list[str] | None = None,
+    superseded_by: list[str] | None = None,
+) -> str:
     now = timestamp_now().isoformat(timespec="seconds")
     created_value = created_at or now
     evidence_refs = evidence_refs or []
-    tags = tags or ["round", "control-plane"]
+    tags = tags or []
+    supersedes = supersedes or []
+    superseded_by = superseded_by or []
     normalized_title = normalize_scalar_metadata(title)
     normalized_confidence = normalize_scalar_metadata(confidence) or "high"
-    normalized_phase = normalize_scalar_metadata(phase) or "execution"
+    normalized_phase = normalize_scalar_metadata(phase)
     lines = [
         "---",
-        f"id: {round_id}",
-        "type: round-contract",
+        f"id: {item_id}",
+        f"type: {memory_type}",
         f"title: {yaml_quote(normalized_title)}",
         f"status: {status}",
         f"project_id: {project_id}",
@@ -220,10 +269,30 @@ def build_round_frontmatter(
             f"confidence: {normalized_confidence}",
             f"created_at: {created_value}",
             f"updated_at: {now}",
-            f"objective_id: {objective_id}",
-            f"phase: {normalized_phase}",
-            "supersedes: []",
-            "superseded_by: []",
+        ]
+    )
+    if objective_id:
+        lines.append(f"objective_id: {objective_id}")
+    if normalized_phase:
+        lines.append(f"phase: {normalized_phase}")
+    if supersedes:
+        lines.append("supersedes:")
+        for item in supersedes:
+            item_value = normalize_scalar_metadata(item)
+            if item_value:
+                lines.append(f"  - {item_value}")
+    else:
+        lines.append("supersedes: []")
+    if superseded_by:
+        lines.append("superseded_by:")
+        for item in superseded_by:
+            item_value = normalize_scalar_metadata(item)
+            if item_value:
+                lines.append(f"  - {item_value}")
+    else:
+        lines.append("superseded_by: []")
+    lines.extend(
+        [
             "---",
             "",
         ]
@@ -294,6 +363,193 @@ def render_round_file(
     return "\n".join(body_parts).strip() + "\n"
 
 
+def render_objective_file(
+    *,
+    objective_id: str,
+    title: str,
+    status: str,
+    project_id: str,
+    anchor: dict[str, str],
+    paths: list[str],
+    created_at: str | None,
+    evidence_refs: list[dict[str, str]] | None,
+    tags: list[str] | None,
+    confidence: str,
+    phase: str,
+    supersedes: list[str] | None,
+    superseded_by: list[str] | None,
+    summary: str,
+    problem: str,
+    success_criteria: list[str],
+    non_goals: list[str],
+    why_now: str,
+    current_risks: list[str],
+    supersession_notes: str,
+) -> str:
+    frontmatter = build_memory_frontmatter(
+        item_id=objective_id,
+        memory_type="objective",
+        title=title,
+        status=status,
+        project_id=project_id,
+        anchor=anchor,
+        paths=paths,
+        created_at=created_at,
+        evidence_refs=evidence_refs,
+        tags=tags,
+        confidence=confidence,
+        phase=phase,
+        supersedes=supersedes,
+        superseded_by=superseded_by,
+    )
+    body_parts = [
+        frontmatter,
+        "## Summary\n",
+        summary.strip() or "_none recorded_",
+        "",
+        "## Problem\n",
+        problem.strip() or "_none recorded_",
+        "",
+        "## Success Criteria\n",
+        render_bullet_list(success_criteria),
+        "",
+        "## Non-Goals\n",
+        render_bullet_list(non_goals),
+        "",
+        "## Why Now\n",
+        why_now.strip() or "_none recorded_",
+        "",
+        "## Current Phase\n",
+        phase.strip() or "_none recorded_",
+        "",
+        "## Active Risks\n",
+        render_bullet_list(current_risks),
+        "",
+        "## Supersession Notes\n",
+        supersession_notes.strip() or "_none recorded_",
+        "",
+    ]
+    return "\n".join(body_parts).strip() + "\n"
+
+
+def render_pivot_file(
+    *,
+    pivot_id: str,
+    title: str,
+    status: str,
+    project_id: str,
+    objective_id: str,
+    anchor: dict[str, str],
+    paths: list[str],
+    created_at: str | None,
+    evidence_refs: list[dict[str, str]] | None,
+    tags: list[str] | None,
+    confidence: str,
+    phase: str,
+    supersedes: list[str] | None,
+    superseded_by: list[str] | None,
+    summary: str,
+    pivot_type: str,
+    trigger: str,
+    previous_objective: str,
+    new_objective: str,
+    evidence: list[str],
+    decisions_retained: list[str],
+    assumptions_invalidated: list[str],
+    next_control_changes: list[str],
+) -> str:
+    frontmatter = build_memory_frontmatter(
+        item_id=pivot_id,
+        memory_type="pivot",
+        title=title,
+        status=status,
+        project_id=project_id,
+        anchor=anchor,
+        paths=paths,
+        created_at=created_at,
+        evidence_refs=evidence_refs,
+        tags=tags,
+        confidence=confidence,
+        phase=phase,
+        objective_id=objective_id,
+        supersedes=supersedes,
+        superseded_by=superseded_by,
+    )
+    body_parts = [
+        frontmatter,
+        "## Summary\n",
+        summary.strip() or "_none recorded_",
+        "",
+        "## Pivot Type\n",
+        pivot_type.strip() or "_none recorded_",
+        "",
+        "## Trigger\n",
+        trigger.strip() or "_none recorded_",
+        "",
+        "## Previous Objective\n",
+        previous_objective.strip() or "_none recorded_",
+        "",
+        "## New Objective\n",
+        new_objective.strip() or "_none recorded_",
+        "",
+        "## Evidence\n",
+        render_bullet_list(evidence),
+        "",
+        "## Decisions Retained\n",
+        render_bullet_list(decisions_retained),
+        "",
+        "## Assumptions Invalidated\n",
+        render_bullet_list(assumptions_invalidated),
+        "",
+        "## Next Control Changes\n",
+        render_bullet_list(next_control_changes),
+        "",
+    ]
+    return "\n".join(body_parts).strip() + "\n"
+
+
+def render_active_objective_file(
+    *,
+    objective_id: str,
+    phase: str,
+    status: str,
+    problem: str,
+    success_criteria: list[str],
+    non_goals: list[str],
+    why_now: str,
+    current_risks: list[str],
+) -> str:
+    parts = [
+        "# Active Objective",
+        "",
+        f"- Objective id: `{objective_id}`",
+        f"- Phase: `{phase}`",
+        f"- Status: `{status}`",
+        "",
+        "## Problem",
+        "",
+        problem.strip() or "_none recorded_",
+        "",
+        "## Success Criteria",
+        "",
+        render_bullet_list(success_criteria),
+        "",
+        "## Non-Goals",
+        "",
+        render_bullet_list(non_goals),
+        "",
+        "## Why Now",
+        "",
+        why_now.strip() or "_none recorded_",
+        "",
+        "## Current Risks",
+        "",
+        render_bullet_list(current_risks),
+        "",
+    ]
+    return "\n".join(parts).strip() + "\n"
+
+
 def render_active_round_file(
     *,
     round_id: str,
@@ -347,6 +603,17 @@ def locate_round_file(project_id: str, round_id: str) -> Path | None:
     return None
 
 
+def locate_objective_file(project_id: str, objective_id: str) -> Path | None:
+    directory = objectives_dir(project_id)
+    if not directory.exists():
+        return None
+    for path in sorted(directory.glob("*.md")):
+        values = extract_frontmatter_scalars(read_text(path), ["id"])
+        if values.get("id") == objective_id:
+            return path
+    return None
+
+
 def load_round_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     text = read_text(path)
     frontmatter_text, _body = split_frontmatter(text)
@@ -376,6 +643,201 @@ def load_round_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     meta["evidence_refs"] = normalized_evidence_refs
     sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
     return meta, sections
+
+
+def load_objective_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
+    text = read_text(path)
+    frontmatter_text, _body = split_frontmatter(text)
+    meta = parse_frontmatter(frontmatter_text)
+    for key in [
+        "id",
+        "title",
+        "status",
+        "project_id",
+        "workspace_id",
+        "workspace_root",
+        "branch",
+        "git_sha",
+        "created_at",
+        "confidence",
+        "phase",
+    ]:
+        if key in meta:
+            meta[key] = normalize_scalar_metadata(meta[key])
+    meta["paths"] = parse_string_list(meta.get("paths"))
+    meta["tags"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("tags")) if normalize_scalar_metadata(item)]
+    meta["supersedes"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("supersedes")) if normalize_scalar_metadata(item)]
+    meta["superseded_by"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("superseded_by")) if normalize_scalar_metadata(item)]
+    normalized_evidence_refs: list[dict[str, str]] = []
+    for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
+        normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))
+        if not normalized_ref:
+            continue
+        normalized_evidence_refs.append(
+            {
+                "type": normalize_scalar_metadata(entry.get("type", "")),
+                "ref": normalized_ref,
+            }
+        )
+    meta["evidence_refs"] = normalized_evidence_refs
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
+    return meta, sections
+
+
+def load_pivot_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
+    text = read_text(path)
+    frontmatter_text, _body = split_frontmatter(text)
+    meta = parse_frontmatter(frontmatter_text)
+    for key in [
+        "id",
+        "title",
+        "status",
+        "project_id",
+        "workspace_id",
+        "workspace_root",
+        "branch",
+        "git_sha",
+        "created_at",
+        "confidence",
+        "phase",
+        "objective_id",
+    ]:
+        if key in meta:
+            meta[key] = normalize_scalar_metadata(meta[key])
+    meta["paths"] = parse_string_list(meta.get("paths"))
+    meta["tags"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("tags")) if normalize_scalar_metadata(item)]
+    meta["supersedes"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("supersedes")) if normalize_scalar_metadata(item)]
+    meta["superseded_by"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("superseded_by")) if normalize_scalar_metadata(item)]
+    normalized_evidence_refs: list[dict[str, str]] = []
+    for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
+        normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))
+        if not normalized_ref:
+            continue
+        normalized_evidence_refs.append(
+            {
+                "type": normalize_scalar_metadata(entry.get("type", "")),
+                "ref": normalized_ref,
+            }
+        )
+    meta["evidence_refs"] = normalized_evidence_refs
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
+    return meta, sections
+
+
+def load_all_objectives(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    directory = objectives_dir(project_id)
+    if not directory.exists():
+        return []
+    records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for path in sorted(directory.glob("*.md")):
+        meta, sections = load_objective_file(path)
+        records.append((path, meta, sections))
+    records.sort(key=lambda record: str(record[1].get("created_at") or record[0].name))
+    return records
+
+
+def load_all_pivots(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    directory = pivots_dir(project_id)
+    if not directory.exists():
+        return []
+    records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for path in sorted(directory.glob("*.md")):
+        meta, sections = load_pivot_file(path)
+        records.append((path, meta, sections))
+    records.sort(key=lambda record: str(record[1].get("created_at") or record[0].name), reverse=True)
+    return records
+
+
+def extract_first_inline_id(text: str) -> str:
+    match = re.search(r"`([^`]+)`", text)
+    return match.group(1).strip() if match else ""
+
+
+def summarize_line(text: str) -> str:
+    cleaned = " ".join(part.strip() for part in text.splitlines() if part.strip())
+    return cleaned or "_none recorded_"
+
+
+def normalize_phrase(text: str) -> str:
+    summary = summarize_line(text)
+    if summary == "_none recorded_":
+        return summary
+    return summary.rstrip(" .")
+
+
+def render_pivot_log_file(project_id: str) -> str:
+    objective_records = load_all_objectives(project_id)
+    pivot_records = load_all_pivots(project_id)
+    active_objective_id = ""
+    active_objective_title = ""
+    for _path, meta, _sections in objective_records:
+        if str(meta.get("status") or "") == "active":
+            active_objective_id = str(meta.get("id") or "")
+            active_objective_title = str(meta.get("title") or "")
+            break
+
+    parts = [
+        "# Pivot Log",
+        "",
+        "## Active Lineage",
+        "",
+    ]
+    if active_objective_id:
+        parts.append(f"- `{active_objective_id}`")
+        parts.append(f"  - active objective: {active_objective_title or active_objective_id}")
+        for _path, meta, sections in pivot_records:
+            if str(meta.get("objective_id") or "") != active_objective_id:
+                continue
+            pivot_type = normalize_phrase(sections.get("Pivot Type", ""))
+            pivot_label = pivot_type.lower()
+            if pivot_label.endswith("pivot"):
+                parts.append(f"  - entered via {pivot_label} `{meta.get('id', '')}`")
+            else:
+                parts.append(f"  - entered via {pivot_label} pivot `{meta.get('id', '')}`")
+            break
+    else:
+        parts.append("_none recorded_")
+
+    parts.extend(["", "## Recent Pivots", ""])
+    if pivot_records:
+        for _path, meta, sections in pivot_records:
+            pivot_id = str(meta.get("id") or "")
+            pivot_type = normalize_phrase(sections.get("Pivot Type", ""))
+            previous_objective_id = extract_first_inline_id(sections.get("Previous Objective", ""))
+            next_objective_id = str(meta.get("objective_id") or "") or extract_first_inline_id(sections.get("New Objective", ""))
+            trigger = summarize_line(sections.get("Trigger", ""))
+            parts.append(f"- `{pivot_id}`")
+            parts.append(f"  - type: `{pivot_type.lower()}`")
+            if previous_objective_id:
+                parts.append(f"  - from: `{previous_objective_id}`")
+            if next_objective_id:
+                parts.append(f"  - to: `{next_objective_id}`")
+            parts.append(f"  - trigger: {trigger}")
+    else:
+        parts.append("_none recorded_")
+
+    parts.extend(["", "## Historical Objectives", ""])
+    historical_objectives = [
+        (meta, sections)
+        for _path, meta, sections in objective_records
+        if str(meta.get("status") or "") != "active"
+    ]
+    if historical_objectives:
+        for meta, _sections in historical_objectives:
+            objective_id = str(meta.get("id") or "")
+            title = str(meta.get("title") or objective_id)
+            superseded_by = [str(item).strip() for item in meta.get("superseded_by", []) if str(item).strip()]
+            parts.append(f"- `{objective_id}`")
+            parts.append(f"  - {title}")
+            if superseded_by:
+                parts.append(f"  - superseded by `{superseded_by[0]}`")
+            elif str(meta.get("status") or "") != "active":
+                parts.append(f"  - status: `{meta.get('status', '')}`")
+    else:
+        parts.append("_none recorded_")
+
+    parts.append("")
+    return "\n".join(parts).strip() + "\n"
 
 
 def build_transition_event_file(

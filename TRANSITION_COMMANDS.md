@@ -413,24 +413,29 @@ This set is enough to make the control plane materially real.
 
 ## Current Implementation Status
 
-The current implementation now includes a first real round-transition slice:
+The current implementation now includes two real enforced slices:
 
-- `open-round`
-- `update-round-status`
+- objective-line:
+  - `open-objective`
+  - `record-hard-pivot`
+- round:
+  - `open-round`
+  - `update-round-status`
 
-This slice already does these things:
+These slices already do these things:
 
-- writes durable `round-contract` files
-- updates `control/active-round.md`
-- rejects illegal round-status transitions
-- preserves existing round metadata when rewriting status
-- records `transition-event` files for round operations
+- write durable `objective`, `pivot`, and `round-contract` files
+- update `control/active-objective.md`, `control/pivot-log.md`, and `control/active-round.md`
+- reject illegal round-status transitions
+- refuse hard pivots that would silently outrun a still-open round tied to the old objective
+- preserve existing round metadata when rewriting status
+- record `transition-event` files for both objective-line and round operations
 
 It does not yet implement:
 
-- objective transition commands
-- pivot transition commands
+- soft-pivot transition commands
 - workaround transition commands
+- explicit phase transition commands
 - a unified transition engine shared across every command domain
 
 ## Explicit Non-Goal

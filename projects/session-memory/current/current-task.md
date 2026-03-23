@@ -20,7 +20,7 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `cb2047abe10b8520e6a0b26d4ddc13250d5344e2`
+- HEAD anchor: `72ab90077f2b18968f6deecc11f8215c1f220aa8`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -30,9 +30,9 @@ The immediate objective is:
   - durable docs define objective, pivot, and workaround as first-class objects
   - this project is the first real sample for a hard pivot in objective line
 - Current work is focused on:
-  - hardening the first enforced round-transition slice so round rewrites stay lossless
-  - keeping command semantics honest before expanding to objective and pivot transitions
-  - preserving project-agnostic control primitives while this repo bootstraps itself
+  - hardening the first enforced objective and round slices so control rewrites stay lossless
+  - proving objective-line control on `wind-agent` so the schema stays project-agnostic
+  - deciding whether the next honest slice is workaround commands or a shared transition engine
 
 ## Validated Facts
 
@@ -73,7 +73,7 @@ The immediate objective is:
   `wind-agent`.
 - `STATE_MACHINE.md` now makes the design explicit:
   - current system is state-machine oriented
-  - current system is not yet state-machine enforced
+  - current system is partially state-machine enforced
 - `TRANSITION_COMMANDS.md` now freezes:
   - canonical transition names
   - guards
@@ -83,8 +83,19 @@ The immediate objective is:
   - `projects/session-memory/control/active-round.md`
   - `projects/session-memory/memory/rounds/2026-03-23-transition-command-surface.md`
 - The first enforced transition slice now exists:
+  - `open-objective`
+  - `record-hard-pivot`
   - `open-round`
   - `update-round-status`
+- `wind-agent` now has a real control substrate as a second project sample:
+  - `control/active-objective.md`
+  - `control/pivot-log.md`
+  - durable objective and pivot records
+- The first non-self-hosted objective-line lifecycle has been exercised:
+  - initial active objective opened on `wind-agent`
+  - guarded hard pivot recorded on `wind-agent`
+- Hard pivots now have one explicit honesty guard:
+  - reject pivot when an active round is still tied to the previous objective
 - The first real round lifecycle has been exercised:
   - `active -> validation_pending -> captured -> closed`
   - successor round opened with transition-event records
@@ -111,7 +122,9 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_role_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/open_round.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/open_objective.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/prepare_role_eval_bundle.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
@@ -134,7 +147,7 @@ The immediate objective is:
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
 3. Implement the next transition slice:
-   `open-objective` plus `record-hard-pivot`.
+   `activate-workaround` or a shared transition engine for existing commands.
 4. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
 5. Run and record the first bootstrap control-vs-treatment experiment against
