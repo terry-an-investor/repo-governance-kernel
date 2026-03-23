@@ -52,6 +52,7 @@ def main() -> None:
     exception_smoke = run_json("smoke_exception_contracts.py")
     guarded_exception_enforcement_smoke = run_json("smoke_guarded_exception_enforcement.py")
     objective_line_smoke = run_json("smoke_objective_line.py")
+    phase_scope_controls_smoke = run_json("smoke_phase_scope_controls.py")
     transition_engine_smoke = run_json("smoke_transition_engine.py")
     build_result = run_json("build_index.py")
     check_result = run_json("check_index.py")
@@ -136,6 +137,7 @@ def main() -> None:
                 "exception_contracts": exception_smoke,
                 "guarded_exception_enforcement": guarded_exception_enforcement_smoke,
                 "objective_line": objective_line_smoke,
+                "phase_scope_controls": phase_scope_controls_smoke,
                 "transition_engine": transition_engine_smoke,
                 "build": build_result,
                 "check": {

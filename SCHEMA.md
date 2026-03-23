@@ -215,6 +215,8 @@ matter:
 - `phase`
   - optional project phase at extraction time, usually `exploration` or
     `execution`
+  - control objects may also use `paused` when execution is intentionally
+    suspended without closing the objective line
 
 State-bearing objects may also need object-local status semantics.
 

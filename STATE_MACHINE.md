@@ -364,9 +364,17 @@ Current implementation already does these things:
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states
-  - can retire or invalidate one exception contract, and then open one successor round when the adjudication record is structured enough
+  - can retire or invalidate one exception contract, refresh one round scope, change phase explicitly, and then open one successor round when the adjudication record is structured enough
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
+- now enforces explicit phase changes through:
+  - `set-phase`
+  - entering `execution` requires one bounded round or command-owned bootstrap
+  - leaving `execution` with open rounds requires explicit scope review notes
+- now enforces explicit scope repair through:
+  - `refresh-round-scope`
+  - rewrites durable round `paths` and active-round projection from live dirty-path evidence
+- now rejects `open-round` when the active objective is not already in `execution`
 - records transition-event files for round operations
 
 Current implementation does not yet do these things:
@@ -376,7 +384,6 @@ Current implementation does not yet do these things:
 - infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots or soft pivots
-- enforce guards before phase changes
 - enforce the same worktree gate before every repository mutation path such as commit or push
 - cover objective, pivot, round, and exception-contract domains with the same unified enforcement depth
 - provide a richer harness integration layer for runtimes that do expose native hooks, without making correctness depend on them

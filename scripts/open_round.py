@@ -53,10 +53,16 @@ def main() -> int:
 
     objective_id = args.objective_id or objective_preface.get("objective id", "")
     objective_status = objective_preface.get("status", "")
+    objective_phase = objective_preface.get("phase", "")
     if not objective_id:
         raise SystemExit("active objective is missing `Objective id`")
     if objective_status and objective_status != "active":
         raise SystemExit(f"cannot open round from non-active objective status `{objective_status}`")
+    if objective_phase and objective_phase != "execution":
+        raise SystemExit(
+            f"cannot open round for objective `{objective_id}` while active phase is `{objective_phase}`; "
+            "move the objective into `execution` first"
+        )
 
     existing_round_preface, _existing_round_sections = load_active_round(args.project_id)
     existing_round_id = existing_round_preface.get("round id", "")
@@ -116,6 +122,7 @@ def main() -> int:
     next_state = f"round `{round_id}` is now active for objective `{objective_id}`"
     guards = [
         f"objective `{objective_id}` exists and is active",
+        "objective phase is `execution`",
         "scope items are present",
         "deliverable is present",
         "validation plan is present",

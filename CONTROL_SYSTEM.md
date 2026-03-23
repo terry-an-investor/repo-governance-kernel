@@ -170,6 +170,15 @@ The control model has four layers:
 3. round control
 4. evidence and memory
 
+Phase and round-scope changes are now first-class owner-layer transitions, not
+manual edits:
+
+- `set-phase` changes durable objective phase and active-objective projection together
+- entering `execution` must already have one bounded round or bootstrap one in
+  the same command
+- `refresh-round-scope` rewrites durable round `paths` from live dirty-path
+  evidence instead of relying on manual frontmatter edits
+
 ### 1. Constitution
 
 The constitution is the long-lived project operating contract.

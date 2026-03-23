@@ -137,6 +137,10 @@ def write_fixture_files() -> None:
         + "\n",
         encoding="utf-8",
     )
+    (control_dir / "exception-ledger.md").write_text(
+        "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
     FIXTURE_GUARDED_FILE.write_text("guarded fixture baseline\n", encoding="utf-8")
     init_fixture_repo(FIXTURE_PROJECT_DIR, commit_message="Initialize guarded exception enforcement fixture")
 
@@ -326,6 +330,21 @@ def main() -> None:
             "The guarded enforcement smoke finished and no temporary deviation remains.",
             "--evidence",
             "guarded exception enforcement smoke",
+        )
+        FIXTURE_GUARDED_FILE.write_text("guarded fixture baseline\n", encoding="utf-8")
+
+        run_json(
+            "set_phase.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--objective-id",
+            objective_id,
+            "--phase",
+            "exploration",
+            "--reason",
+            "The guarded enforcement fixture finished execution work and should not claim an execution phase without an open round.",
+            "--scope-review-note",
+            "The only execution round is already closed and the temporary deviation was retired before phase fallback.",
         )
 
         final_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)

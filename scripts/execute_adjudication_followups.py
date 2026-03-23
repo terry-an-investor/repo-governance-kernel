@@ -22,7 +22,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 SUPPORTED_EXECUTOR_COMMANDS = {
     "close-objective",
+    "refresh-round-scope",
     "round-close-chain",
+    "set-phase",
     "update-round-status",
     "retire-exception-contract",
     "invalidate-exception-contract",
@@ -352,6 +354,61 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
             cmd.extend(["--risk", item])
         if bool(payload.get("clear_blockers")):
             cmd.append("--clear-blockers")
+        return cmd
+
+    if command_name == "refresh-round-scope":
+        round_id = str(payload.get("round_id") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not reason:
+            raise SystemExit("executor refresh-round-scope requires `reason`")
+        if round_id:
+            cmd.extend(["--round-id", round_id])
+        cmd.extend(["--reason", reason])
+        for item in _string_list(payload.get("evidence")):
+            cmd.extend(["--evidence", item])
+        for item in _string_list(payload.get("add_scope_path")):
+            cmd.extend(["--add-scope-path", item])
+        for item in _string_list(payload.get("drop_scope_path")):
+            cmd.extend(["--drop-scope-path", item])
+        if bool(payload.get("no_live_dirty_paths")):
+            cmd.append("--no-live-dirty-paths")
+        return cmd
+
+    if command_name == "set-phase":
+        phase = str(payload.get("phase") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+        if not phase or not reason:
+            raise SystemExit("executor set-phase requires `phase` and `reason`")
+        objective_id = str(payload.get("objective_id") or "").strip()
+        if objective_id:
+            cmd.extend(["--objective-id", objective_id])
+        cmd.extend(["--phase", phase, "--reason", reason])
+        for item in _string_list(payload.get("evidence")):
+            cmd.extend(["--evidence", item])
+        for item in _string_list(payload.get("scope_review_note")):
+            cmd.extend(["--scope-review-note", item])
+        if bool(payload.get("auto_open_round")):
+            cmd.append("--auto-open-round")
+        round_title = str(payload.get("round_title") or "").strip()
+        if round_title:
+            cmd.extend(["--round-title", round_title])
+        for item in _string_list(payload.get("round_scope_item")):
+            cmd.extend(["--round-scope-item", item])
+        for item in _string_list(payload.get("round_scope_path")):
+            cmd.extend(["--round-scope-path", item])
+        round_deliverable = str(payload.get("round_deliverable") or "").strip()
+        if round_deliverable:
+            cmd.extend(["--round-deliverable", round_deliverable])
+        round_validation_plan = str(payload.get("round_validation_plan") or "").strip()
+        if round_validation_plan:
+            cmd.extend(["--round-validation-plan", round_validation_plan])
+        for item in _string_list(payload.get("round_risk")):
+            cmd.extend(["--round-risk", item])
+        for item in _string_list(payload.get("round_blocker")):
+            cmd.extend(["--round-blocker", item])
+        round_status_note = str(payload.get("round_status_note") or "").strip()
+        if round_status_note:
+            cmd.extend(["--round-status-note", round_status_note])
         return cmd
 
     if command_name == "retire-exception-contract":

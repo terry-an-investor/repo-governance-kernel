@@ -155,26 +155,36 @@ def main() -> None:
         objective_id = str(objective_result["objective_id"])
         patch_current_task(objective_id=objective_id)
 
-        round_result = run_json(
-            "open_round.py",
+        phase_result = run_json(
+            "set_phase.py",
             "--project-id",
             FIXTURE_PROJECT_ID,
-            "--title",
+            "--objective-id",
+            objective_id,
+            "--phase",
+            "execution",
+            "--reason",
+            "The fixture now needs an execution-phase framing so round and objective alignment rules are exercised honestly.",
+            "--auto-open-round",
+            "--round-title",
             "Fixture round for objective-line smoke",
-            "--scope-item",
+            "--round-scope-item",
             "Exercise soft-pivot and close-objective against one disposable objective line.",
-            "--deliverable",
+            "--round-deliverable",
             "A disposable round that proves objective-line transitions keep durable truth and projections aligned.",
-            "--validation-plan",
+            "--round-validation-plan",
             "Run soft pivot, close the round honestly, then close the objective.",
-            "--scope-path",
+            "--round-scope-path",
             "current/",
-            "--scope-path",
+            "--round-scope-path",
             "control/",
-            "--scope-path",
+            "--round-scope-path",
             "memory/",
         )
-        round_id = str(round_result["round_id"])
+        auto_open_round = phase_result.get("auto_open_round") or {}
+        round_id = str(auto_open_round.get("round_id") or "")
+        if not round_id:
+            raise SystemExit("set-phase did not auto-open the fixture round")
         patch_current_task(objective_id=objective_id, round_id=round_id)
 
         soft_pivot_result = run_json(
@@ -194,9 +204,7 @@ def main() -> None:
             "--summary",
             "Keep the same disposable objective id while moving into an execution-ready framing.",
             "--why-now",
-            "The fixture now needs an execution-phase framing so round/objective alignment rules are exercised too.",
-            "--phase",
-            "execution",
+            "The fixture now refines the already-executing objective without changing its identity.",
             "--risk",
             "The fixture could accidentally require a hard pivot if identity preservation is not explicit.",
             "--next-control-change",

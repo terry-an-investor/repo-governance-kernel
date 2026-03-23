@@ -154,26 +154,36 @@ def main() -> None:
         first_objective_id = str(objective_result["objective_id"])
         patch_current_task(objective_id=first_objective_id)
 
-        round_result = run_json(
-            "open_round.py",
+        phase_result = run_json(
+            "set_phase.py",
             "--project-id",
             FIXTURE_PROJECT_ID,
-            "--title",
+            "--objective-id",
+            first_objective_id,
+            "--phase",
+            "execution",
+            "--reason",
+            "The shared transition engine fixture needs a bounded execution contract before round-state transitions are exercised.",
+            "--auto-open-round",
+            "--round-title",
             "Fixture round for shared transition engine smoke",
-            "--scope-item",
+            "--round-scope-item",
             "Validate shared transition writes on a disposable round.",
-            "--deliverable",
+            "--round-deliverable",
             "A disposable round that exercises the shared transition engine through status changes.",
-            "--validation-plan",
+            "--round-validation-plan",
             "Drive the round through real status transitions before the hard pivot.",
-            "--scope-path",
+            "--round-scope-path",
             "current/",
-            "--scope-path",
+            "--round-scope-path",
             "control/",
-            "--scope-path",
+            "--round-scope-path",
             "memory/",
         )
-        round_id = str(round_result["round_id"])
+        auto_open_round = phase_result.get("auto_open_round") or {}
+        round_id = str(auto_open_round.get("round_id") or "")
+        if not round_id:
+            raise SystemExit("set-phase did not auto-open the transition-engine fixture round")
         patch_current_task(objective_id=first_objective_id, round_id=round_id)
 
         run_json(

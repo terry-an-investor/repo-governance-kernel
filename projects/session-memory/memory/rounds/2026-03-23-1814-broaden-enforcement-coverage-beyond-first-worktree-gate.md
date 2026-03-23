@@ -43,6 +43,7 @@ A successor enforcement milestone that extends automatic penalties beyond the fi
 - Reuse the same owner-layer enforcement commands across local hooks and CI without adding a second policy implementation.
 - Keep the enforcement model project-agnostic while broadening what counts as blocked dishonest work.
 - Use constitution-declared guarded exception paths instead of heuristics so blocked workaround debt is backed by durable project law.
+- Add first-class `set-phase` and `refresh-round-scope` commands so phase and scope no longer rely on manual file edits.
 
 ## Deliverable
 
@@ -52,6 +53,7 @@ A successor enforcement milestone that extends automatic penalties beyond the fi
 
 Define the next blocked-state class, connect it to the same enforcement owner layer, wire the same commands into CI, and prove it with targeted validation before broader smoke.
 Prove one blocked case and one allowed case on a disposable fixture where guarded dirty paths only pass after an active exception contract explicitly covers them.
+Prove one fixture where execution phase bootstrap and round-scope refresh both work as command-owned transitions.
 
 ## Active Risks
 
@@ -70,7 +72,13 @@ Constitution-declared guarded exception paths are now enforced as a second block
 The same owner-layer commands are now wired into GitHub Actions so local hook
 gates and remote CI gates execute the same enforcement surface.
 
+Explicit `set-phase` and `refresh-round-scope` commands now exist.
+
+`open-round` now rejects non-`execution` objectives so execution contracts
+cannot be opened from exploration by accident.
+
 validated by:
 - uv run python scripts/smoke_guarded_exception_enforcement.py
+- uv run python scripts/smoke_phase_scope_controls.py
 - uv run python scripts/audit_control_state.py --project-id session-memory
 - uv run python scripts/enforce_worktree.py --project-id session-memory

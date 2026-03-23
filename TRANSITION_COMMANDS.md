@@ -216,8 +216,11 @@ Required inputs:
 
 Primary writes:
 
+- durable active objective file
 - `control/active-objective.md`
 - optional transition event record
+- optional bounded round contract and `control/active-round.md` when entering
+  `execution` through bootstrap
 
 Guards:
 
@@ -229,12 +232,21 @@ Guards:
   - active objective
   - non-goals
   - one validation path
+  - one bounded open round, either already present or bootstrapped by the command
 - `execution -> exploration` requires:
   - explicit mismatch or ambiguity reason
+  - explicit round review note when open rounds still exist
+- `execution -> paused` requires:
+  - explicit suspension reason
+  - explicit round review note when open rounds still exist
+- `paused -> execution` requires:
+  - one bounded open round, either already present or bootstrapped by the command
 
 Side effects:
 
-- re-evaluate active round state when phase changes materially
+- rewrite durable objective phase and active-objective projection together
+- emit one transition event
+- optionally bootstrap one bounded round when entering `execution`
 
 ## 4. Round Commands
 
@@ -261,8 +273,35 @@ Primary writes:
 Guards:
 
 - linked objective must be active
+- linked objective must be in `execution`
 - scope must be explicit
 - validation plan must be present
+
+### `refresh-round-scope`
+
+Purpose:
+
+- refresh one open round's durable scope paths from live dirty worktree evidence
+  or explicit path additions/removals
+
+Required inputs:
+
+- `project_id`
+- `reason`
+- optional `round_id`
+
+Primary writes:
+
+- durable round contract
+- `control/active-round.md`
+- transition event record
+
+Guards:
+
+- target round must exist and remain open
+- refresh reason must be explicit
+- resulting scope path set must be non-empty
+- change must be backed by live dirty non-control paths or explicit path edits
 
 ### `update-round-status`
 

@@ -10,6 +10,7 @@
 - Reuse the same owner-layer enforcement commands across local hooks and CI without adding a second policy implementation.
 - Keep the enforcement model project-agnostic while broadening what counts as blocked dishonest work.
 - Use constitution-declared guarded exception paths instead of heuristics so blocked workaround debt is backed by durable project law.
+- Add first-class `set-phase` and `refresh-round-scope` commands so phase and scope no longer rely on manual file edits.
 
 ## Deliverable
 
@@ -19,6 +20,7 @@ A successor enforcement milestone that extends automatic penalties beyond the fi
 
 Define the next blocked-state class, connect it to the same enforcement owner layer, wire the same commands into CI, and prove it with targeted validation before broader smoke.
 Prove one blocked case and one allowed case on a disposable fixture where guarded dirty paths only pass after an active exception contract explicitly covers them.
+Prove one fixture where execution phase bootstrap and round-scope refresh both work as command-owned transitions.
 
 ## Active Risks
 

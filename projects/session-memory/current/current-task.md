@@ -120,6 +120,7 @@ The immediate objective is:
   - allowed enforcement once one active exception contract explicitly covers the same guarded path
   - `validation_pending -> captured -> closed` while the covering contract remains active
   - retirement of the covering contract after round closure
+  - guarded-path cleanup and explicit phase fallback so final audit ends `ok`
 - The project now has durable round history across multiple real control slices:
   - `projects/session-memory/memory/rounds/2026-03-23-1213-implement-first-transition-slice.md`
   - `projects/session-memory/memory/rounds/2026-03-23-1516-implement-exception-contract-transition-slice.md`
@@ -132,10 +133,15 @@ The immediate objective is:
   - `record-hard-pivot`
 - The round and exception-control slices remain live:
   - `open-round`
+  - `refresh-round-scope`
   - `update-round-status`
   - `activate-exception-contract`
   - `retire-exception-contract`
   - `invalidate-exception-contract`
+- Explicit phase control now exists:
+  - `set-phase`
+  - entering `execution` can bootstrap one bounded round in the same guarded transition
+  - leaving `execution` requires explicit review notes when open rounds still exist
 - `wind-agent` now has a real control substrate as a second project sample:
   - `control/active-objective.md`
   - `control/pivot-log.md`
@@ -180,6 +186,8 @@ The immediate objective is:
   - adjudication frontmatter `executor_followups` can call bounded existing transition commands
   - current supported automatic execution covers:
     - `round-close-chain`
+    - `refresh-round-scope`
+    - `set-phase`
     - `update-round-status`
     - `retire-exception-contract`
     - `invalidate-exception-contract`
@@ -201,9 +209,14 @@ The immediate objective is:
   - `activate -> invalidate`
   - exception-ledger projection and audit on a temporary project
 - Disposable objective-line fixture validation now exercises:
-  - open objective -> open round -> soft pivot with the same objective id
+  - open objective -> set phase into execution with auto-opened round -> soft pivot with the same objective id
   - round closure before objective close
   - explicit objective close with zero active objectives and clean audit
+- Disposable phase/scope-control fixture validation now exercises:
+  - `set-phase --auto-open-round`
+  - blocked enforcement when one dirty source path remains outside round scope
+  - `refresh-round-scope` rewriting durable round `paths`
+  - clean enforcement and audit after scope refresh
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -237,6 +250,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/open_round.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/open_objective.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/prepare_role_eval_bundle.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/refresh_round_scope.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_soft_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/reconcile_control_state.py`
@@ -246,6 +260,8 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_exception_contracts.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_objective_line.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase_scope_controls.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/set_phase.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/update_round_status.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/exception-ledger.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/exception-contracts/2026-03-23-1524-transition-logic-remains-split-across-per-command-scripts.md`
@@ -266,16 +282,16 @@ The immediate objective is:
   rewrite plans automatically beyond the first bounded close-chain bundle.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
-  - round scope maintenance is still manual; there is no dedicated refresh command yet
-- Phase transitions are still implicit in objective rewrites because `set-phase`
-  does not exist yet as a first-class guarded command.
+  - round scope refresh now exists, but stale scope still is not auto-reconciled after pivots or other objective-shape changes
+- Phase transitions are now explicit, but phase-side effects are still conservative:
+  - the system records review notes and optional bootstrap, but it still does not auto-close or auto-re-scope open rounds on phase fallback
 
 ## Next Steps
 
-1. Add a safer round-scope refresh path so real implementation rounds do not
-   rely on manual `paths` edits.
-2. Keep compressing assembled context so it acts like a handoff packet instead
+1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
-3. Run the first serious external-target role-eval bundle for `wind-agent`.
-4. After enforcement broadens again, choose the next command gap:
-   explicit phase transitions or reviewer/orchestrator automatic checks.
+2. Run the first serious external-target role-eval bundle for `wind-agent`.
+3. Teach adjudication and pivots how to drive durable round rewrites beyond the
+   current bounded executor subset.
+4. Decide whether reviewer/orchestrator automatic checks or broader
+   adjudication-driven rewrites are the next higher-leverage control slice.
