@@ -177,6 +177,14 @@ At minimum, the system should support creating one new snapshot from:
 
 without requiring a manual rewrite of the full handoff document every time.
 
+A higher-level capture flow can then compose:
+
+- current-task anchor refresh
+- snapshot creation
+- packet assembly
+
+without replacing the lower-level commands as independent primitives.
+
 ## Memory Types
 
 The initial schema should stay coding-oriented.

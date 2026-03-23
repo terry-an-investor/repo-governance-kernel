@@ -481,6 +481,17 @@ The minimal snapshot writer should:
 
 This keeps the maintenance flow additive and git-friendly.
 
+## Capture Workflow
+
+The minimal high-level capture workflow should:
+
+1. refresh `current/current-task.md` anchor bullets from the live workspace
+2. write one new snapshot
+3. assemble one fresh-session packet against the updated current-task state
+
+This workflow is a convenience layer over the lower-level primitives, not a
+replacement for them.
+
 ## File Naming
 
 Durable item naming should be explicit and grep-friendly.
