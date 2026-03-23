@@ -28,6 +28,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--follow-up", action="append", default=[])
     parser.add_argument("--evidence", action="append", default=[])
     parser.add_argument("--path", action="append", default=[])
+    parser.add_argument("--round-title", default="")
+    parser.add_argument("--round-scope-item", action="append", default=[])
+    parser.add_argument("--round-scope-path", action="append", default=[])
+    parser.add_argument("--round-deliverable", default="")
+    parser.add_argument("--round-validation-plan", default="")
+    parser.add_argument("--round-risk", action="append", default=[])
+    parser.add_argument("--round-blocker", action="append", default=[])
+    parser.add_argument("--round-status-note", default="")
     parser.add_argument("--allow-clean", action="store_true")
     return parser.parse_args()
 
@@ -119,6 +127,14 @@ def main() -> int:
         objects_invalidated=normalize_items(args.invalidate_id),
         required_follow_up_transitions=normalize_items(args.follow_up),
         evidence=evidence,
+        round_title=args.round_title.strip(),
+        round_scope_items=normalize_items(args.round_scope_item),
+        round_scope_paths=normalize_items(args.round_scope_path),
+        round_deliverable=args.round_deliverable.strip(),
+        round_validation_plan=args.round_validation_plan.strip(),
+        round_risks=normalize_items(args.round_risk),
+        round_blockers=normalize_items(args.round_blocker),
+        round_status_note=args.round_status_note.strip(),
     )
 
     adjudication_path = adjudications_dir(args.project_id) / f"{file_stem}.md"

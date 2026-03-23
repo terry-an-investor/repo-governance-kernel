@@ -316,6 +316,19 @@ Suggested sections:
 - required follow-up transitions
 - evidence
 
+Adjudication records may also carry optional structured round-bootstrap fields
+in frontmatter when the verdict already knows how the next bounded round should
+be opened:
+
+- `round_title`
+- `round_scope_items`
+- `round_scope_paths`
+- `round_deliverable`
+- `round_validation_plan`
+- `round_risks`
+- `round_blockers`
+- `round_status_note`
+
 ### Exception Contract
 
 Use for temporary deviations that are intentionally not the target design.

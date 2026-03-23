@@ -238,6 +238,7 @@ def build_memory_frontmatter(
     objective_id: str = "",
     supersedes: list[str] | None = None,
     superseded_by: list[str] | None = None,
+    extra_fields: dict[str, object] | None = None,
 ) -> str:
     now = timestamp_now().isoformat(timespec="seconds")
     created_value = created_at or now
@@ -245,6 +246,7 @@ def build_memory_frontmatter(
     tags = tags or []
     supersedes = supersedes or []
     superseded_by = superseded_by or []
+    extra_fields = extra_fields or {}
     normalized_title = normalize_scalar_metadata(title)
     normalized_confidence = normalize_scalar_metadata(confidence) or "high"
     normalized_phase = normalize_scalar_metadata(phase)
@@ -297,6 +299,24 @@ def build_memory_frontmatter(
         lines.append(f"objective_id: {objective_id}")
     if normalized_phase:
         lines.append(f"phase: {normalized_phase}")
+    for key, raw_value in extra_fields.items():
+        normalized_key = str(key).strip()
+        if not normalized_key:
+            continue
+        if isinstance(raw_value, list):
+            cleaned_items = [normalize_scalar_metadata(item) for item in raw_value if normalize_scalar_metadata(item)]
+            if cleaned_items:
+                lines.append(f"{normalized_key}:")
+                for item in cleaned_items:
+                    lines.append(f"  - {item}")
+            else:
+                lines.append(f"{normalized_key}: []")
+            continue
+        normalized_value = normalize_scalar_metadata(raw_value)
+        if normalized_value:
+            lines.append(f"{normalized_key}: {yaml_quote(normalized_value)}")
+        else:
+            lines.append(f"{normalized_key}: \"\"")
     if supersedes:
         lines.append("supersedes:")
         for item in supersedes:
@@ -552,7 +572,33 @@ def render_adjudication_file(
     objects_invalidated: list[str],
     required_follow_up_transitions: list[str],
     evidence: list[str],
+    round_title: str = "",
+    round_scope_items: list[str] | None = None,
+    round_scope_paths: list[str] | None = None,
+    round_deliverable: str = "",
+    round_validation_plan: str = "",
+    round_risks: list[str] | None = None,
+    round_blockers: list[str] | None = None,
+    round_status_note: str = "",
 ) -> str:
+    round_scope_items = round_scope_items or []
+    round_scope_paths = round_scope_paths or []
+    round_risks = round_risks or []
+    round_blockers = round_blockers or []
+    extra_fields: dict[str, object] = {
+        "round_scope_items": round_scope_items,
+        "round_scope_paths": round_scope_paths,
+        "round_risks": round_risks,
+        "round_blockers": round_blockers,
+    }
+    if round_title.strip():
+        extra_fields["round_title"] = round_title
+    if round_deliverable.strip():
+        extra_fields["round_deliverable"] = round_deliverable
+    if round_validation_plan.strip():
+        extra_fields["round_validation_plan"] = round_validation_plan
+    if round_status_note.strip():
+        extra_fields["round_status_note"] = round_status_note
     frontmatter = build_memory_frontmatter(
         item_id=adjudication_id,
         memory_type="adjudication",
@@ -567,6 +613,7 @@ def render_adjudication_file(
         confidence=confidence,
         phase=phase,
         objective_id=objective_id,
+        extra_fields=extra_fields,
     )
     body_parts = [
         frontmatter,
@@ -837,11 +884,19 @@ def load_adjudication_file(path: Path) -> tuple[dict[str, object], dict[str, str
         "confidence",
         "phase",
         "objective_id",
+        "round_title",
+        "round_deliverable",
+        "round_validation_plan",
+        "round_status_note",
     ]:
         if key in meta:
             meta[key] = normalize_scalar_metadata(meta[key])
     meta["paths"] = parse_string_list(meta.get("paths"))
     meta["tags"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("tags")) if normalize_scalar_metadata(item)]
+    meta["round_scope_items"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_scope_items")) if normalize_scalar_metadata(item)]
+    meta["round_scope_paths"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_scope_paths")) if normalize_scalar_metadata(item)]
+    meta["round_risks"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_risks")) if normalize_scalar_metadata(item)]
+    meta["round_blockers"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_blockers")) if normalize_scalar_metadata(item)]
     normalized_evidence_refs: list[dict[str, str]] = []
     for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
         normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))

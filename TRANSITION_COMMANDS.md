@@ -460,6 +460,8 @@ Suggested primary writes:
 Current implementation status:
 
 - records a durable adjudication verdict from the current audit result
+- can optionally embed structured round bootstrap fields in the adjudication
+  record
 - does not yet apply the follow-up durable object rewrites automatically
 
 This design still matters because refusing ambiguous repair is not the same
@@ -477,7 +479,9 @@ Current implementation status:
 - can scaffold missing `control/constitution.md`
 - can scaffold missing `control/exception-ledger.md`
 - can rerun control audit after those follow-ups
-- can open a bounded round only when explicit round bootstrap inputs are passed
+- can open a bounded round when structured round bootstrap fields exist in the
+  adjudication record or are passed explicitly
+- treats an already-open aligned round as `noop` instead of reopening it
 - reports unsupported or underspecified follow-ups as blocked instead of
   pretending they were executed
 

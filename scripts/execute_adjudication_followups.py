@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from audit_control_state import audit_project_control_state
-from round_control import load_all_adjudications, parse_bullet_list, project_dir
+from round_control import load_all_adjudications, parse_bullet_list, project_dir, select_open_round_record
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -100,17 +100,50 @@ def scaffold_exception_ledger(path: Path) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def maybe_execute_open_round(args: argparse.Namespace) -> tuple[bool, str]:
+def resolve_round_bootstrap(
+    args: argparse.Namespace,
+    adjudication_meta: dict[str, object],
+) -> dict[str, object]:
+    cli_scope_items = [item.strip() for item in args.round_scope_item if item.strip()]
+    cli_scope_paths = [item.strip() for item in args.round_scope_path if item.strip()]
+    cli_risks = [item.strip() for item in args.round_risk if item.strip()]
+    cli_blockers = [item.strip() for item in args.round_blocker if item.strip()]
+    return {
+        "title": (args.round_title or "").strip() or str(adjudication_meta.get("round_title") or "").strip(),
+        "scope_items": cli_scope_items or [str(item).strip() for item in adjudication_meta.get("round_scope_items", []) if str(item).strip()],
+        "scope_paths": cli_scope_paths or [str(item).strip() for item in adjudication_meta.get("round_scope_paths", []) if str(item).strip()],
+        "deliverable": (args.round_deliverable or "").strip() or str(adjudication_meta.get("round_deliverable") or "").strip(),
+        "validation_plan": (args.round_validation_plan or "").strip() or str(adjudication_meta.get("round_validation_plan") or "").strip(),
+        "risks": cli_risks or [str(item).strip() for item in adjudication_meta.get("round_risks", []) if str(item).strip()],
+        "blockers": cli_blockers or [str(item).strip() for item in adjudication_meta.get("round_blockers", []) if str(item).strip()],
+        "status_note": (args.round_status_note or "").strip() or str(adjudication_meta.get("round_status_note") or "").strip(),
+    }
+
+
+def maybe_execute_open_round(args: argparse.Namespace, adjudication_meta: dict[str, object]) -> tuple[bool, str]:
+    bootstrap = resolve_round_bootstrap(args, adjudication_meta)
+    open_round_record, open_round_issues = select_open_round_record(args.project_id)
+    if open_round_issues:
+        return False, "; ".join(open_round_issues)
+    if open_round_record is not None:
+        _path, round_meta, _sections = open_round_record
+        open_round_id = str(round_meta.get("id") or "").strip()
+        open_round_objective_id = str(round_meta.get("objective_id") or "").strip()
+        adjudication_objective_id = str(adjudication_meta.get("objective_id") or "").strip()
+        if adjudication_objective_id and open_round_objective_id == adjudication_objective_id:
+            return True, f"open round `{open_round_id}` already exists for objective `{adjudication_objective_id}`"
+        return False, f"open round `{open_round_id}` already exists for a different objective `{open_round_objective_id}`"
+
     required_present = all(
         [
-            (args.round_title or "").strip(),
-            bool([item for item in args.round_scope_item if item.strip()]),
-            (args.round_deliverable or "").strip(),
-            (args.round_validation_plan or "").strip(),
+            str(bootstrap["title"]).strip(),
+            bool([item for item in bootstrap["scope_items"] if str(item).strip()]),
+            str(bootstrap["deliverable"]).strip(),
+            str(bootstrap["validation_plan"]).strip(),
         ]
     )
     if not required_present:
-        return False, "missing explicit round bootstrap inputs"
+        return False, "missing structured round bootstrap inputs in adjudication or CLI"
 
     cmd = [
         sys.executable,
@@ -118,26 +151,26 @@ def maybe_execute_open_round(args: argparse.Namespace) -> tuple[bool, str]:
         "--project-id",
         args.project_id,
         "--title",
-        args.round_title.strip(),
+        str(bootstrap["title"]).strip(),
         "--deliverable",
-        args.round_deliverable.strip(),
+        str(bootstrap["deliverable"]).strip(),
         "--validation-plan",
-        args.round_validation_plan.strip(),
+        str(bootstrap["validation_plan"]).strip(),
     ]
-    for item in args.round_scope_item:
-        if item.strip():
-            cmd.extend(["--scope-item", item.strip()])
-    for item in args.round_scope_path:
-        if item.strip():
-            cmd.extend(["--scope-path", item.strip()])
-    for item in args.round_risk:
-        if item.strip():
-            cmd.extend(["--risk", item.strip()])
-    for item in args.round_blocker:
-        if item.strip():
-            cmd.extend(["--blocker", item.strip()])
-    if args.round_status_note.strip():
-        cmd.extend(["--status-note", args.round_status_note.strip()])
+    for item in bootstrap["scope_items"]:
+        if str(item).strip():
+            cmd.extend(["--scope-item", str(item).strip()])
+    for item in bootstrap["scope_paths"]:
+        if str(item).strip():
+            cmd.extend(["--scope-path", str(item).strip()])
+    for item in bootstrap["risks"]:
+        if str(item).strip():
+            cmd.extend(["--risk", str(item).strip()])
+    for item in bootstrap["blockers"]:
+        if str(item).strip():
+            cmd.extend(["--blocker", str(item).strip()])
+    if str(bootstrap["status_note"]).strip():
+        cmd.extend(["--status-note", str(bootstrap["status_note"]).strip()])
 
     completed = subprocess.run(
         cmd,
@@ -188,9 +221,12 @@ def main() -> int:
             continue
 
         if "open one bounded round" in normalized or "open a bounded round" in normalized:
-            success, detail = maybe_execute_open_round(args)
+            success, detail = maybe_execute_open_round(args, adjudication_meta)
             if success:
-                applied.append(f"`{followup}` -> executed open-round")
+                if "already exists" in detail:
+                    noop.append(f"`{followup}` -> {detail}")
+                else:
+                    applied.append(f"`{followup}` -> executed open-round")
             else:
                 blocked.append(f"`{followup}` -> {detail}")
             continue
