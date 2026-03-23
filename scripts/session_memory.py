@@ -39,6 +39,7 @@ COMMAND_MAP = {
     "run-smoke-suite": SCRIPTS / "run_smoke_suite.py",
     "update-round-status": SCRIPTS / "update_round_status.py",
     "invalidate-exception-contract": SCRIPTS / "invalidate_exception_contract.py",
+    "list-transition-registry": SCRIPTS / "list_transition_registry.py",
     "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",
     "execute-adjudication-followups": SCRIPTS / "execute_adjudication_followups.py",
     "enforce-worktree": SCRIPTS / "enforce_worktree.py",

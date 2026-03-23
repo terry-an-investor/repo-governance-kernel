@@ -17,20 +17,12 @@ from round_control import (
     project_dir,
     select_open_round_record,
 )
+from transition_specs import executor_supported_command_names
 
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
-SUPPORTED_EXECUTOR_COMMANDS = {
-    "close-objective",
-    "refresh-round-scope",
-    "rewrite-open-round",
-    "round-close-chain",
-    "set-phase",
-    "update-round-status",
-    "retire-exception-contract",
-    "invalidate-exception-contract",
-}
+SUPPORTED_EXECUTOR_COMMANDS = set(executor_supported_command_names()) | {"round-close-chain"}
 
 
 def parse_args() -> argparse.Namespace:

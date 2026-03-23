@@ -16,6 +16,18 @@ This document does not implement enforcement. It defines:
 - side effects
 - canonical file ownership
 
+The command surface is now also mirrored by one machine-readable owner-layer
+registry:
+
+- `scripts/transition_specs.py`
+
+The registry does not yet encode every guard or side effect, but it now owns:
+
+- canonical command names
+- command domains
+- which commands are currently executor-supported
+- bounded adjudication plan family names
+
 The current milestone also adds one first enforcement owner layer:
 
 - worktree enforcement before round promotion or closure
@@ -655,6 +667,11 @@ Current implementation status:
 - treats an already-open aligned round as `noop` instead of reopening it
 - reports prose-only, unsupported, or underspecified follow-ups as blocked instead of
   pretending they were executed
+- transition-registry note:
+  - the current owner-layer registry covers command names, domains, executor
+    support, and adjudication plan families
+  - `audit-control-state` now warns if `TRANSITION_COMMANDS.md` documents command
+    or plan names that the registry does not yet cover
 
 ## Minimal First Implementation Set
 

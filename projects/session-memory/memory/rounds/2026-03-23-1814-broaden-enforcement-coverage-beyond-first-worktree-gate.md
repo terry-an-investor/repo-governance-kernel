@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate
 type: round-contract
-title: "Govern disposable smoke harness law"
+title: "Freeze machine-readable transition registry"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 588e2a6d54623d51ea3cd1ce3728a92b8de732bb
+git_sha: cc53d54dcf8c3869205632429a68344133db1330
 paths:
   - AGENTS.md
   - .githooks/
@@ -21,6 +21,7 @@ paths:
   - projects/session-memory/current/
   - DESIGN_PRINCIPLES.md
   - HARNESS.md
+  - scripts/transition_specs.py
 thread_ids: []
 evidence_refs: []
 tags:
@@ -28,7 +29,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T20:55:01+08:00
+updated_at: 2026-03-23T20:59:13+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -37,26 +38,26 @@ superseded_by: []
 
 ## Summary
 
-Add a canonical smoke manifest and suite runner so fixture leak checks, serial execution, and smoke selection become repo-owned harness law instead of oral discipline.
+Add a canonical transition registry that declares command domains, executor support, and adjudication plan families in one machine-readable owner-layer surface.
 
 ## Scope
 
-- Add a canonical smoke manifest that declares disposable fixture project ids, parallel-safety, and shared resources for each smoke script.
-- Implement a suite runner that enforces fixture leak checks before and after each smoke and executes shared-fixture smokes serially.
-- Wire the phase-1 smoke entrypoint through the suite runner and validate that the harness owner layer catches fixture contamination honestly.
+- Add a machine-readable transition registry for the currently implemented command surface and bounded adjudication plan families.
+- Wire executor and adjudication plan compiler support lists to the registry instead of hard-coded local sets.
+- Teach control audit to detect registry drift against the canonical documented command surface.
 
 ## Deliverable
 
-A repo-owned smoke harness layer with a manifest, suite runner, fixture leak checks, and a phase-1 smoke entrypoint that no longer ad hoc calls disposable fixture scripts.
+A repo-owned transition registry that becomes the single machine-readable source for supported transition commands and bounded adjudication plan families.
 
 ## Validation Plan
 
-List the smoke manifest, run a targeted smoke suite slice, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
+Validate registry listing and audit checks, rerun adjudication smoke and full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
 
 ## Active Risks
 
-- Harness law could drift into another undocumented side protocol if smoke metadata lives partly in scripts and partly in the suite runner.
-- Suite-level leak checks currently focus on fixture project paths and may still miss other contamination classes such as shared artifact collisions.
+- A partial registry could create false confidence if scripts still quietly keep private support lists outside the owner-layer registry.
+- Registry drift checks may still be too shallow if they only compare names and not full guard or side-effect semantics yet.
 
 ## Blockers
 
@@ -105,3 +106,7 @@ Round rewritten because The active phase-side-effect plan milestone now includes
 Round rewritten because The phase-side-effect plan milestone is complete, and the next control slice is harness law for disposable smoke isolation and suite execution.
 
 The active round now targets harness law so disposable smoke isolation and execution ordering stop depending on developer memory.
+
+Round rewritten because The harness-law milestone is complete, and the next control slice is a machine-readable transition registry so command support stops drifting between docs, executor, and plan compiler.
+
+The active round now targets a machine-readable transition registry so command support stops living partly in prose and partly in scattered script constants.

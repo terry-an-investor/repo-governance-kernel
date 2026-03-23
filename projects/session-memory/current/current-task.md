@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - governing disposable smoke execution through a canonical harness owner layer instead of ad hoc script calls and oral discipline
-  - declaring fixture project ids, parallel-safety, and shared resources in one smoke manifest
-  - enforcing fixture leak checks before and after each smoke through a suite runner
-  - wiring phase-1 smoke through the suite runner so harness contamination becomes an explicit protocol failure
+  - freezing a machine-readable transition registry so command support stops drifting between prose docs, executor support lists, and adjudication plan compiler constants
+  - declaring canonical transition command names, domains, executor support, and adjudication plan families in one owner-layer registry
+  - wiring executor and adjudication compiler support lists to that registry instead of scattered local sets
+  - teaching control audit to warn when `TRANSITION_COMMANDS.md` documents command or plan names outside the registry
 
 ## Validated Facts
 
@@ -62,6 +62,15 @@ The immediate objective is:
 - `uv run python scripts/run_smoke_suite.py --smoke adjudication_followups --smoke phase_scope_controls` now passes under one suite runner:
   - serial execution replaces ad hoc parallel invocation
   - fixture leak checks run before and after each smoke
+- `uv run python scripts/list_transition_registry.py` now exports the canonical machine-readable transition registry:
+  - transition command names
+  - command domains
+  - executor-supported commands
+  - bounded adjudication plan family names
+- `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry coverage against `TRANSITION_COMMANDS.md`
+- A deliberate protocol violation now fails honestly:
+  - running one disposable adjudication smoke while `smoke_phase1.py` tries to start the suite causes `fixture_leak_before_run`
+  - this is now a visible harness-protocol failure instead of a silent flaky test
 - `uv run python scripts/smoke_phase1.py` passes after the `round-close-chain` milestone landed.
 - `uv run python scripts/session_memory.py smoke` passes after the `round-close-chain` milestone landed.
 - The governed objective-close bundle round was abandoned before implementation:
@@ -250,7 +259,7 @@ The immediate objective is:
 - The active real-project round has now been durably rewritten in place:
   - same round id retained
   - round title, summary, scope, deliverable, and validation plan updated through `rewrite-open-round`
-  - sample control files now track the disposable smoke harness-law milestone instead of the earlier phase-side-effect plan milestone
+  - sample control files now track the machine-readable transition-registry milestone instead of the earlier harness-law milestone
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -329,6 +338,9 @@ The immediate objective is:
 - The new harness law now governs disposable fixture project leakage, but it
   still only checks declared fixture paths; richer contamination classes such as
   shared artifact collisions or index reuse policy remain outside the current suite runner.
+- The new transition registry now owns command and plan names, but it still does
+  not encode full guards, side effects, or write targets; semantic drift between
+  prose and registry remains possible until those richer fields move into the registry.
 - The compiler/executor boundary can still drift if future changes let in-place compilation overwrite explicit payloads or execute the same payload twice.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
@@ -341,7 +353,7 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extend harness law beyond fixture-path leak checks toward broader contamination
-   classes and cleaner failure classification between harness protocol and product regression.
-4. After harness law is stable, move to the next higher-leverage control slice:
-   machine-readable transition spec or structured reviewer packet compilation.
+3. Extend the transition registry beyond names and support flags toward richer
+   guard, write-target, and side-effect semantics that can drive stronger audit and review tooling.
+4. After the registry is richer, compile a structured reviewer packet from it so
+   review can inspect spec surfaces and evidence coverage instead of free-form context alone.

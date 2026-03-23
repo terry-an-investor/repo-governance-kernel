@@ -25,6 +25,7 @@ from round_control import (
     select_active_objective_record,
     select_open_round_record,
 )
+from transition_specs import adjudication_plan_types, transition_command_names
 
 
 def parse_args() -> argparse.Namespace:
@@ -127,6 +128,40 @@ def parse_changed_paths(status_short: str) -> list[str]:
         if normalized:
             changed_paths.append(normalized)
     return changed_paths
+
+
+def documented_transition_command_names(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    text = path.read_text(encoding="utf-8")
+    return {
+        match.group(1).strip()
+        for match in re.finditer(r"^### `([^`]+)`\s*$", text, flags=re.MULTILINE)
+        if match.group(1).strip() not in {"audit-control-state", "enforce-worktree", "adjudicate-control-state", "execute-adjudication-followups"}
+    }
+
+
+def documented_plan_family_names(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    text = path.read_text(encoding="utf-8")
+    capture = False
+    plan_names: set[str] = set()
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        if "current supported plan-contract families include:" in line:
+            capture = True
+            continue
+        if capture and not line.strip():
+            break
+        if capture:
+            match = re.match(r"^\s*-\s+`([^`]+)`\s*$", line)
+            if match:
+                plan_names.add(match.group(1).strip())
+                continue
+            if line.startswith("- ") and "`" not in line:
+                break
+    return plan_names
 
 
 def relativize_changed_paths(
@@ -588,6 +623,33 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             active_objective_record=active_objective_record,
             open_round_record=open_round_record,
         )
+
+    transition_commands_doc_path = ROOT / "TRANSITION_COMMANDS.md"
+    documented_commands = documented_transition_command_names(transition_commands_doc_path)
+    registry_commands = set(transition_command_names())
+    missing_registry_commands = sorted(documented_commands - registry_commands)
+    if missing_registry_commands:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="documented_transition_commands_missing_from_registry",
+            message="TRANSITION_COMMANDS.md documents commands that are not present in the machine-readable transition registry",
+            evidence=missing_registry_commands,
+        )
+    documented_plans = documented_plan_family_names(transition_commands_doc_path)
+    registry_plans = set(adjudication_plan_types())
+    missing_registry_plans = sorted(documented_plans - registry_plans)
+    if missing_registry_plans:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="documented_adjudication_plans_missing_from_registry",
+            message="TRANSITION_COMMANDS.md documents adjudication plan families that are not present in the machine-readable transition registry",
+            evidence=missing_registry_plans,
+        )
+    checks.append("transition registry coverage against documented command surface")
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")
     warning_count = sum(1 for issue in issues if issue["severity"] == "warning")

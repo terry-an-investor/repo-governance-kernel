@@ -14,14 +14,8 @@ from round_control import (
     parse_bullet_list,
     project_dir,
 )
-
-
-SUPPORTED_PLAN_TYPES = {
-    "rewrite-open-round-then-close-chain",
-    "retire-invalidated-exception-contracts",
-    "invalidate-invalidated-exception-contracts",
-    "enter-execution-with-round-bootstrap",
-}
+from transition_specs import adjudication_plan_types
+SUPPORTED_PLAN_TYPES = set(adjudication_plan_types())
 
 
 def parse_args() -> argparse.Namespace:
