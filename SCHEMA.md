@@ -418,6 +418,13 @@ Suggested body:
 - important files
 - next steps
 
+Recommended maintenance path:
+
+- create a new snapshot from live workspace anchor plus current-task sections
+- allow latest snapshot sections such as `Completed Work` and
+  `Rejected Approaches` to seed the new snapshot when they remain relevant
+- do not mutate the previous snapshot in place
+
 ## Assembled Packet Freshness Block
 
 The assembled fresh-session packet should synthesize a `Packet Freshness` block
@@ -461,6 +468,18 @@ Suggested initial verdicts:
 - `fresh_snapshot_behind_dirty`
 - `stale`
 - `workspace_unavailable`
+
+## Snapshot Writer Workflow
+
+The minimal snapshot writer should:
+
+1. read `current/current-task.md`
+2. read `current/blockers.md` when present
+3. inspect the live workspace for branch and git sha
+4. optionally read the latest snapshot as seed material
+5. write one new snapshot file
+
+This keeps the maintenance flow additive and git-friendly.
 
 ## File Naming
 

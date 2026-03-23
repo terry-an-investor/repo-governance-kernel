@@ -166,6 +166,17 @@ That creates a useful distinction:
   - current-task matches the live workspace, but the latest snapshot is now
     historical
 
+Snapshot creation should also have a maintenance path.
+
+At minimum, the system should support creating one new snapshot from:
+
+- live workspace anchor
+- current-task sections
+- blockers
+- optional seed material from the latest snapshot
+
+without requiring a manual rewrite of the full handoff document every time.
+
 ## Memory Types
 
 The initial schema should stay coding-oriented.

@@ -16,6 +16,7 @@ COMMAND_MAP = {
     "check-index": SCRIPTS / "check_index.py",
     "query": SCRIPTS / "query_index.py",
     "assemble": SCRIPTS / "assemble_context.py",
+    "create-snapshot": SCRIPTS / "create_snapshot.py",
     "refresh-current-task-anchor": SCRIPTS / "refresh_current_task_anchor.py",
     "smoke": SCRIPTS / "smoke_phase1.py",
     "eval-wind-agent": SCRIPTS / "run_wind_agent_eval.py",
