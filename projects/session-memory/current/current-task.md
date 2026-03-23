@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-2225-unify-current-task-owner-layer-semantics`
-- Phase: `execution`
+- Active round id: ``
+- Phase: `paused`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `66c689c4d3ad89c3e2f62a829ab145b47dddda0f`
+- HEAD anchor: `caa256bab606d5f992f5e567ca2b034f4c12c544`
 - Worktree state: `dirty`
-- Changed path count: `15`
-- Last anchor refresh: `2026-03-23T22:31:07+08:00`
+- Changed path count: `8`
+- Last anchor refresh: `2026-03-23T22:33:40+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
