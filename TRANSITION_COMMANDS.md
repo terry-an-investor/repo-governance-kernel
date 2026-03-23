@@ -596,6 +596,8 @@ Current implementation status:
 - records a durable adjudication verdict from the current audit result
 - can optionally embed structured round bootstrap fields in the adjudication
   record
+- can optionally carry higher-level bounded executor plan contracts in
+  adjudication frontmatter `executor_plan_contracts`
 - can carry explicit machine-executable follow-up entries in adjudication frontmatter
   `executor_followups`
 - can already drive durable rewrites through that structured subset when the
@@ -616,6 +618,8 @@ Current implementation status:
 
 - can scaffold missing `control/constitution.md`
 - can scaffold missing `control/exception-ledger.md`
+- can compile bounded higher-level adjudication plan contracts from frontmatter
+  `executor_plan_contracts` into explicit executor followups before execution
 - can execute explicit structured follow-ups encoded in adjudication frontmatter
   `executor_followups`
 - currently supports structured execution for:

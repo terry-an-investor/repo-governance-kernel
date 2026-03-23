@@ -21,10 +21,10 @@ The immediate objective is:
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `fdf1e471848c4861dc071dc5627340b551b1bb89`
+- HEAD anchor: `41106ce5da36e0681495490949f3b18e6616dbb0`
 - Worktree state: `dirty`
-- Changed path count: `15`
-- Last anchor refresh: `2026-03-23T19:49:41+08:00`
+- Changed path count: `14`
+- Last anchor refresh: `2026-03-23T20:03:10+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - landing `rewrite-open-round` as the durable owner-layer primitive for mutating one open round contract without changing round identity
-  - integrating that primitive into `record-soft-pivot`, `set-phase`, and adjudication follow-up execution
-  - keeping canonical docs, current-task, and sample control files aligned with the new rewrite behavior
-  - closing the gap where round review existed only as prose but not as durable executable control
+  - adding a bounded adjudication plan compiler so durable adjudication records can express rewrite intent above raw executor payload JSON
+  - compiling supported `executor_plan_contracts` into explicit `executor_followups` through repo-owned code before execution
+  - keeping the adjudication executor honest by expanding only supported bounded rewrite patterns
+  - validating that adjudication smoke now works from plan contracts rather than hand-authored low-level rewrite payloads
 
 ## Validated Facts
 
@@ -184,6 +184,8 @@ The immediate objective is:
     write/projection/event work through `apply-transition-transaction`
 - The shared transition-engine milestone round is now closed.
 - Adjudication follow-up execution now has its first real durable rewrite slice:
+  - adjudication frontmatter can now carry bounded higher-level `executor_plan_contracts`
+    that the repo compiler expands into explicit executor payloads
   - adjudication frontmatter `executor_followups` can call bounded existing transition commands
   - current supported automatic execution covers:
     - `round-close-chain`
@@ -195,13 +197,15 @@ The immediate objective is:
     - `invalidate-exception-contract`
     - `close-objective`
   - `rewrite-open-round` is now the owner-layer primitive for durable round-contract mutation without changing round identity
+  - `compile-adjudication-executor-plan` now exists as the repo-owned compiler for bounded adjudication plan contracts
   - `round-close-chain` is the first bounded multi-step executor bundle:
     - legal path today is `active -> validation_pending -> captured -> closed`
     - can resume from `validation_pending` or `captured`
     - still refuses unsupported statuses instead of guessing
   - structured round bootstrap can still open one successor round after those rewrites
 - Disposable adjudication-followup fixture validation now exercises:
-  - rewrite a predecessor round through explicit executor payload before closure
+  - compile a bounded adjudication rewrite plan contract into explicit executor followups
+  - rewrite a predecessor round through the compiled adjudication plan before closure
   - close a pre-adjudication round through a structured close chain
   - retire an active exception contract
   - open a successor round from adjudication bootstrap fields
@@ -224,7 +228,7 @@ The immediate objective is:
 - The active real-project round has now been durably rewritten in place:
   - same round id retained
   - round title, summary, scope, deliverable, and validation plan updated through `rewrite-open-round`
-  - sample control files now track the current milestone instead of the previous enforcement milestone
+  - sample control files now track the current adjudication-plan milestone instead of the previous rewrite-integration milestone
 - The first adjudication follow-up rewrite round is now closed after validation.
 - The adjudication executor broadening round is now closed after validation.
 - The adjudication rewrite-bundle round is now closed after full validation:
@@ -250,6 +254,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_role_context.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_adjudication_executor_plan.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/close_objective.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/activate_exception_contract.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/retire_exception_contract.py`
@@ -289,6 +294,10 @@ The immediate objective is:
 - Adjudication follow-ups now execute a bounded structured subset, but they
   still cannot infer rewrites from verdict prose or handle broader multi-object
   rewrite plans automatically beyond explicit bounded command contracts.
+- The new adjudication compiler will still be narrow at first:
+  - only supported bounded plan types should compile
+  - hard-pivot replacement bundles and broader multi-object verdict execution still remain outside the safe automatic subset
+- The compiler/executor boundary can still drift if future changes let in-place compilation overwrite explicit payloads or execute the same payload twice.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
   - round scope refresh and round rewrite now exist, but broader multi-round replacement or hard-pivot-driven rewrite bundles still are not automatic
@@ -300,7 +309,10 @@ The immediate objective is:
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extend the rewrite engine from single-round bounded rewrites to broader
-   adjudication bundles and hard-pivot-safe replacement flows.
+3. Extend the adjudication plan compiler from one bounded rewrite-close pattern
+   to broader adjudication bundles and hard-pivot-safe replacement flows.
+4. Decide whether reviewer/orchestrator automatic checks or broader
+   durable adjudication execution is the next higher-leverage control slice.
+   to broader adjudication bundles and hard-pivot-safe replacement flows.
 4. Decide whether reviewer/orchestrator automatic checks or broader
    durable adjudication execution is the next higher-leverage control slice.

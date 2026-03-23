@@ -19,6 +19,7 @@ COMMAND_MAP = {
     "query": SCRIPTS / "query_index.py",
     "assemble": SCRIPTS / "assemble_context.py",
     "compile-role-context": SCRIPTS / "compile_role_context.py",
+    "compile-adjudication-executor-plan": SCRIPTS / "compile_adjudication_executor_plan.py",
     "capture-handoff": SCRIPTS / "capture_handoff.py",
     "close-objective": SCRIPTS / "close_objective.py",
     "create-snapshot": SCRIPTS / "create_snapshot.py",

@@ -446,9 +446,14 @@ that subset:
 That means adjudication should separate:
 
 - human-readable follow-up intent
+- machine-compilable bounded plan contracts
 - machine-executable follow-up contracts
 
 The machine-executable subset must stay explicit and bounded.
+When the verdict already knows a safe rewrite pattern, the repo may carry it as
+one bounded plan contract and compile it into low-level executor payloads
+through repo-owned code instead of forcing operators to hand-author every JSON
+payload.
 Prose alone is not authority to rewrite durable truth.
 
 ## Drift Detection

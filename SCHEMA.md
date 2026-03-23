@@ -95,8 +95,8 @@ Initial memory object types:
 
 The current schema stores state-bearing objects, but it does not yet enforce a
 single transition engine over them.
-It also does not yet store explicit adjudication records, but the schema should
-reserve that concept because conflict resolution is different from projection.
+It now stores explicit adjudication records, including bounded machine-readable
+execution contracts, because conflict resolution is different from projection.
 
 ## Identity Model
 
@@ -336,6 +336,13 @@ be opened:
 Adjudication records may also carry structured executable follow-up contracts in
 frontmatter:
 
+- `executor_plan_contracts`
+  - list of JSON objects serialized as strings
+  - each item names one supported bounded adjudication plan shape
+  - the repo-owned compiler expands these higher-level plan contracts into
+    explicit `executor_followups`
+  - use this layer when the verdict already knows the rewrite pattern but the
+    repo should own the low-level command expansion
 - `executor_followups`
   - list of JSON objects serialized as strings
   - each item names one supported transition command and its required arguments

@@ -624,6 +624,7 @@ def render_adjudication_file(
     objects_retained: list[str],
     objects_invalidated: list[str],
     required_follow_up_transitions: list[str],
+    executor_plan_contracts: list[str] | None,
     executor_followups: list[str] | None,
     evidence: list[str],
     round_title: str = "",
@@ -639,12 +640,14 @@ def render_adjudication_file(
     round_scope_paths = round_scope_paths or []
     round_risks = round_risks or []
     round_blockers = round_blockers or []
+    executor_plan_contracts = executor_plan_contracts or []
     executor_followups = executor_followups or []
     extra_fields: dict[str, object] = {
         "round_scope_items": round_scope_items,
         "round_scope_paths": round_scope_paths,
         "round_risks": round_risks,
         "round_blockers": round_blockers,
+        "executor_plan_contracts": executor_plan_contracts,
         "executor_followups": executor_followups,
     }
     if round_title.strip():
@@ -1163,6 +1166,7 @@ def load_adjudication_file(path: Path) -> tuple[dict[str, object], dict[str, str
     meta["round_scope_paths"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_scope_paths")) if normalize_scalar_metadata(item)]
     meta["round_risks"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_risks")) if normalize_scalar_metadata(item)]
     meta["round_blockers"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("round_blockers")) if normalize_scalar_metadata(item)]
+    meta["executor_plan_contracts"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("executor_plan_contracts")) if normalize_scalar_metadata(item)]
     meta["executor_followups"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("executor_followups")) if normalize_scalar_metadata(item)]
     normalized_evidence_refs: list[dict[str, str]] = []
     for entry in parse_evidence_refs(meta.get("evidence_refs", [])):

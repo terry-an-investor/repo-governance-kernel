@@ -362,9 +362,13 @@ Current implementation already does these things:
 - can record adjudication verdicts through:
   - `adjudicate-control-state`
   - stores explicit adjudication records from the current audit/conflict set
+  - can store bounded higher-level machine-readable plan contracts in adjudication
+    frontmatter before they are compiled into explicit executor followups
 - can execute the safe automatic subset of adjudication follow-ups through:
   - `execute-adjudication-followups`
   - scaffolds missing control surfaces
+  - compiles bounded `executor_plan_contracts` into explicit command payloads
+    before executing them
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from audit_control_state import audit_project_control_state
+from compile_adjudication_executor_plan import compile_plan_contracts
 from round_control import (
     load_all_adjudications,
     load_round_file,
@@ -581,8 +582,30 @@ def main() -> int:
     applied: list[str] = []
     noop: list[str] = []
     blocked: list[str] = []
+    executed_payloads: set[str] = set()
+
+    plan_contracts = [str(item).strip() for item in adjudication_meta.get("executor_plan_contracts", []) if str(item).strip()]
+    compiled_plan_followups: list[str] = []
+    if plan_contracts:
+        compiled_plan_followups = compile_plan_contracts(args.project_id, plan_contracts)
+
+    for payload_text in compiled_plan_followups:
+        normalized_payload = payload_text.strip()
+        if not normalized_payload or normalized_payload in executed_payloads:
+            continue
+        executed_payloads.add(normalized_payload)
+        success, detail = maybe_execute_structured_payload(args.project_id, payload_text)
+        if success:
+            applied.append(f"`executor plan` -> {detail}")
+        else:
+            blocked.append(f"`executor plan` -> {detail}")
 
     for payload_text in [str(item).strip() for item in adjudication_meta.get("executor_followups", []) if str(item).strip()]:
+        normalized_payload = payload_text.strip()
+        if not normalized_payload or normalized_payload in executed_payloads:
+            noop.append("`executor payload` -> skipped duplicate compiled followup")
+            continue
+        executed_payloads.add(normalized_payload)
         success, detail = maybe_execute_structured_payload(args.project_id, payload_text)
         if success:
             applied.append(f"`executor payload` -> {detail}")

@@ -207,10 +207,13 @@ def main() -> None:
         )
         exception_contract_id = str(exception_result["exception_contract_id"])
 
-        round_followup = json.dumps(
+        rewrite_then_close_plan = json.dumps(
             {
-                "command": "round-close-chain",
+                "plan_type": "rewrite-open-round-then-close-chain",
                 "round_id": initial_round_id,
+                "rewrite_reason": "Adjudication narrows the active round before it is closed so the durable round contract matches the verdict.",
+                "deliverable": "A narrowed predecessor round that was rewritten by adjudication before closure.",
+                "validation_plan": "Rewrite the predecessor round, then close it through the governed close chain.",
                 "validation_pending_reason": "Adjudication accepted the disposable slice for final validation before closing it.",
                 "captured_reason": "Adjudication confirmed the disposable slice was validated and can be captured before closure.",
                 "closed_reason": "Adjudication closed the predecessor round before opening the narrower successor slice.",
@@ -218,17 +221,6 @@ def main() -> None:
                     "Disposable adjudication fixture close-chain validation",
                 ],
                 "clear_blockers": True,
-            },
-            ensure_ascii=True,
-            sort_keys=True,
-        )
-        rewrite_followup = json.dumps(
-            {
-                "command": "rewrite-open-round",
-                "round_id": initial_round_id,
-                "reason": "Adjudication narrows the active round before it is closed so the durable round contract matches the verdict.",
-                "deliverable": "A narrowed predecessor round that was rewritten by adjudication before closure.",
-                "validation_plan": "Rewrite the predecessor round, then close it through the governed close chain.",
                 "status_note": [
                     "Adjudication rewrote the predecessor round before closure.",
                 ],
@@ -263,10 +255,8 @@ def main() -> None:
             initial_round_id,
             "--invalidate-id",
             exception_contract_id,
-            "--executor-followup-json",
-            rewrite_followup,
-            "--executor-followup-json",
-            round_followup,
+            "--executor-plan-json",
+            rewrite_then_close_plan,
             "--executor-followup-json",
             exception_followup,
             "--follow-up",
@@ -292,6 +282,16 @@ def main() -> None:
             "--round-status-note",
             "Opened from adjudication bootstrap fields after closing the predecessor round.",
         )
+        compile_result = run_json(
+            "compile_adjudication_executor_plan.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(adjudication_result["adjudication_id"]),
+            "--in-place",
+        )
+        if int(compile_result["compiled_followup_count"]) != 2:
+            raise SystemExit("adjudication executor plan compiler did not emit the expected bounded followups")
 
         execute_result = run_json(
             "execute_adjudication_followups.py",
@@ -406,6 +406,7 @@ def main() -> None:
                     "exception_contract_id": exception_contract_id,
                     "blocked_exception_contract_id": blocked_exception_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
+                    "compiled_followup_count": int(compile_result["compiled_followup_count"]),
                     "applied": execute_result["applied"],
                     "blocked": blocked_execute_result["blocked"],
                     "fixture_audit": boundary_audit["status"],

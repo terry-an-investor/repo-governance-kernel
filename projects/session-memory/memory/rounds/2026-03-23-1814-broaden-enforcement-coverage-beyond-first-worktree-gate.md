@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-23-1814-broaden-enforcement-coverage-beyond-first-worktree-gate
 type: round-contract
-title: "Integrate durable open-round rewrites into pivots and adjudication"
+title: "Compile bounded adjudication executor plans"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: fdf1e471848c4861dc071dc5627340b551b1bb89
+git_sha: 41106ce5da36e0681495490949f3b18e6616dbb0
 paths:
   - AGENTS.md
   - .githooks/
@@ -26,7 +26,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T18:14:34+08:00
-updated_at: 2026-03-23T19:44:40+08:00
+updated_at: 2026-03-23T20:02:11+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -35,26 +35,26 @@ superseded_by: []
 
 ## Summary
 
-Land the durable open-round rewrite primitive and integrate it into soft pivot, phase, and adjudication follow-up execution.
+Add a bounded adjudication plan compiler so durable adjudication records can compile supported rewrite intent into explicit executor followups.
 
 ## Scope
 
-- Land rewrite-open-round as the owner-layer primitive for rewriting one open round contract without changing round identity.
-- Integrate that primitive into record-soft-pivot, set-phase, and adjudication follow-up execution instead of leaving round review as prose only.
-- Validate the rewrite path on disposable fixtures and update canonical control docs plus current project state to match the new capability.
+- Add executor_plan_contracts to adjudication durable records so higher-level bounded rewrite intent lives in durable truth instead of prompt text.
+- Implement compile-adjudication-executor-plan and teach execute-adjudication-followups to compile supported plan contracts before running explicit followups.
+- Validate that adjudication smoke and full phase-1 smoke pass when the fixture uses plan contracts instead of hand-authored low-level rewrite payloads.
 
 ## Deliverable
 
-A durable round rewrite milestone with one reusable rewrite primitive, real integrations for soft pivot and adjudication follow-ups, and canonical docs plus sample state updated to match observed behavior.
+A bounded adjudication plan compiler that expands supported durable plan contracts into explicit executor followups and is validated on targeted adjudication smoke plus full phase-1 smoke.
 
 ## Validation Plan
 
-Run targeted smokes for objective-line and adjudication rewrite flows, then rerun phase-1 smoke, worktree enforcement, and control audit on the real project.
+Run adjudication followup smoke on plan-contract input, rerun full phase-1 smoke, then rerun audit-control-state and enforce-worktree on the real project.
 
 ## Active Risks
 
-- The rewrite primitive could stay too narrow and only patch symptoms instead of becoming the reusable owner-layer mutation path.
-- Project samples and canonical docs could drift from the new rewrite behavior if the round narrative is not durably updated in the same milestone.
+- The compiler could quietly overwrite explicit executor payloads instead of merging and deduplicating them.
+- Plan-contract support could grow into another hidden orchestration layer unless supported shapes stay explicit and bounded.
 
 ## Blockers
 
@@ -85,3 +85,7 @@ Round rewritten because This round is now serving the durable open-round rewrite
 This round was durably rewritten from the earlier enforcement-expansion milestone into the open-round rewrite integration milestone.
 
 Round rewritten because The previous rewrite used shell-sensitive quoting, so the durable round scope bullets must be rewritten into clean plain text.
+
+Round rewritten because The active milestone is now adjudication plan compilation, so the open round contract must be rewritten to the current durable objective slice.
+
+The active round was rewritten again to move from raw open-round rewrite integration into bounded adjudication plan compilation.
