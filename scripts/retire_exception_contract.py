@@ -5,7 +5,7 @@ import argparse
 import json
 
 from round_control import (
-    build_transition_event_file,
+    apply_transition_transaction,
     exception_ledger_path,
     load_exception_contract_file,
     locate_exception_contract_file,
@@ -79,14 +79,14 @@ def main() -> int:
         evidence=[*parse_bullet_list(sections.get("Evidence", "")), *evidence],
         resolution=resolution,
     )
-    contract_path.write_text(contract_text, encoding="utf-8")
-
     ledger_path = exception_ledger_path(args.project_id)
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    ledger_path.write_text(render_exception_ledger_file(args.project_id), encoding="utf-8")
-
-    event_id, event_text = build_transition_event_file(
+    timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
+        writes=[
+            {"path": contract_path, "text": contract_text, "label": "durable exception contract"},
+            {"path": ledger_path, "text": lambda: render_exception_ledger_file(args.project_id), "label": "exception-ledger projection"},
+        ],
         command_name="retire-exception-contract",
         title=f"Retired exception contract {args.exception_contract_id}",
         anchor=anchor,
@@ -96,16 +96,10 @@ def main() -> int:
             f"exception contract `{args.exception_contract_id}` exists",
             "only active exception contracts can be retired",
         ],
-        side_effects=[
-            f"updated durable exception contract `{contract_path.relative_to(project_dir(args.project_id).parent).as_posix()}`",
-            f"updated `{ledger_path.relative_to(project_dir(args.project_id).parent).as_posix()}`",
-        ],
         evidence=[args.reason, *evidence],
         target_ids=[args.exception_contract_id, str(meta.get("objective_id") or "").strip()],
+        event_file_stem=f"{timestamp}-{args.exception_contract_id}-retired",
     )
-    event_path = transition_events_dir(args.project_id) / f"{timestamp_now().strftime('%Y-%m-%d-%H%M%S')}-{args.exception_contract_id}-retired.md"
-    event_path.parent.mkdir(parents=True, exist_ok=True)
-    event_path.write_text(event_text, encoding="utf-8")
 
     print(
         json.dumps(

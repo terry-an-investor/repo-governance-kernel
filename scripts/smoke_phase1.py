@@ -48,6 +48,7 @@ def main() -> None:
     session_memory_audit = run_json("audit_control_state.py", "--project-id", "session-memory")
     wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
     exception_smoke = run_json("smoke_exception_contracts.py")
+    transition_engine_smoke = run_json("smoke_transition_engine.py")
     build_result = run_json("build_index.py")
     check_result = run_json("check_index.py")
     query_result = run_json(
@@ -128,6 +129,7 @@ def main() -> None:
                     "wind-agent": wind_agent_audit["status"],
                 },
                 "exception_contracts": exception_smoke,
+                "transition_engine": transition_engine_smoke,
                 "build": build_result,
                 "check": {
                     "memory_items": check_result["memory_items"],

@@ -6,7 +6,7 @@ import json
 
 from round_control import (
     active_objective_path,
-    build_transition_event_file,
+    apply_transition_transaction,
     find_objectives_by_status,
     find_rounds,
     load_active_objective,
@@ -184,8 +184,6 @@ def main() -> int:
             if part
         ),
     )
-    objective_path.write_text(previous_objective_text, encoding="utf-8")
-
     summary = args.summary.strip() or args.problem.strip()
     new_objective_text = render_objective_file(
         objective_id=objective_id,
@@ -210,8 +208,6 @@ def main() -> int:
         supersession_notes=args.supersession_notes,
     )
     new_objective_path = objectives_dir(args.project_id) / f"{objective_file_stem}.md"
-    new_objective_path.parent.mkdir(parents=True, exist_ok=True)
-    new_objective_path.write_text(new_objective_text, encoding="utf-8")
 
     pivot_title = args.pivot_title.strip() or f"Hard pivot to {args.title}"
     pivot_text = render_pivot_file(
@@ -240,31 +236,29 @@ def main() -> int:
         next_control_changes=[item.strip() for item in args.next_control_change if item.strip()],
     )
     pivot_path = pivots_dir(args.project_id) / f"{pivot_file_stem}.md"
-    pivot_path.parent.mkdir(parents=True, exist_ok=True)
-    pivot_path.write_text(pivot_text, encoding="utf-8")
 
     active_path = active_objective_path(args.project_id)
-    active_path.parent.mkdir(parents=True, exist_ok=True)
-    active_path.write_text(
-        render_active_objective_file(
-            objective_id=objective_id,
-            phase=args.phase,
-            status="active",
-            problem=args.problem,
-            success_criteria=args.success_criterion,
-            non_goals=args.non_goal,
-            why_now=args.why_now,
-            current_risks=args.risk,
-        ),
-        encoding="utf-8",
+    active_objective_text = render_active_objective_file(
+        objective_id=objective_id,
+        phase=args.phase,
+        status="active",
+        problem=args.problem,
+        success_criteria=args.success_criterion,
+        non_goals=args.non_goal,
+        why_now=args.why_now,
+        current_risks=args.risk,
     )
 
     pivot_log = pivot_log_path(args.project_id)
-    pivot_log.parent.mkdir(parents=True, exist_ok=True)
-    pivot_log.write_text(render_pivot_log_file(args.project_id), encoding="utf-8")
-
-    event_id, event_text = build_transition_event_file(
+    _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
+        writes=[
+            {"path": objective_path, "text": previous_objective_text, "label": "superseded objective"},
+            {"path": new_objective_path, "text": new_objective_text, "label": "durable objective"},
+            {"path": pivot_path, "text": pivot_text, "label": "durable pivot"},
+            {"path": active_path, "text": active_objective_text, "label": "active objective projection"},
+            {"path": pivot_log, "text": lambda: render_pivot_log_file(args.project_id), "label": "pivot-log projection"},
+        ],
         command_name="record-hard-pivot",
         title=f"Recorded hard pivot from {previous_objective_id} to {objective_id}",
         anchor=anchor,
@@ -277,19 +271,10 @@ def main() -> int:
             "new objective fields are present",
             "no durable still-open round remains tied to the previous objective",
         ],
-        side_effects=[
-            f"updated superseded objective `{objective_path.relative_to(project_path.parent).as_posix()}`",
-            f"wrote new objective `{new_objective_path.relative_to(project_path.parent).as_posix()}`",
-            f"wrote pivot `{pivot_path.relative_to(project_path.parent).as_posix()}`",
-            f"updated `{active_path.relative_to(project_path.parent).as_posix()}`",
-            f"updated `{pivot_log.relative_to(project_path.parent).as_posix()}`",
-        ],
         evidence=[args.trigger] + [item.strip() for item in args.evidence if item.strip()],
         target_ids=[previous_objective_id, objective_id, pivot_id],
+        event_file_stem=f"{pivot_file_stem}-record-hard-pivot",
     )
-    event_path = transition_events_dir(args.project_id) / f"{pivot_file_stem}-record-hard-pivot.md"
-    event_path.parent.mkdir(parents=True, exist_ok=True)
-    event_path.write_text(event_text, encoding="utf-8")
 
     print(
         json.dumps(

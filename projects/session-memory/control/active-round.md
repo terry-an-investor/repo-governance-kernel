@@ -1,27 +1,27 @@
 # Active Round
 
-- Round id: `round-2026-03-23-1530-extract-shared-transition-engine-primitive`
+- Round id: `round-2026-03-23-1548-implement-remaining-objective-line-transitions`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- pull duplicated transition-writing logic out of objective, round, and exception commands into one shared owner-layer primitive
-- make command families delegate projection and transition-event side effects through the shared primitive instead of hand-rolling them
-- reduce the active exception contract by shrinking the duplicated transition surface rather than normalizing it
+- add close-objective so objective lines can end honestly without manual file edits
+- add record-soft-pivot so execution-frame changes do not require fake hard pivots or silent rewrites
+- validate the new objective-line commands against disposable fixtures and keep projection/event semantics aligned with the shared transition engine
 
 ## Deliverable
 
-A shared transition-engine primitive adopted by the existing objective, round, and exception-contract commands for the overlapping file-write and transition-event responsibilities.
+A real remaining objective-line slice with close-objective and record-soft-pivot commands using the shared transition engine and proven on disposable fixtures.
 
 ## Validation Plan
 
-Run command-level regression on the migrated command families, then pass audit-control-state, role-context compilation, exception-contract smoke, and full smoke.
+Run objective-line fixture regression for close-objective and soft-pivot, then pass audit-control-state, role-context compilation, and full smoke.
 
 ## Active Risks
 
-- Refactoring shared transition ownership can regress existing commands if file-shape preservation is not held constant.
-- The shared engine can become a vague wrapper if it does not own concrete guards and side effects honestly.
+- Soft-pivot semantics can blur into hard pivot if objective identity and success criteria boundaries are not enforced tightly.
+- Close-objective can create dead-end control state if active projections are not updated consistently.
 
 ## Blockers
 

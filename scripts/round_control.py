@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from datetime import datetime
@@ -70,6 +71,15 @@ def slugify(value: str) -> str:
     lowered = value.strip().lower()
     lowered = re.sub(r"[^a-z0-9]+", "-", lowered)
     return lowered.strip("-") or "round"
+
+
+def safe_file_stem(value: str, *, max_length: int = 120) -> str:
+    cleaned = value.strip().replace("\\", "-").replace("/", "-")
+    if len(cleaned) <= max_length:
+        return cleaned
+    digest = hashlib.sha1(cleaned.encode("utf-8")).hexdigest()[:10]
+    keep = max_length - len(digest) - 1
+    return f"{cleaned[:keep].rstrip('-')}-{digest}"
 
 
 def project_dir(project_id: str) -> Path:
@@ -1435,3 +1445,107 @@ def build_transition_event_file(
         "",
     ]
     return event_id, "\n".join(body).strip() + "\n"
+
+
+def _relative_to_project_parent(path: Path, project_path: Path) -> str:
+    try:
+        return path.relative_to(project_path.parent).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def apply_transition_writes(
+    project_id: str,
+    writes: list[dict[str, object]],
+) -> list[str]:
+    project_path = project_dir(project_id)
+    if not project_path.exists():
+        raise SystemExit(f"project directory not found: {project_path}")
+
+    side_effects: list[str] = []
+    for entry in writes:
+        raw_path = entry.get("path")
+        if not isinstance(raw_path, Path):
+            raw_path = Path(str(raw_path))
+        path = raw_path
+        label = str(entry.get("label") or "file").strip()
+        text = entry.get("text")
+        if callable(text):
+            text = text()
+        existed_before = path.exists()
+        relative_path = _relative_to_project_parent(path, project_path)
+
+        if text is None:
+            if existed_before:
+                path.unlink()
+                side_effects.append(f"removed {label} `{relative_path}`")
+            continue
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(str(text), encoding="utf-8")
+        verb = "updated" if existed_before else "wrote"
+        side_effects.append(f"{verb} {label} `{relative_path}`")
+    return side_effects
+
+
+def write_transition_event(
+    *,
+    project_id: str,
+    command_name: str,
+    title: str,
+    anchor: dict[str, str],
+    previous_state: str,
+    next_state: str,
+    guards: list[str],
+    side_effects: list[str],
+    evidence: list[str],
+    target_ids: list[str],
+    file_stem: str,
+) -> tuple[str, Path]:
+    event_id, event_text = build_transition_event_file(
+        project_id=project_id,
+        command_name=command_name,
+        title=title,
+        anchor=anchor,
+        previous_state=previous_state,
+        next_state=next_state,
+        guards=guards,
+        side_effects=side_effects,
+        evidence=evidence,
+        target_ids=target_ids,
+    )
+    event_path = transition_events_dir(project_id) / f"{safe_file_stem(file_stem)}.md"
+    event_path.parent.mkdir(parents=True, exist_ok=True)
+    event_path.write_text(event_text, encoding="utf-8")
+    return event_id, event_path
+
+
+def apply_transition_transaction(
+    *,
+    project_id: str,
+    writes: list[dict[str, object]],
+    command_name: str,
+    title: str,
+    anchor: dict[str, str],
+    previous_state: str,
+    next_state: str,
+    guards: list[str],
+    evidence: list[str],
+    target_ids: list[str],
+    event_file_stem: str,
+) -> tuple[list[str], str, Path]:
+    side_effects = apply_transition_writes(project_id, writes)
+    event_id, event_path = write_transition_event(
+        project_id=project_id,
+        command_name=command_name,
+        title=title,
+        anchor=anchor,
+        previous_state=previous_state,
+        next_state=next_state,
+        guards=guards,
+        side_effects=side_effects,
+        evidence=evidence,
+        target_ids=target_ids,
+        file_stem=event_file_stem,
+    )
+    return side_effects, event_id, event_path

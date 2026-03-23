@@ -2,12 +2,12 @@
 id: exc-2026-03-23-1524-transition-logic-remains-split-across-per-command-scripts
 type: exception-contract
 title: "Transition logic remains split across per-command scripts"
-status: active
+status: retired
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 41f9d2e9e3d3caaaae16446b43d74b2ace393ccf
+git_sha: 0300b70fbe9fb8027d7798c16b94373c6272ee86
 paths:
   - scripts/open_objective.py
   - scripts/open_round.py
@@ -24,7 +24,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T15:24:00+08:00
-updated_at: 2026-03-23T15:24:00+08:00
+updated_at: 2026-03-23T15:43:32+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -64,7 +64,13 @@ Retire this contract once objective, round, and exception-contract transitions s
 
 - current objective still lists a shared transition engine as future work
 - multiple command scripts currently write durable objects and transition events directly
+- uv run python scripts/smoke_exception_contracts.py
+- uv run python scripts/session_memory.py smoke
 
 ## Resolution
 
-_none recorded_
+active -> retired: objective, round, and exception commands now delegate shared write/projection/event work through apply-transition-transaction
+
+evidence:
+- uv run python scripts/smoke_exception_contracts.py
+- uv run python scripts/session_memory.py smoke

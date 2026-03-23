@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-1530-extract-shared-transition-engine-primitive`
+- Active round id: `round-2026-03-23-1548-implement-remaining-objective-line-transitions`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
@@ -31,9 +31,9 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for a hard pivot in objective line
 - Current work is focused on:
-  - extracting one shared transition-engine primitive from the duplicated command implementations
-  - shrinking the active exception contract around split transition logic instead of leaving it as standing debt
-  - keeping objective, round, and exception-command regressions visible while shared ownership is introduced
+  - finishing the remaining objective-line command surface so projects can close or soft-pivot objectives honestly
+  - building those commands on top of the shared transition engine instead of reintroducing per-command drift
+  - keeping objective-line fixtures strong enough that projection/event semantics stay honest under command expansion
 
 ## Validated Facts
 
@@ -84,6 +84,7 @@ The immediate objective is:
   - `projects/session-memory/memory/rounds/2026-03-23-1213-implement-first-transition-slice.md`
   - `projects/session-memory/memory/rounds/2026-03-23-1516-implement-exception-contract-transition-slice.md`
   - `projects/session-memory/memory/rounds/2026-03-23-1530-extract-shared-transition-engine-primitive.md`
+  - `projects/session-memory/memory/rounds/2026-03-23-1548-implement-remaining-objective-line-transitions.md`
 - The first enforced transition slice now exists:
   - `open-objective`
   - `record-hard-pivot`
@@ -119,11 +120,13 @@ The immediate objective is:
   - `invalidate-exception-contract`
 - Exception-contract commands now project `control/exception-ledger.md` from
   durable truth instead of leaving the ledger as a manually maintained stub.
-- A real active exception contract now exists for `session-memory`:
-  - transition logic remains split across per-command scripts until a shared
-    transition engine exists
-- The exception-contract milestone round is now closed and a successor round is
-  active for shared transition-engine extraction.
+- The former shared-transition-engine exception contract is now retired:
+  - objective, round, exception, and hard-pivot commands now delegate shared
+    write/projection/event work through `apply-transition-transaction`
+- The shared transition-engine milestone round is now closed.
+- A successor round is now active for the remaining objective-line commands:
+  - `close-objective`
+  - `record-soft-pivot`
 - Disposable fixture validation now exercises:
   - `activate -> retire`
   - `activate -> invalidate`
@@ -162,6 +165,8 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/update_round_status.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/exception-ledger.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/exception-contracts/2026-03-23-1524-transition-logic-remains-split-across-per-command-scripts.md`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/record_hard_pivot.py`
+- `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_transition_engine.py`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-22-project-scoped-scope.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-23-multi-project-workspace-aware-scope.md`
 
@@ -173,22 +178,20 @@ The immediate objective is:
   implementation fails to ground it in concrete files and evidence.
 - The evaluation protocol is still a biased pilot because the evaluator already
   knows the project context.
-- The shared transition engine still does not exist yet, so transition logic is
-  intentionally duplicated across command scripts under one explicit exception
-  contract.
+- The remaining objective-line commands still do not exist yet, so projects
+  cannot close or soft-pivot objectives through the canonical command surface.
 
 ## Next Steps
 
 1. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 2. Run the first serious external-target role-eval bundle for `wind-agent`.
-3. Extract the shared transition engine.
-   Pull the duplicated file-write and transition-event responsibilities out of
-   objective, round, and exception commands into one owner-layer primitive.
+3. Implement the remaining objective-line commands.
+   Add `close-objective` and `record-soft-pivot` on top of the shared
+   transition engine.
 4. Decide whether reviewer/orchestrator scoring should stay manual or gain
    partial automatic checks.
 5. Run and record the first bootstrap control-vs-treatment experiment against
    live project state.
-6. Reassess the active exception contract after the shared engine lands.
-   Retire it only if duplicated transition ownership is materially reduced for
-   the command families it currently covers.
+6. Decide whether the next command gap after objective-line completion is:
+   phase transitions or adjudication-driven follow-up rewrites.

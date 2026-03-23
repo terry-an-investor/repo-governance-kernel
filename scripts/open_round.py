@@ -8,7 +8,7 @@ from pathlib import Path
 from round_control import (
     active_objective_path,
     active_round_path,
-    build_transition_event_file,
+    apply_transition_transaction,
     load_active_objective,
     load_active_round,
     project_dir,
@@ -106,12 +106,7 @@ def main() -> int:
     )
 
     round_path = rounds_dir(args.project_id) / f"{file_stem}.md"
-    round_path.parent.mkdir(parents=True, exist_ok=True)
-    round_path.write_text(round_text, encoding="utf-8")
-
     control_path = active_round_path(args.project_id)
-    control_path.parent.mkdir(parents=True, exist_ok=True)
-    control_path.write_text(active_round_text, encoding="utf-8")
 
     previous_state = (
         f"previous active round: `{existing_round_id}` status `{existing_round_status}`"
@@ -126,26 +121,23 @@ def main() -> int:
         "validation plan is present",
         "no conflicting active round remains open",
     ]
-    side_effects = [
-        f"wrote durable round contract `{round_path.relative_to(project_path.parent).as_posix()}`",
-        f"updated `{control_path.relative_to(project_path.parent).as_posix()}`",
-    ]
     evidence = [args.validation_plan]
-    event_id, event_text = build_transition_event_file(
+    _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
+        writes=[
+            {"path": round_path, "text": round_text, "label": "durable round contract"},
+            {"path": control_path, "text": active_round_text, "label": "active round projection"},
+        ],
         command_name="open-round",
         title=f"Opened round {round_id}",
         anchor=anchor,
         previous_state=previous_state,
         next_state=next_state,
         guards=guards,
-        side_effects=side_effects,
         evidence=evidence,
         target_ids=[round_id, objective_id],
+        event_file_stem=f"{file_stem}-open-round",
     )
-    event_path = transition_events_dir(args.project_id) / f"{file_stem}-open-round.md"
-    event_path.parent.mkdir(parents=True, exist_ok=True)
-    event_path.write_text(event_text, encoding="utf-8")
 
     print(
         json.dumps(

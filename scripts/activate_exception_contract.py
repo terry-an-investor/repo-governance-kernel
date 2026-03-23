@@ -6,7 +6,7 @@ import json
 
 from round_control import (
     active_objective_path,
-    build_transition_event_file,
+    apply_transition_transaction,
     exception_contracts_dir,
     exception_ledger_path,
     load_active_objective,
@@ -89,15 +89,13 @@ def main() -> int:
         resolution="",
     )
     contract_path = exception_contracts_dir(args.project_id) / f"{file_stem}.md"
-    contract_path.parent.mkdir(parents=True, exist_ok=True)
-    contract_path.write_text(exception_contract_text, encoding="utf-8")
-
     ledger_path = exception_ledger_path(args.project_id)
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    ledger_path.write_text(render_exception_ledger_file(args.project_id), encoding="utf-8")
-
-    event_id, event_text = build_transition_event_file(
+    _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
+        writes=[
+            {"path": contract_path, "text": exception_contract_text, "label": "durable exception contract"},
+            {"path": ledger_path, "text": lambda: render_exception_ledger_file(args.project_id), "label": "exception-ledger projection"},
+        ],
         command_name="activate-exception-contract",
         title=f"Activated exception contract {exception_contract_id}",
         anchor=anchor,
@@ -112,16 +110,10 @@ def main() -> int:
             "exit condition is present",
             "owner scope is present",
         ],
-        side_effects=[
-            f"wrote durable exception contract `{contract_path.relative_to(project_path.parent).as_posix()}`",
-            f"updated `{ledger_path.relative_to(project_path.parent).as_posix()}`",
-        ],
         evidence=[args.reason, args.exit_condition, *[item.strip() for item in args.evidence if item.strip()]],
         target_ids=[exception_contract_id, objective_id],
+        event_file_stem=f"{file_stem}-activate-exception-contract",
     )
-    event_path = transition_events_dir(args.project_id) / f"{file_stem}-activate-exception-contract.md"
-    event_path.parent.mkdir(parents=True, exist_ok=True)
-    event_path.write_text(event_text, encoding="utf-8")
 
     print(
         json.dumps(

@@ -7,7 +7,7 @@ import json
 from round_control import (
     OPEN_ROUND_STATUSES,
     active_round_path,
-    build_transition_event_file,
+    apply_transition_transaction,
     load_active_round,
     load_round_file,
     locate_round_file,
@@ -126,10 +126,9 @@ def main() -> int:
         blockers=blockers,
         status_notes=status_notes,
     )
-    round_path.write_text(round_text, encoding="utf-8")
-
     control_path = active_round_path(args.project_id)
     active_round_text = None
+    control_write: dict[str, object] = {"path": control_path, "text": None, "label": "active round projection"}
     if args.status in OPEN_ROUND_STATUSES:
         active_round_text = render_active_round_file(
             round_id=round_id,
@@ -141,9 +140,7 @@ def main() -> int:
             risks=risks,
             blockers=blockers,
         )
-        control_path.write_text(active_round_text, encoding="utf-8")
-    elif control_path.exists():
-        control_path.unlink()
+        control_write["text"] = active_round_text
 
     next_state = f"round `{round_id}` is now `{args.status}`"
     guards = [
@@ -152,30 +149,24 @@ def main() -> int:
     ]
     if args.status == "captured":
         guards.append("captured status includes at least one validation record")
-    side_effects = [
-        f"updated durable round contract `{round_path.relative_to(project_dir(args.project_id).parent).as_posix()}`",
-    ]
-    if active_round_text is not None:
-        side_effects.append(f"updated `{control_path.relative_to(project_dir(args.project_id).parent).as_posix()}`")
-    else:
-        side_effects.append(f"removed `{control_path.relative_to(project_dir(args.project_id).parent).as_posix()}` because no active round remains open")
     evidence = [args.reason] + [item.strip() for item in args.validated_by if item.strip()]
-    event_id, event_text = build_transition_event_file(
+    timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
+        writes=[
+            {"path": round_path, "text": round_text, "label": "durable round contract"},
+            control_write,
+        ],
         command_name="update-round-status",
         title=f"Updated round {round_id} to {args.status}",
         anchor=anchor,
         previous_state=f"round `{round_id}` status `{previous_status}`",
         next_state=next_state,
         guards=guards,
-        side_effects=side_effects,
         evidence=evidence,
         target_ids=[round_id, objective_id],
+        event_file_stem=f"{timestamp}-{round_id}-{args.status}",
     )
-    timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
-    event_path = transition_events_dir(args.project_id) / f"{timestamp}-{round_id}-{args.status}.md"
-    event_path.parent.mkdir(parents=True, exist_ok=True)
-    event_path.write_text(event_text, encoding="utf-8")
 
     print(
         json.dumps(

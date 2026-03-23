@@ -2,12 +2,12 @@
 id: round-2026-03-23-1530-extract-shared-transition-engine-primitive
 type: round-contract
 title: "Extract shared transition engine primitive"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 41f9d2e9e3d3caaaae16446b43d74b2ace393ccf
+git_sha: 0300b70fbe9fb8027d7798c16b94373c6272ee86
 paths:
   - scripts/round_control.py
   - scripts/open_objective.py
@@ -16,7 +16,9 @@ paths:
   - scripts/activate_exception_contract.py
   - scripts/retire_exception_contract.py
   - scripts/invalidate_exception_contract.py
+  - scripts/record_hard_pivot.py
   - scripts/session_memory.py
+  - scripts/smoke_transition_engine.py
   - projects/session-memory/current/current-task.md
   - TRANSITION_COMMANDS.md
   - STATE_MACHINE.md
@@ -27,7 +29,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-23T15:30:31+08:00
-updated_at: 2026-03-23T15:30:31+08:00
+updated_at: 2026-03-23T15:48:22+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -51,6 +53,9 @@ A shared transition-engine primitive adopted by the existing objective, round, a
 ## Validation Plan
 
 Run command-level regression on the migrated command families, then pass audit-control-state, role-context compilation, exception-contract smoke, and full smoke.
+uv run python scripts/smoke_transition_engine.py
+uv run python scripts/smoke_exception_contracts.py
+uv run python scripts/session_memory.py smoke
 
 ## Active Risks
 
@@ -64,3 +69,14 @@ _none recorded_
 ## Status Notes
 
 This round starts from the newly recorded exception contract and aims to shrink that debt instead of just documenting it.
+
+active -> validation_pending: shared transition-engine primitive implemented; promote to validation before capture
+
+validation_pending -> captured: shared transition-engine primitive validated across objective, round, exception, and hard-pivot fixtures
+
+validated by:
+- uv run python scripts/smoke_transition_engine.py
+- uv run python scripts/smoke_exception_contracts.py
+- uv run python scripts/session_memory.py smoke
+
+captured -> closed: shared transition-engine milestone completed and next work shifts to remaining objective-line commands

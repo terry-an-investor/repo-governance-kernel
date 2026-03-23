@@ -6,7 +6,7 @@ import json
 
 from round_control import (
     active_objective_path,
-    build_transition_event_file,
+    apply_transition_transaction,
     find_objectives_by_status,
     load_active_objective,
     objectives_dir,
@@ -109,19 +109,15 @@ def main() -> int:
     )
 
     objective_path = objectives_dir(args.project_id) / f"{file_stem}.md"
-    objective_path.parent.mkdir(parents=True, exist_ok=True)
-    objective_path.write_text(objective_text, encoding="utf-8")
-
     active_path = active_objective_path(args.project_id)
-    active_path.parent.mkdir(parents=True, exist_ok=True)
-    active_path.write_text(active_objective_text, encoding="utf-8")
-
     pivot_path = pivot_log_path(args.project_id)
-    pivot_path.parent.mkdir(parents=True, exist_ok=True)
-    pivot_path.write_text(render_pivot_log_file(args.project_id), encoding="utf-8")
-
-    event_id, event_text = build_transition_event_file(
+    _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
+        writes=[
+            {"path": objective_path, "text": objective_text, "label": "durable objective"},
+            {"path": active_path, "text": active_objective_text, "label": "active objective projection"},
+            {"path": pivot_path, "text": lambda: render_pivot_log_file(args.project_id), "label": "pivot-log projection"},
+        ],
         command_name="open-objective",
         title=f"Opened objective {objective_id}",
         anchor=anchor,
@@ -133,17 +129,10 @@ def main() -> int:
             "no durable active objective record already exists",
             "problem, success criteria, non-goals, and phase are present",
         ],
-        side_effects=[
-            f"wrote durable objective `{objective_path.relative_to(project_path.parent).as_posix()}`",
-            f"updated `{active_path.relative_to(project_path.parent).as_posix()}`",
-            f"updated `{pivot_path.relative_to(project_path.parent).as_posix()}`",
-        ],
         evidence=[args.problem, args.why_now],
         target_ids=[objective_id],
+        event_file_stem=f"{file_stem}-open-objective",
     )
-    event_path = transition_events_dir(args.project_id) / f"{file_stem}-open-objective.md"
-    event_path.parent.mkdir(parents=True, exist_ok=True)
-    event_path.write_text(event_text, encoding="utf-8")
 
     print(
         json.dumps(
