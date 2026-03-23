@@ -322,12 +322,15 @@ Current implementation already does these things:
   - projection drift
   - execution without a bounded round
   - missing control surfaces such as constitution or exception ledger
+- can record adjudication verdicts through:
+  - `adjudicate-control-state`
+  - stores explicit adjudication records from the current audit/conflict set
 - records transition-event files for round operations
 
 Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
-- adjudicate durable state conflicts into explicit durable verdicts
+- apply adjudication verdicts as automatic durable follow-up rewrites
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate stale round contracts after hard pivots
 - enforce guards before phase changes

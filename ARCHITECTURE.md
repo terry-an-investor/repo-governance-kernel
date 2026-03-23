@@ -56,8 +56,8 @@ This keeps raw history available while making extracted memory explicit and
 cheap to consume.
 
 Current implementation has durable truth and projected control state. It now
-also gains a first control-audit path. It still lacks a real adjudication
-engine.
+also gains a first control-audit path and a first durable adjudication record
+path. It still lacks automatic adjudication-driven state rewrites.
 
 ## Layer 1: Raw Event Store
 

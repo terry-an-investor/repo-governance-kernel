@@ -81,7 +81,7 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
     exception_preface, exception_sections = load_control_sections(project_dir / "control" / "exception-ledger.md")
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
-    review_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint"), limit)
+    review_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "adjudication"), limit)
 
     parts = [f"# Reviewer Context\n", f"Project: `{project_id}`\n"]
     append_control_sections(
@@ -132,7 +132,7 @@ def compile_architect_context(project_dir: Path, project_id: str, limit: int) ->
     snapshot_sections: dict[str, str] = {}
     if snapshot_path:
         snapshot_sections = parse_h2_sections(clean_section_text(snapshot_path, strip_heading=False, strip_yaml=True))
-    architecture_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern"), limit)
+    architecture_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern", "adjudication"), limit)
 
     parts = [f"# Architect Context\n", f"Project: `{project_id}`\n"]
     append_control_sections(
@@ -174,7 +174,7 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
     exception_preface, exception_sections = load_control_sections(project_dir / "control" / "exception-ledger.md")
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
-    orchestration_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern"), limit)
+    orchestration_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern", "adjudication"), limit)
 
     parts = [f"# Orchestrator Context\n", f"Project: `{project_id}`\n"]
     append_control_sections(

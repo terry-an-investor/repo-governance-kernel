@@ -53,16 +53,15 @@ def add_issue(
     )
 
 
-def main() -> int:
-    args = parse_args()
-    project_path = project_dir(args.project_id)
+def audit_project_control_state(project_id: str) -> dict[str, object]:
+    project_path = project_dir(project_id)
     if not project_path.exists():
         raise SystemExit(f"project directory not found: {project_path}")
 
     issues: list[dict[str, object]] = []
     checks: list[str] = []
 
-    active_objective_record, objective_issues = select_active_objective_record(args.project_id)
+    active_objective_record, objective_issues = select_active_objective_record(project_id)
     for issue in objective_issues:
         add_issue(
             issues,
@@ -73,7 +72,7 @@ def main() -> int:
         )
     checks.append("durable objective-line selection")
 
-    open_round_record, round_issues = select_open_round_record(args.project_id)
+    open_round_record, round_issues = select_open_round_record(project_id)
     for issue in round_issues:
         add_issue(
             issues,
@@ -84,7 +83,7 @@ def main() -> int:
         )
     checks.append("durable round selection")
 
-    objective_control_path = active_objective_path(args.project_id)
+    objective_control_path = active_objective_path(project_id)
     if active_objective_record is None:
         if objective_control_path.exists():
             add_issue(
@@ -139,9 +138,9 @@ def main() -> int:
             )
     checks.append("active objective projection and execution/round alignment")
 
-    round_control_path = active_round_path(args.project_id)
+    round_control_path = active_round_path(project_id)
     if open_round_record is None:
-        if load_all_rounds(args.project_id) and round_control_path.exists():
+        if load_all_rounds(project_id) and round_control_path.exists():
             add_issue(
                 issues,
                 severity="error",
@@ -216,8 +215,8 @@ def main() -> int:
             )
     checks.append("active round projection and round honesty")
 
-    pivot_control_path = pivot_log_path(args.project_id)
-    expected_pivot_log = render_pivot_log_file(args.project_id).strip()
+    pivot_control_path = pivot_log_path(project_id)
+    expected_pivot_log = render_pivot_log_file(project_id).strip()
     actual_pivot_log = read_if_exists(pivot_control_path)
     if not actual_pivot_log:
         add_issue(
@@ -272,22 +271,24 @@ def main() -> int:
     else:
         status = "ok"
 
-    print(
-        json.dumps(
-            {
-                "project_id": args.project_id,
-                "status": status,
-                "summary": {
-                    "errors": error_count,
-                    "warnings": warning_count,
-                    "checks": checks,
-                },
-                "issues": issues,
-            },
-            ensure_ascii=True,
-            indent=2,
-        )
-    )
+    return {
+        "project_id": project_id,
+        "status": status,
+        "summary": {
+            "errors": error_count,
+            "warnings": warning_count,
+            "checks": checks,
+        },
+        "issues": issues,
+    }
+
+
+def main() -> int:
+    args = parse_args()
+    result = audit_project_control_state(args.project_id)
+    print(json.dumps(result, ensure_ascii=True, indent=2))
+    error_count = int(result["summary"]["errors"])
+    warning_count = int(result["summary"]["warnings"])
     if error_count:
         return 1
     if args.strict_warnings and warning_count:

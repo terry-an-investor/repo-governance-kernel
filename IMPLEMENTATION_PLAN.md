@@ -28,8 +28,8 @@ Today that enforcement is intentionally narrow:
 - one audit path can now report control dishonesty without mutating state
 
 It is not yet a unified transition engine across every domain.
-It also does not yet include a true adjudication layer for resolving durable
-conflicts.
+It also does not yet include adjudication-driven durable rewrites after a
+verdict is recorded.
 
 ## Phase 1 In Scope
 
@@ -95,9 +95,13 @@ conflicts.
   - `audit-control-state`
   - reports projection drift, execution-without-round, and other control honesty
     failures
+- first adjudication support now exists:
+  - `adjudicate-control-state`
+  - records durable adjudication verdicts from the live audit result
+  - does not yet perform follow-up rewrites automatically
 - next enforcement slice should target:
-  - explicit adjudication
   - exception-contract commands
+  - adjudication-driven follow-up rewrites
   - or a shared transition engine
 
 ### `scripts/build_index.py`

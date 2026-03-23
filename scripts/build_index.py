@@ -42,6 +42,9 @@ def parse_scalar(value: str):
         return None
     if lowered in {"true", "false"}:
         return lowered == "true"
+    stripped = value.strip()
+    if len(stripped) >= 2 and stripped[0] == stripped[-1] and stripped[0] in {'"', "'"}:
+        return stripped[1:-1]
     return value
 
 

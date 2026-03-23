@@ -104,6 +104,10 @@ def transition_events_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "transition-events"
 
 
+def adjudications_dir(project_id: str) -> Path:
+    return project_dir(project_id) / "memory" / "adjudications"
+
+
 def load_current_task_anchor(project_id: str) -> dict[str, str]:
     current_task_path = project_dir(project_id) / "current" / "current-task.md"
     if not current_task_path.exists():
@@ -521,6 +525,74 @@ def render_pivot_file(
         "",
         "## Next Control Changes\n",
         render_bullet_list(next_control_changes),
+        "",
+    ]
+    return "\n".join(body_parts).strip() + "\n"
+
+
+def render_adjudication_file(
+    *,
+    adjudication_id: str,
+    title: str,
+    status: str,
+    project_id: str,
+    objective_id: str,
+    anchor: dict[str, str],
+    paths: list[str],
+    created_at: str | None,
+    evidence_refs: list[dict[str, str]] | None,
+    tags: list[str] | None,
+    confidence: str,
+    phase: str,
+    summary: str,
+    conflict_set: list[str],
+    adjudication_question: str,
+    verdict: str,
+    objects_retained: list[str],
+    objects_invalidated: list[str],
+    required_follow_up_transitions: list[str],
+    evidence: list[str],
+) -> str:
+    frontmatter = build_memory_frontmatter(
+        item_id=adjudication_id,
+        memory_type="adjudication",
+        title=title,
+        status=status,
+        project_id=project_id,
+        anchor=anchor,
+        paths=paths,
+        created_at=created_at,
+        evidence_refs=evidence_refs,
+        tags=tags,
+        confidence=confidence,
+        phase=phase,
+        objective_id=objective_id,
+    )
+    body_parts = [
+        frontmatter,
+        "## Summary\n",
+        summary.strip() or "_none recorded_",
+        "",
+        "## Conflict Set\n",
+        render_bullet_list(conflict_set),
+        "",
+        "## Adjudication Question\n",
+        adjudication_question.strip() or "_none recorded_",
+        "",
+        "## Verdict\n",
+        verdict.strip() or "_none recorded_",
+        "",
+        "## Objects Retained\n",
+        render_bullet_list(objects_retained),
+        "",
+        "## Objects Invalidated\n",
+        render_bullet_list(objects_invalidated),
+        "",
+        "## Required Follow-Up Transitions\n",
+        render_bullet_list(required_follow_up_transitions),
+        "",
+        "## Evidence\n",
+        render_bullet_list(evidence),
         "",
     ]
     return "\n".join(body_parts).strip() + "\n"

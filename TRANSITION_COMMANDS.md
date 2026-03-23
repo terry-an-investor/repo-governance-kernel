@@ -456,8 +456,13 @@ Suggested primary writes:
 - `projects/<project_id>/memory/adjudications/<timestamp>-<slug>.md`
 - follow-up updates to the affected durable control objects
 
-This command does not exist yet. The design needs it because refusing ambiguous
-repair is not the same thing as resolving ambiguous durable truth.
+Current implementation status:
+
+- records a durable adjudication verdict from the current audit result
+- does not yet apply the follow-up durable object rewrites automatically
+
+This design still matters because refusing ambiguous repair is not the same
+thing as resolving ambiguous durable truth.
 
 ## Minimal First Implementation Set
 
@@ -497,6 +502,7 @@ It does not yet implement:
 - soft-pivot transition commands
 - exception-contract transition commands
 - explicit phase transition commands
+- adjudication-driven automatic follow-up rewrites
 - a unified transition engine shared across every command domain
 
 ## Explicit Non-Goal
