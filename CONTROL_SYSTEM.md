@@ -151,6 +151,10 @@ The owner layer here is repository-local and harness-agnostic:
 - repo-local git hooks that call the same enforcement primitive
 - CI workflows that call the same enforcement primitive again
 
+For implemented command domains, those transition gates should converge toward
+shared registry-backed owner-layer consumers instead of letting each command
+silently own its own private guard and write semantics.
+
 That means the system can borrow the hooks idea without coupling project
 control to one vendor's runtime semantics.
 

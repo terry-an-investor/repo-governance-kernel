@@ -7,36 +7,27 @@ import json
 from control_enforcement import assert_worktree_enforcement
 from round_control import (
     OPEN_ROUND_STATUSES,
+    ROUND_STATUS_TRANSITIONS,
     active_round_path,
     apply_transition_transaction,
+    assert_round_command_contract,
     load_active_round,
     load_round_file,
     locate_round_file,
     parse_bullet_list,
     project_dir,
+    render_round_guard_lines,
     render_active_round_file,
     render_round_file,
     resolve_anchor,
     timestamp_now,
-    transition_events_dir,
 )
-
-
-ALLOWED_TRANSITIONS = {
-    "draft": {"active", "abandoned"},
-    "active": {"blocked", "validation_pending", "abandoned"},
-    "blocked": {"active", "abandoned"},
-    "validation_pending": {"captured", "blocked", "abandoned"},
-    "captured": {"closed"},
-    "closed": set(),
-    "abandoned": set(),
-}
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Update the status of an existing round.")
     parser.add_argument("--project-id", required=True)
-    parser.add_argument("--status", required=True, choices=sorted(ALLOWED_TRANSITIONS))
+    parser.add_argument("--status", required=True, choices=sorted(ROUND_STATUS_TRANSITIONS))
     parser.add_argument("--round-id")
     parser.add_argument("--reason", required=True)
     parser.add_argument("--validated-by", action="append", default=[])
@@ -70,7 +61,7 @@ def main() -> int:
     if not previous_status:
         raise SystemExit(f"round `{round_id}` is missing status")
 
-    allowed = ALLOWED_TRANSITIONS.get(previous_status, set())
+    allowed = ROUND_STATUS_TRANSITIONS.get(previous_status, set())
     if args.status not in allowed:
         raise SystemExit(f"illegal transition `{previous_status} -> {args.status}` for round `{round_id}`")
 
@@ -151,12 +142,18 @@ def main() -> int:
         control_write["text"] = active_round_text
 
     next_state = f"round `{round_id}` is now `{args.status}`"
-    guards = [
-        f"round `{round_id}` exists",
-        f"transition `{previous_status} -> {args.status}` is legal",
-    ]
-    if args.status == "captured":
-        guards.append("captured status includes at least one validation record")
+    guard_codes = {
+        "round_exists",
+        "status_transition_legal",
+        "promotion_passes_enforcement_when_required",
+        "captured_has_validation_record",
+    }
+    assert_round_command_contract(
+        "update-round-status",
+        provided_inputs={"project_id", "round_id", "status", "reason"},
+        satisfied_guard_codes=guard_codes,
+        write_targets={"durable:round", "control:active-round", "memory:transition-event"},
+    )
     evidence = [args.reason] + [item.strip() for item in args.validated_by if item.strip()]
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
     _side_effects, event_id, event_path = apply_transition_transaction(
@@ -170,7 +167,10 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"round `{round_id}` status `{previous_status}`",
         next_state=next_state,
-        guards=guards,
+        guards=render_round_guard_lines(
+            "update-round-status",
+            context={"round_id": round_id, "previous_status": previous_status, "next_status": args.status},
+        ),
         evidence=evidence,
         target_ids=[round_id, objective_id],
         event_file_stem=f"{timestamp}-{round_id}-{args.status}",

@@ -24,6 +24,7 @@ from round_control import (
     resolve_anchor,
     select_active_objective_record,
     select_open_round_record,
+    validate_round_domain_registry_contracts,
 )
 from transition_specs import (
     adjudication_plan_types,
@@ -677,8 +678,20 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             message="TRANSITION_COMMANDS.md documents adjudication plan families that do not yet have semantic machine-readable coverage in the transition registry",
             evidence=missing_semantic_plans,
         )
+    try:
+        validate_round_domain_registry_contracts()
+    except SystemExit as exc:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="round_domain_registry_consumer_drift",
+            message=str(exc),
+            evidence=["scripts/round_control.py", "scripts/transition_specs.py"],
+        )
     checks.append("transition registry coverage against documented command surface")
     checks.append("transition registry semantic coverage against documented command surface")
+    checks.append("round-domain registry consumer coverage")
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")
     warning_count = sum(1 for issue in issues if issue["severity"] == "warning")

@@ -719,6 +719,7 @@ These slices already do these things:
 - write durable `objective`, `pivot`, and `round-contract` files
 - write durable `exception-contract` files
 - update `control/active-objective.md`, `control/pivot-log.md`, `control/active-round.md`, and `control/exception-ledger.md`
+- make the round command slice consume one shared registry-backed owner-layer contract for guard coverage, write-target coverage, and transition-event expectations
 - reject illegal round-status transitions
 - refuse hard pivots that would silently outrun a durable still-open round tied to the old objective
 - refuse opening a second active objective when a durable active objective already exists
@@ -727,6 +728,7 @@ These slices already do these things:
 - rewrite one open round contract durably through `rewrite-open-round`
 - record `transition-event` files for both objective-line and round operations
 - record `transition-event` files for exception-contract operations
+- let `audit-control-state` warn when the round-domain registry consumer can no longer satisfy the declared round-command semantics
 
 It does not yet implement:
 

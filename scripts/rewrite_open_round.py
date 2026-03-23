@@ -8,11 +8,13 @@ from round_control import (
     OPEN_ROUND_STATUSES,
     active_round_path,
     apply_transition_transaction,
+    assert_round_command_contract,
     load_active_round,
     load_round_file,
     locate_round_file,
     parse_bullet_list,
     project_dir,
+    render_round_guard_lines,
     render_active_round_file,
     render_round_file,
     resolve_anchor,
@@ -163,6 +165,19 @@ def main() -> int:
     )
 
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    guard_codes = {
+        "round_remains_open",
+        "rewrite_reason_present",
+        "rewritten_round_contract_stays_complete",
+        "round_identity_preserved",
+        "rewrite_produces_material_change",
+    }
+    assert_round_command_contract(
+        "rewrite-open-round",
+        provided_inputs={"project_id", "round_id", "reason", "mutable_fields"},
+        satisfied_guard_codes=guard_codes,
+        write_targets={"durable:round", "control:active-round", "memory:transition-event"},
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -174,11 +189,7 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"round `{round_id}` remained `{previous_status}` with fields {', '.join(changed_fields)} pending rewrite",
         next_state=f"round `{round_id}` still remains `{previous_status}` after rewriting {', '.join(changed_fields)}",
-        guards=[
-            f"round `{round_id}` exists and remains open",
-            "rewrite reason is explicit",
-            "round identity is preserved while contract content is rewritten",
-        ],
+        guards=render_round_guard_lines("rewrite-open-round", context={"round_id": round_id}),
         evidence=[args.reason.strip(), *changed_fields],
         target_ids=[round_id, str(meta.get("objective_id") or "").strip()],
         event_file_stem=f"{timestamp}-{round_id}-rewrite-open-round",

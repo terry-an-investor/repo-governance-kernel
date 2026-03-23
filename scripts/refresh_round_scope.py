@@ -11,10 +11,12 @@ from round_control import (
     OPEN_ROUND_STATUSES,
     active_round_path,
     apply_transition_transaction,
+    assert_round_command_contract,
     load_round_file,
     locate_round_file,
     parse_bullet_list,
     project_dir,
+    render_round_guard_lines,
     render_active_round_file,
     render_round_file,
     resolve_anchor,
@@ -149,6 +151,19 @@ def main() -> int:
     )
 
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
+    guard_codes = {
+        "target_round_is_open",
+        "refresh_reason_present",
+        "resulting_scope_paths_non_empty",
+        "scope_change_backed_by_evidence",
+        "scope_change_produces_material_change",
+    }
+    assert_round_command_contract(
+        "refresh-round-scope",
+        provided_inputs={"project_id", "reason"},
+        satisfied_guard_codes=guard_codes,
+        write_targets={"durable:round", "control:active-round", "memory:transition-event"},
+    )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,
         writes=[
@@ -160,11 +175,7 @@ def main() -> int:
         anchor=anchor,
         previous_state=f"round `{round_id}` had scope paths: {', '.join(existing_paths) or '(none)'}",
         next_state=f"round `{round_id}` now covers scope paths: {', '.join(merged_paths)}",
-        guards=[
-            f"round `{round_id}` exists and remains open",
-            "scope refresh reason is explicit",
-            "scope refresh is backed by live dirty paths or explicit path edits",
-        ],
+        guards=render_round_guard_lines("refresh-round-scope", context={"round_id": round_id}),
         evidence=[args.reason.strip()] + _clean_list(args.evidence) + live_dirty_paths,
         target_ids=[round_id, str(meta.get("objective_id") or "").strip()],
         event_file_stem=f"{timestamp}-{round_id}-refresh-round-scope",

@@ -16,15 +16,15 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-23-2132-resolve-current-task-anchor-freshness-semantics`
+- Active round id: `round-2026-03-23-2148-make-round-domain-commands-consume-semantic-registry-contracts`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Branch: `master`
-- HEAD anchor: `646c4f1114410f17b2a401d09221f1084eea6c59`
+- HEAD anchor: `5fbca66e6b19b61067dc18543c68ebaa2a4770fb`
 - Worktree state: `dirty`
-- Changed path count: `12`
-- Last anchor refresh: `2026-03-23T21:34:24+08:00`
+- Changed path count: `17`
+- Last anchor refresh: `2026-03-23T21:55:34+08:00`
 - Phase-1 baseline already exists:
   - multi-project schema is documented
   - `wind-agent` is indexed as the first project sample
@@ -34,10 +34,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - correcting current-task anchor semantics so committed control projections do not pretend to equal the commit that contains them
-  - treating live workspace inspection as the canonical freshness owner layer when branch alignment still holds
-  - updating packet freshness guidance so historical current-task anchor metadata remains useful orientation context without masquerading as live truth
-  - aligning canonical docs and project control state to the corrected freshness model
+  - extracting a shared round-domain registry consumer so round commands stop hand-owning duplicated guard and side-effect semantics
+  - making open-round, refresh-round-scope, rewrite-open-round, and update-round-status assert registry-backed input, guard, and write-target coverage
+  - teaching owner-layer validation to detect round-domain drift when command implementations stop matching semantic transition-registry contracts
+  - keeping the round-domain slice bounded instead of generalizing the same helper across every command domain at once
 
 ## Validated Facts
 
@@ -73,6 +73,11 @@ The immediate objective is:
   - executor-supported commands
   - bounded adjudication plan family names
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry name coverage and semantic coverage against `TRANSITION_COMMANDS.md`
+- `uv run python scripts/audit_control_state.py --project-id session-memory` now also checks round-domain registry consumer coverage against the shared owner-layer helper
+- round-domain commands now consume one shared registry-backed owner-layer helper for:
+  - guard coverage
+  - write-target coverage
+  - transition-event expectations
 - A deliberate protocol violation now fails honestly:
   - running one disposable adjudication smoke while `smoke_phase1.py` tries to start the suite causes `fixture_leak_before_run`
   - this is now a visible harness-protocol failure instead of a silent flaky test

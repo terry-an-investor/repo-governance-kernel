@@ -17,10 +17,51 @@ from assemble_context import (
     read_text,
 )
 from build_index import parse_evidence_refs, parse_frontmatter, parse_string_list, split_frontmatter
+from transition_specs import transition_command_spec
 
 
 ROOT = Path(__file__).resolve().parent.parent
 OPEN_ROUND_STATUSES = {"draft", "active", "blocked", "validation_pending"}
+ROUND_STATUS_TRANSITIONS = {
+    "draft": {"active", "abandoned"},
+    "active": {"blocked", "validation_pending", "abandoned"},
+    "blocked": {"active", "abandoned"},
+    "validation_pending": {"captured", "blocked", "abandoned"},
+    "captured": {"closed"},
+    "closed": set(),
+    "abandoned": set(),
+}
+ROUND_COMMAND_NAMES = {"open-round", "refresh-round-scope", "rewrite-open-round", "update-round-status"}
+ROUND_COMMAND_GUARD_TEXT = {
+    "linked_objective_is_active": lambda context: f"objective `{context['objective_id']}` exists and is active",
+    "linked_objective_is_execution": lambda context: "objective phase is `execution`",
+    "scope_present": lambda context: "scope items are present",
+    "validation_plan_present": lambda context: "validation plan is present",
+    "no_conflicting_open_round": lambda context: "no conflicting active round remains open",
+    "target_round_is_open": lambda context: f"round `{context['round_id']}` exists and remains open",
+    "refresh_reason_present": lambda context: "scope refresh reason is explicit",
+    "resulting_scope_paths_non_empty": lambda context: "resulting scope path set remains non-empty",
+    "scope_change_backed_by_evidence": lambda context: "scope refresh is backed by live dirty paths or explicit path edits",
+    "scope_change_produces_material_change": lambda context: "scope refresh produces a material scope-path change",
+    "round_exists": lambda context: f"round `{context['round_id']}` exists",
+    "status_transition_legal": lambda context: (
+        f"transition `{context['previous_status']} -> {context['next_status']}` is legal"
+        if context.get("previous_status") and context.get("next_status")
+        else "status transition is legal"
+    ),
+    "promotion_passes_enforcement_when_required": lambda context: "captured or closed promotion passes worktree enforcement when required",
+    "captured_has_validation_record": lambda context: "captured status includes at least one validation record when capture is requested",
+    "round_remains_open": lambda context: f"round `{context['round_id']}` exists and remains open",
+    "rewrite_reason_present": lambda context: "rewrite reason is explicit",
+    "rewritten_round_contract_stays_complete": lambda context: "rewritten round still has scope, deliverable, validation plan, and scope paths",
+    "round_identity_preserved": lambda context: "round identity is preserved while contract content is rewritten",
+    "rewrite_produces_material_change": lambda context: "rewrite produces at least one material round-contract change",
+}
+ROUND_WRITE_TARGET_LABELS = {
+    "durable:round",
+    "control:active-round",
+    "memory:transition-event",
+}
 
 
 def yaml_quote(value: str) -> str:
@@ -142,6 +183,92 @@ def resolve_anchor(project_id: str) -> dict[str, str]:
         anchor["branch"] = live_workspace.get("branch", anchor.get("branch", ""))
         anchor["git_sha"] = live_workspace.get("git_sha", anchor.get("git_sha", ""))
     return anchor
+
+
+def round_command_spec(command_name: str):
+    spec = transition_command_spec(command_name)
+    if spec.domain != "round":
+        raise SystemExit(f"transition command `{command_name}` is not a round-domain command")
+    if command_name not in ROUND_COMMAND_NAMES:
+        raise SystemExit(f"round-domain command `{command_name}` is not declared in the owner-layer round command set")
+    return spec
+
+
+def assert_round_command_contract(
+    command_name: str,
+    *,
+    provided_inputs: set[str],
+    satisfied_guard_codes: set[str],
+    write_targets: set[str],
+    emits_transition_event: bool = True,
+) -> object:
+    spec = round_command_spec(command_name)
+    missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
+    if missing_inputs:
+        raise SystemExit(
+            f"round-domain command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
+        )
+
+    expected_guards = set(spec.guard_codes)
+    missing_guards = sorted(expected_guards - satisfied_guard_codes)
+    unexpected_guards = sorted(satisfied_guard_codes - expected_guards)
+    if missing_guards:
+        raise SystemExit(
+            f"round-domain command `{command_name}` is missing registry-declared guards: {', '.join(missing_guards)}"
+        )
+    if unexpected_guards:
+        raise SystemExit(
+            f"round-domain command `{command_name}` declared unexpected guard coverage outside the registry: {', '.join(unexpected_guards)}"
+        )
+
+    expected_write_targets = set(spec.write_targets)
+    missing_write_targets = sorted(expected_write_targets - write_targets)
+    unexpected_write_targets = sorted(write_targets - expected_write_targets)
+    if missing_write_targets:
+        raise SystemExit(
+            f"round-domain command `{command_name}` is missing registry-declared write targets: {', '.join(missing_write_targets)}"
+        )
+    if unexpected_write_targets:
+        raise SystemExit(
+            f"round-domain command `{command_name}` declared unexpected write targets outside the registry: {', '.join(unexpected_write_targets)}"
+        )
+    if not write_targets.issubset(ROUND_WRITE_TARGET_LABELS):
+        raise SystemExit(
+            f"round-domain command `{command_name}` declared unsupported round write targets: {', '.join(sorted(write_targets - ROUND_WRITE_TARGET_LABELS))}"
+        )
+    if spec.emits_transition_event != emits_transition_event:
+        raise SystemExit(
+            f"round-domain command `{command_name}` transition-event expectation diverges from the registry"
+        )
+    return spec
+
+
+def render_round_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
+    spec = round_command_spec(command_name)
+    guard_context = context or {}
+    rendered: list[str] = []
+    for guard_code in spec.guard_codes:
+        renderer = ROUND_COMMAND_GUARD_TEXT.get(guard_code)
+        if renderer is None:
+            raise SystemExit(f"round-domain guard `{guard_code}` has no owner-layer renderer")
+        rendered.append(renderer(guard_context))
+    return rendered
+
+
+def validate_round_domain_registry_contracts() -> None:
+    for command_name in sorted(ROUND_COMMAND_NAMES):
+        spec = round_command_spec(command_name)
+        if spec.implementation_status != "implemented":
+            raise SystemExit(f"round-domain command `{command_name}` must remain `implemented` while the round helper consumes it")
+        if set(spec.write_targets) != ROUND_WRITE_TARGET_LABELS:
+            raise SystemExit(
+                f"round-domain command `{command_name}` must declare the canonical round write targets: {', '.join(sorted(ROUND_WRITE_TARGET_LABELS))}"
+            )
+        for guard_code in spec.guard_codes:
+            if guard_code not in ROUND_COMMAND_GUARD_TEXT:
+                raise SystemExit(
+                    f"round-domain command `{command_name}` declares unsupported guard renderer `{guard_code}`"
+                )
 
 
 def load_active_objective(project_id: str) -> tuple[dict[str, str], dict[str, str]]:

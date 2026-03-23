@@ -125,7 +125,13 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         "round",
         implementation_status="implemented",
         required_inputs=("project_id", "objective_id", "title", "scope", "deliverable", "validation_plan"),
-        guard_codes=("linked_objective_is_active", "linked_objective_is_execution", "scope_present", "validation_plan_present"),
+        guard_codes=(
+            "linked_objective_is_active",
+            "linked_objective_is_execution",
+            "scope_present",
+            "validation_plan_present",
+            "no_conflicting_open_round",
+        ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("open_bounded_execution_round", "refresh_active_round_projection"),
     ),
@@ -135,7 +141,13 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "reason"),
-        guard_codes=("target_round_is_open", "refresh_reason_present", "resulting_scope_paths_non_empty", "scope_change_backed_by_evidence"),
+        guard_codes=(
+            "target_round_is_open",
+            "refresh_reason_present",
+            "resulting_scope_paths_non_empty",
+            "scope_change_backed_by_evidence",
+            "scope_change_produces_material_change",
+        ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("rewrite_round_scope_paths", "preserve_round_identity", "refresh_active_round_projection"),
     ),
@@ -145,7 +157,12 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "round_id", "status", "reason"),
-        guard_codes=("round_exists", "status_transition_legal", "promotion_passes_enforcement_when_required"),
+        guard_codes=(
+            "round_exists",
+            "status_transition_legal",
+            "promotion_passes_enforcement_when_required",
+            "captured_has_validation_record",
+        ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("advance_round_lifecycle_state", "record_blocker_or_validation_history", "refresh_active_round_projection"),
     ),
@@ -155,7 +172,13 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "round_id", "reason", "mutable_fields"),
-        guard_codes=("round_remains_open", "rewrite_reason_present", "rewritten_round_contract_stays_complete", "round_identity_preserved"),
+        guard_codes=(
+            "round_remains_open",
+            "rewrite_reason_present",
+            "rewritten_round_contract_stays_complete",
+            "round_identity_preserved",
+            "rewrite_produces_material_change",
+        ),
         write_targets=("durable:round", "control:active-round", "memory:transition-event"),
         side_effect_codes=("rewrite_open_round_contract", "refresh_active_round_projection"),
     ),
@@ -287,6 +310,14 @@ def transition_command_names() -> list[str]:
     return [spec.name for spec in TRANSITION_COMMAND_SPECS]
 
 
+def transition_command_spec(command_name: str) -> TransitionCommandSpec:
+    validate_transition_specs()
+    spec = COMMAND_SPEC_BY_NAME.get(command_name.strip())
+    if spec is None:
+        raise SystemExit(f"unknown transition command `{command_name}`")
+    return spec
+
+
 def semantic_transition_command_names() -> list[str]:
     validate_transition_specs()
     return [spec.name for spec in TRANSITION_COMMAND_SPECS if spec.has_semantic_contract()]
@@ -300,6 +331,14 @@ def executor_supported_command_names() -> list[str]:
 def adjudication_plan_types() -> list[str]:
     validate_transition_specs()
     return [spec.plan_type for spec in ADJUDICATION_PLAN_SPECS]
+
+
+def adjudication_plan_spec(plan_type: str) -> AdjudicationPlanSpec:
+    validate_transition_specs()
+    spec = PLAN_SPEC_BY_TYPE.get(plan_type.strip())
+    if spec is None:
+        raise SystemExit(f"unknown adjudication plan type `{plan_type}`")
+    return spec
 
 
 def semantic_adjudication_plan_types() -> list[str]:
