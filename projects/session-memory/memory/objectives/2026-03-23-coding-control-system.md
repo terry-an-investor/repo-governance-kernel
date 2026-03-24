@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 4eb8003b8b435aef9b873069d10e42e5bc885cc6
+git_sha: a4fe9a80c4afa3b901a927ebc81a1232babbb91a
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-24T08:24:29+08:00
-phase: paused
+updated_at: 2026-03-24T08:30:20+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -110,3 +110,5 @@ Phase changed from `execution` to `paused` because Execution slice finished afte
 Phase changed from `paused` to `execution` because A bounded governance slice is needed to remove caller-side duplication of registry-owned guard, write-target, and owner declarations so command callers stop restating static semantics already owned by the transition registry.
 
 Phase changed from `execution` to `paused` because Caller-thinning governance slice finished after the bounded round closed.
+
+Phase changed from `paused` to `execution` because A bounded execution slice is needed to move adjudication rewrite semantics toward a registry-owned executable contract instead of leaving plan compilation and target resolution scattered across compiler branches.

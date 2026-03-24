@@ -76,6 +76,40 @@ SUPPORTED_LIVE_INSPECTION_OWNER_LABELS = {
 
 
 @dataclass(frozen=True)
+class AdjudicationPayloadBindingSpec:
+    target_key: str
+    resolver: str
+    source_keys: tuple[str, ...] = ()
+    required: bool = False
+    fanout: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "target_key": self.target_key,
+            "resolver": self.resolver,
+            "source_keys": list(self.source_keys),
+            "required": self.required,
+            "fanout": self.fanout,
+        }
+
+
+@dataclass(frozen=True)
+class AdjudicationPayloadTemplateSpec:
+    command_name: str
+    static_scalar_fields: tuple[tuple[str, str], ...] = ()
+    static_bool_fields: tuple[tuple[str, bool], ...] = ()
+    bindings: tuple[AdjudicationPayloadBindingSpec, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "command_name": self.command_name,
+            "static_scalar_fields": [{"key": key, "value": value} for key, value in self.static_scalar_fields],
+            "static_bool_fields": [{"key": key, "value": value} for key, value in self.static_bool_fields],
+            "bindings": [binding.to_dict() for binding in self.bindings],
+        }
+
+
+@dataclass(frozen=True)
 class AdjudicationPlanSpec:
     plan_type: str
     compiled_commands: tuple[str, ...]
@@ -83,9 +117,10 @@ class AdjudicationPlanSpec:
     requires_adjudication_fields: tuple[str, ...] = ()
     target_resolution: str = ""
     side_effect_codes: tuple[str, ...] = ()
+    payload_templates: tuple[AdjudicationPayloadTemplateSpec, ...] = ()
 
     def has_semantic_contract(self) -> bool:
-        return bool(self.compiled_commands and self.target_resolution and self.side_effect_codes)
+        return bool(self.compiled_commands and self.target_resolution and self.side_effect_codes and self.payload_templates)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -95,6 +130,7 @@ class AdjudicationPlanSpec:
             "requires_adjudication_fields": list(self.requires_adjudication_fields),
             "target_resolution": self.target_resolution,
             "side_effect_codes": list(self.side_effect_codes),
+            "payload_templates": [template.to_dict() for template in self.payload_templates],
         }
 
 
@@ -323,6 +359,46 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
         requires_adjudication_fields=("round_id", "rewrite_reason", "validation_pending_reason", "captured_reason", "closed_reason"),
         target_resolution="explicit_round_id",
         side_effect_codes=("rewrite_round_contract", "advance_round_to_closed"),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="rewrite-open-round",
+                bindings=(
+                    AdjudicationPayloadBindingSpec("round_id", "contract_scalar", ("round_id",), required=True),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("rewrite_reason",), required=True),
+                    AdjudicationPayloadBindingSpec("title", "contract_scalar", ("title",)),
+                    AdjudicationPayloadBindingSpec("summary", "contract_scalar", ("summary",)),
+                    AdjudicationPayloadBindingSpec("deliverable", "contract_scalar", ("deliverable",)),
+                    AdjudicationPayloadBindingSpec("validation_plan", "contract_scalar", ("validation_plan",)),
+                    AdjudicationPayloadBindingSpec("scope_item", "contract_list", ("scope_item",)),
+                    AdjudicationPayloadBindingSpec("scope_path", "contract_list", ("scope_path",)),
+                    AdjudicationPayloadBindingSpec("risk", "contract_list", ("risk",)),
+                    AdjudicationPayloadBindingSpec("blocker", "contract_list", ("blocker",)),
+                    AdjudicationPayloadBindingSpec("status_note", "contract_list", ("status_note",)),
+                    AdjudicationPayloadBindingSpec("replace_scope_items", "contract_bool", ("replace_scope_items",)),
+                    AdjudicationPayloadBindingSpec("replace_scope_paths", "contract_bool", ("replace_scope_paths",)),
+                    AdjudicationPayloadBindingSpec("replace_risks", "contract_bool", ("replace_risks",)),
+                    AdjudicationPayloadBindingSpec("replace_blockers", "contract_bool", ("replace_blockers",)),
+                ),
+            ),
+            AdjudicationPayloadTemplateSpec(
+                command_name="round-close-chain",
+                bindings=(
+                    AdjudicationPayloadBindingSpec("round_id", "contract_scalar", ("round_id",), required=True),
+                    AdjudicationPayloadBindingSpec(
+                        "validation_pending_reason",
+                        "contract_scalar",
+                        ("validation_pending_reason",),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec("captured_reason", "contract_scalar", ("captured_reason",), required=True),
+                    AdjudicationPayloadBindingSpec("closed_reason", "contract_scalar", ("closed_reason",), required=True),
+                    AdjudicationPayloadBindingSpec("validated_by", "round_validated_by_list", ("validated_by",)),
+                    AdjudicationPayloadBindingSpec("clear_blockers", "contract_bool", ("clear_blockers",)),
+                    AdjudicationPayloadBindingSpec("blocker", "contract_list", ("close_chain_blocker",)),
+                    AdjudicationPayloadBindingSpec("risk", "contract_list", ("close_chain_risk",)),
+                ),
+            ),
+        ),
     ),
     AdjudicationPlanSpec(
         plan_type="retire-invalidated-exception-contracts",
@@ -330,6 +406,22 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
         requires_adjudication_fields=("Objects Invalidated", "reason"),
         target_resolution="resolve_active_exception_contracts_from_invalidated_objects",
         side_effect_codes=("retire_active_exception_contracts",),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="retire-exception-contract",
+                bindings=(
+                    AdjudicationPayloadBindingSpec(
+                        "exception_contract_id",
+                        "exception_contract_target_ids",
+                        ("exception_contract_id", "exception_contract_ids"),
+                        required=True,
+                        fanout=True,
+                    ),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("reason",), required=True),
+                    AdjudicationPayloadBindingSpec("evidence", "contract_list", ("evidence",)),
+                ),
+            ),
+        ),
     ),
     AdjudicationPlanSpec(
         plan_type="invalidate-invalidated-exception-contracts",
@@ -337,6 +429,23 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
         requires_adjudication_fields=("Objects Invalidated", "reason"),
         target_resolution="resolve_active_exception_contracts_from_invalidated_objects",
         side_effect_codes=("invalidate_active_exception_contracts",),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="invalidate-exception-contract",
+                bindings=(
+                    AdjudicationPayloadBindingSpec(
+                        "exception_contract_id",
+                        "exception_contract_target_ids",
+                        ("exception_contract_id", "exception_contract_ids"),
+                        required=True,
+                        fanout=True,
+                    ),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("reason",), required=True),
+                    AdjudicationPayloadBindingSpec("evidence", "contract_list", ("evidence",)),
+                    AdjudicationPayloadBindingSpec("pivot_id", "contract_scalar", ("pivot_id",)),
+                ),
+            ),
+        ),
     ),
     AdjudicationPlanSpec(
         plan_type="enter-execution-with-round-bootstrap",
@@ -344,6 +453,63 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
         requires_adjudication_fields=("reason", "round_title", "round_scope_items", "round_deliverable", "round_validation_plan"),
         target_resolution="explicit_or_adjudication_objective",
         side_effect_codes=("enter_execution_phase", "bootstrap_bounded_round"),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="set-phase",
+                static_scalar_fields=(("phase", "execution"),),
+                static_bool_fields=(("auto_open_round", True),),
+                bindings=(
+                    AdjudicationPayloadBindingSpec("objective_id", "contract_or_meta_scalar", ("objective_id",)),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("reason",), required=True),
+                    AdjudicationPayloadBindingSpec("round_title", "contract_or_meta_scalar", ("round_title",), required=True),
+                    AdjudicationPayloadBindingSpec(
+                        "round_deliverable",
+                        "contract_or_meta_scalar",
+                        ("round_deliverable",),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_validation_plan",
+                        "contract_or_meta_scalar",
+                        ("round_validation_plan",),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_scope_item",
+                        "contract_or_meta_list",
+                        ("round_scope_item", "round_scope_items"),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_scope_path",
+                        "contract_or_meta_list",
+                        ("round_scope_path", "round_scope_paths"),
+                    ),
+                    AdjudicationPayloadBindingSpec("round_summary", "contract_scalar", ("round_summary",)),
+                    AdjudicationPayloadBindingSpec(
+                        "round_risk",
+                        "contract_or_meta_list",
+                        ("round_risk", "round_risks"),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_blocker",
+                        "contract_or_meta_list",
+                        ("round_blocker", "round_blockers"),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_status_note",
+                        "contract_or_meta_scalar",
+                        ("round_status_note",),
+                    ),
+                    AdjudicationPayloadBindingSpec("evidence", "contract_list", ("evidence",)),
+                    AdjudicationPayloadBindingSpec(
+                        "scope_review_note",
+                        "contract_list",
+                        ("scope_review_note",),
+                    ),
+                ),
+            ),
+        ),
     ),
 )
 
@@ -401,6 +567,12 @@ def validate_transition_specs() -> None:
             if command_name not in known_commands and command_name not in allowed_bundle_commands:
                 raise SystemExit(
                     f"adjudication plan `{plan_spec.plan_type}` references unknown compiled command `{command_name}`"
+                )
+        declared_compiled_commands = set(plan_spec.compiled_commands)
+        for template in plan_spec.payload_templates:
+            if template.command_name not in declared_compiled_commands:
+                raise SystemExit(
+                    f"adjudication plan `{plan_spec.plan_type}` declares payload template for undeclared command `{template.command_name}`"
                 )
 
 

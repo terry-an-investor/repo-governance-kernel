@@ -14,8 +14,7 @@ from round_control import (
     parse_bullet_list,
     project_dir,
 )
-from transition_specs import adjudication_plan_types
-SUPPORTED_PLAN_TYPES = set(adjudication_plan_types())
+from transition_specs import adjudication_plan_spec
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,89 +51,29 @@ def _load_adjudication_record(project_id: str, adjudication_id: str | None) -> t
     return path, meta, sections
 
 
-def _compile_rewrite_then_close_chain(project_id: str, contract: dict[str, object]) -> list[dict[str, object]]:
-    round_id = str(contract.get("round_id") or "").strip()
-    if not round_id:
-        raise SystemExit("executor plan contract `rewrite-open-round-then-close-chain` requires `round_id`")
-    round_path = locate_round_file(project_id, round_id)
-    if round_path is None:
-        raise SystemExit(f"executor plan contract could not find round `{round_id}`")
-
-    _round_meta, round_sections = load_round_file(round_path)
-    rewrite_reason = str(contract.get("rewrite_reason") or "").strip()
-    if not rewrite_reason:
-        raise SystemExit("executor plan contract requires `rewrite_reason`")
-    validation_pending_reason = str(contract.get("validation_pending_reason") or "").strip()
-    captured_reason = str(contract.get("captured_reason") or "").strip()
-    closed_reason = str(contract.get("closed_reason") or "").strip()
-    if not validation_pending_reason or not captured_reason or not closed_reason:
-        raise SystemExit(
-            "executor plan contract requires `validation_pending_reason`, `captured_reason`, and `closed_reason`"
-        )
-
-    rewrite_payload: dict[str, object] = {
-        "command": "rewrite-open-round",
-        "round_id": round_id,
-        "reason": rewrite_reason,
-    }
-    for source_key, output_key in [
-        ("title", "title"),
-        ("summary", "summary"),
-        ("deliverable", "deliverable"),
-        ("validation_plan", "validation_plan"),
-    ]:
-        value = str(contract.get(source_key) or "").strip()
+def _first_scalar(mapping: dict[str, object], source_keys: tuple[str, ...]) -> str:
+    for key in source_keys:
+        value = str(mapping.get(key) or "").strip()
         if value:
-            rewrite_payload[output_key] = value
-    for source_key, output_key in [
-        ("scope_item", "scope_item"),
-        ("scope_path", "scope_path"),
-        ("risk", "risk"),
-        ("blocker", "blocker"),
-        ("status_note", "status_note"),
-    ]:
-        values = _normalize_list(contract.get(source_key))
+            return value
+    return ""
+
+
+def _first_list(mapping: dict[str, object], source_keys: tuple[str, ...]) -> list[str]:
+    for key in source_keys:
+        values = _normalize_list(mapping.get(key))
         if values:
-            rewrite_payload[output_key] = values
-    for source_key, output_key in [
-        ("replace_scope_items", "replace_scope_items"),
-        ("replace_scope_paths", "replace_scope_paths"),
-        ("replace_risks", "replace_risks"),
-        ("replace_blockers", "replace_blockers"),
-    ]:
-        if bool(contract.get(source_key)):
-            rewrite_payload[output_key] = True
-
-    round_close_chain_payload: dict[str, object] = {
-        "command": "round-close-chain",
-        "round_id": round_id,
-        "validation_pending_reason": validation_pending_reason,
-        "captured_reason": captured_reason,
-        "closed_reason": closed_reason,
-    }
-    validated_by = _normalize_list(contract.get("validated_by"))
-    if not validated_by:
-        existing_plan = str(round_sections.get("Validation Plan", "")).strip()
-        validated_by = [existing_plan] if existing_plan else ["Adjudication executor plan validation"]
-    round_close_chain_payload["validated_by"] = validated_by
-    if bool(contract.get("clear_blockers")):
-        round_close_chain_payload["clear_blockers"] = True
-    blockers = _normalize_list(contract.get("close_chain_blocker"))
-    if blockers:
-        round_close_chain_payload["blocker"] = blockers
-    risks = _normalize_list(contract.get("close_chain_risk"))
-    if risks:
-        round_close_chain_payload["risk"] = risks
-
-    return [rewrite_payload, round_close_chain_payload]
+            return values
+    return []
 
 
 def _resolve_target_exception_contract_ids(
     project_id: str,
     contract: dict[str, object],
+    source_keys: tuple[str, ...],
     adjudication_sections: dict[str, str],
 ) -> list[str]:
-    explicit_ids = _normalize_list(contract.get("exception_contract_id")) + _normalize_list(contract.get("exception_contract_ids"))
+    explicit_ids = _first_list(contract, source_keys)
     candidate_ids = explicit_ids
     if not candidate_ids:
         candidate_ids = parse_bullet_list(adjudication_sections.get("Objects Invalidated", ""))
@@ -170,94 +109,117 @@ def _resolve_target_exception_contract_ids(
     return resolved_ids
 
 
-def _compile_exception_contract_plan(
+def _resolve_round_validated_by(
     project_id: str,
-    contract: dict[str, object],
-    adjudication_sections: dict[str, str],
     *,
-    command_name: str,
-) -> list[dict[str, object]]:
-    reason = str(contract.get("reason") or "").strip()
-    if not reason:
-        raise SystemExit(f"executor plan contract `{contract.get('plan_type')}` requires `reason`")
+    contract: dict[str, object],
+    source_keys: tuple[str, ...],
+    resolved_payload: dict[str, object],
+) -> list[str]:
+    validated_by = _first_list(contract, source_keys)
+    if validated_by:
+        return validated_by
 
-    payloads: list[dict[str, object]] = []
-    evidence = _normalize_list(contract.get("evidence"))
-    pivot_id = str(contract.get("pivot_id") or "").strip()
-    for exception_contract_id in _resolve_target_exception_contract_ids(project_id, contract, adjudication_sections):
-        payload: dict[str, object] = {
-            "command": command_name,
-            "exception_contract_id": exception_contract_id,
-            "reason": reason,
-        }
-        if evidence:
-            payload["evidence"] = evidence
-        if command_name == "invalidate-exception-contract" and pivot_id:
-            payload["pivot_id"] = pivot_id
-        payloads.append(payload)
-    return payloads
+    round_id = str(resolved_payload.get("round_id") or _first_scalar(contract, ("round_id",))).strip()
+    if not round_id:
+        raise SystemExit("executor plan contract could not resolve `round_id` before deriving `validated_by`")
+    round_path = locate_round_file(project_id, round_id)
+    if round_path is None:
+        raise SystemExit(f"executor plan contract could not find round `{round_id}`")
+    _round_meta, round_sections = load_round_file(round_path)
+    existing_plan = str(round_sections.get("Validation Plan", "")).strip()
+    return [existing_plan] if existing_plan else ["Adjudication executor plan validation"]
 
 
-def _compile_enter_execution_with_round_bootstrap(
+def _resolve_binding_value(
+    project_id: str,
+    *,
+    binding,
     contract: dict[str, object],
     adjudication_meta: dict[str, object],
-) -> list[dict[str, object]]:
-    reason = str(contract.get("reason") or "").strip()
-    if not reason:
-        raise SystemExit("executor plan contract `enter-execution-with-round-bootstrap` requires `reason`")
-
-    payload: dict[str, object] = {
-        "command": "set-phase",
-        "phase": "execution",
-        "reason": reason,
-        "auto_open_round": True,
-    }
-    objective_id = str(contract.get("objective_id") or adjudication_meta.get("objective_id") or "").strip()
-    if objective_id:
-        payload["objective_id"] = objective_id
-
-    round_title = str(contract.get("round_title") or adjudication_meta.get("round_title") or "").strip()
-    round_deliverable = str(contract.get("round_deliverable") or adjudication_meta.get("round_deliverable") or "").strip()
-    round_validation_plan = str(contract.get("round_validation_plan") or adjudication_meta.get("round_validation_plan") or "").strip()
-    round_scope_items = _normalize_list(contract.get("round_scope_item")) or _normalize_list(adjudication_meta.get("round_scope_items"))
-    if not round_scope_items:
-        round_scope_items = _normalize_list(contract.get("round_scope_items"))
-    round_scope_paths = _normalize_list(contract.get("round_scope_path")) or _normalize_list(adjudication_meta.get("round_scope_paths"))
-    if not round_scope_paths:
-        round_scope_paths = _normalize_list(contract.get("round_scope_paths"))
-
-    if not round_title or not round_deliverable or not round_validation_plan or not round_scope_items:
-        raise SystemExit(
-            "executor plan contract `enter-execution-with-round-bootstrap` requires adjudication round bootstrap fields: "
-            "`round_title`, at least one `round_scope_item`, `round_deliverable`, and `round_validation_plan`"
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    source_keys = binding.source_keys
+    if binding.resolver == "contract_scalar":
+        return _first_scalar(contract, source_keys)
+    if binding.resolver == "contract_list":
+        return _first_list(contract, source_keys)
+    if binding.resolver == "contract_bool":
+        return any(bool(contract.get(key)) for key in source_keys)
+    if binding.resolver == "contract_or_meta_scalar":
+        return _first_scalar(contract, source_keys) or _first_scalar(adjudication_meta, source_keys)
+    if binding.resolver == "contract_or_meta_list":
+        return _first_list(contract, source_keys) or _first_list(adjudication_meta, source_keys)
+    if binding.resolver == "exception_contract_target_ids":
+        return _resolve_target_exception_contract_ids(project_id, contract, source_keys, adjudication_sections)
+    if binding.resolver == "round_validated_by_list":
+        return _resolve_round_validated_by(
+            project_id,
+            contract=contract,
+            source_keys=source_keys,
+            resolved_payload=resolved_payload,
         )
+    raise SystemExit(f"unsupported adjudication payload binding resolver `{binding.resolver}`")
 
-    payload["round_title"] = round_title
-    payload["round_deliverable"] = round_deliverable
-    payload["round_validation_plan"] = round_validation_plan
-    payload["round_scope_item"] = round_scope_items
-    if round_scope_paths:
-        payload["round_scope_path"] = round_scope_paths
 
-    round_summary = str(contract.get("round_summary") or "").strip()
-    if round_summary:
-        payload["round_summary"] = round_summary
-    round_risks = _normalize_list(contract.get("round_risk")) or _normalize_list(adjudication_meta.get("round_risks"))
-    if round_risks:
-        payload["round_risk"] = round_risks
-    round_blockers = _normalize_list(contract.get("round_blocker")) or _normalize_list(adjudication_meta.get("round_blockers"))
-    if round_blockers:
-        payload["round_blocker"] = round_blockers
-    round_status_note = str(contract.get("round_status_note") or adjudication_meta.get("round_status_note") or "").strip()
-    if round_status_note:
-        payload["round_status_note"] = round_status_note
-    evidence = _normalize_list(contract.get("evidence"))
-    if evidence:
-        payload["evidence"] = evidence
-    scope_review_note = _normalize_list(contract.get("scope_review_note"))
-    if scope_review_note:
-        payload["scope_review_note"] = scope_review_note
-    return [payload]
+def _materialize_payload_templates(
+    project_id: str,
+    *,
+    plan_spec,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+) -> list[dict[str, object]]:
+    compiled_payloads: list[dict[str, object]] = []
+    for template in plan_spec.payload_templates:
+        payloads: list[dict[str, object]] = [{"command": template.command_name}]
+        for key, value in template.static_scalar_fields:
+            for payload in payloads:
+                payload[key] = value
+        for key, value in template.static_bool_fields:
+            for payload in payloads:
+                payload[key] = value
+
+        resolved_payload: dict[str, object] = {}
+        for binding in template.bindings:
+            value = _resolve_binding_value(
+                project_id,
+                binding=binding,
+                contract=contract,
+                adjudication_meta=adjudication_meta,
+                adjudication_sections=adjudication_sections,
+                resolved_payload=resolved_payload,
+            )
+            is_empty = (
+                value is None
+                or (isinstance(value, str) and not value.strip())
+                or (isinstance(value, list) and not value)
+                or (isinstance(value, bool) and not value)
+            )
+            if binding.required and is_empty:
+                rendered_sources = ", ".join(f"`{source}`" for source in binding.source_keys) or "`<implicit>`"
+                raise SystemExit(
+                    f"executor plan contract `{plan_spec.plan_type}` could not resolve required payload field `{binding.target_key}` from {rendered_sources}"
+                )
+            if is_empty:
+                continue
+            if binding.fanout:
+                if not isinstance(value, list):
+                    value = [str(value).strip()]
+                next_payloads: list[dict[str, object]] = []
+                for payload in payloads:
+                    for item in value:
+                        cloned = dict(payload)
+                        cloned[binding.target_key] = item
+                        next_payloads.append(cloned)
+                payloads = next_payloads
+                continue
+            resolved_payload[binding.target_key] = value
+            for payload in payloads:
+                payload[binding.target_key] = value
+        compiled_payloads.extend(payloads)
+    return compiled_payloads
 
 
 def compile_plan_contracts(
@@ -278,30 +240,14 @@ def compile_plan_contracts(
         if not isinstance(contract, dict):
             raise SystemExit("executor plan contract must be a JSON object")
         plan_type = str(contract.get("plan_type") or "").strip()
-        if plan_type not in SUPPORTED_PLAN_TYPES:
-            raise SystemExit(
-                f"unsupported executor plan type `{plan_type}`; supported plan types: {', '.join(sorted(SUPPORTED_PLAN_TYPES))}"
-            )
-        if plan_type == "rewrite-open-round-then-close-chain":
-            payloads = _compile_rewrite_then_close_chain(project_id, contract)
-        elif plan_type == "retire-invalidated-exception-contracts":
-            payloads = _compile_exception_contract_plan(
-                project_id,
-                contract,
-                adjudication_sections,
-                command_name="retire-exception-contract",
-            )
-        elif plan_type == "invalidate-invalidated-exception-contracts":
-            payloads = _compile_exception_contract_plan(
-                project_id,
-                contract,
-                adjudication_sections,
-                command_name="invalidate-exception-contract",
-            )
-        elif plan_type == "enter-execution-with-round-bootstrap":
-            payloads = _compile_enter_execution_with_round_bootstrap(contract, adjudication_meta)
-        else:
-            raise SystemExit(f"unsupported executor plan type `{plan_type}`")
+        plan_spec = adjudication_plan_spec(plan_type)
+        payloads = _materialize_payload_templates(
+            project_id,
+            plan_spec=plan_spec,
+            contract=contract,
+            adjudication_meta=adjudication_meta,
+            adjudication_sections=adjudication_sections,
+        )
         compiled.extend(json.dumps(payload, ensure_ascii=True, sort_keys=True) for payload in payloads)
     return compiled
 

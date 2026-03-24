@@ -568,6 +568,10 @@ payload. Those plan contracts should stay anchored to the same machine-readable
 transition registry that names command guards, write targets, side-effect
 classes, and owner-layer responsibilities for the underlying owner-layer
 commands.
+For the supported bounded plan families, the registry should also own the
+payload-template bindings that materialize executor payload fields from plan
+contracts plus adjudication durable context, instead of leaving that mapping as
+private compiler branching.
 Those bounded plan contracts may consume adjudication durable context such as
 the invalidated object set when target resolution remains deterministic and
 auditable.

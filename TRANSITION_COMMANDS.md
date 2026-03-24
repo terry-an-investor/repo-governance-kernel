@@ -38,6 +38,7 @@ The registry still does not encode every full rewrite semantics, but it now owns
 - which commands are currently executor-supported
 - bounded adjudication plan family names
 - adjudication plan target-resolution contracts
+- adjudication payload templates and binding resolvers for supported bounded plan families
 
 The current milestone also adds one first enforcement owner layer:
 
@@ -714,6 +715,8 @@ Current implementation status:
 - can scaffold missing `control/exception-ledger.md`
 - can compile bounded higher-level adjudication plan contracts from frontmatter
   `executor_plan_contracts` into explicit executor followups before execution
+  through registry-owned payload templates instead of one private compiler branch per
+  plan family
   - current supported plan-contract families include:
     - `rewrite-open-round-then-close-chain`
     - `retire-invalidated-exception-contracts`
@@ -752,7 +755,8 @@ Current implementation status:
 - transition-registry note:
   - the current owner-layer registry covers command names, domains,
     implementation status, required inputs, guard codes, write targets,
-    side-effect codes, executor support, and adjudication plan families
+    side-effect codes, executor support, adjudication plan families, and
+    bounded adjudication payload-template semantics
   - `audit-control-state` now warns if `TRANSITION_COMMANDS.md` documents command
     or plan names that the registry does not yet cover semantically
 
