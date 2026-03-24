@@ -388,6 +388,30 @@ def main() -> None:
             ensure_ascii=True,
             sort_keys=True,
         )
+        rewrite_task_contract_plan = json.dumps(
+            {
+                "plan_type": "rewrite-open-task-contracts",
+                "task_contract_ids": [
+                    first_task_contract_id,
+                    second_task_contract_id,
+                ],
+                "rewrite_reason": "Adjudication narrows the surviving task-contract intent before lifecycle closure so the durable task contracts reflect the verdict.",
+                "summary": "Adjudication rewrote this disposable task contract before status transition.",
+                "risk": [
+                    "If task-contract rewrite still requires private executor code paths, owner-layer semantics remain fragmented.",
+                ],
+                "status_note": [
+                    "Rewritten through adjudication plan fanout before task-contract invalidation.",
+                ],
+                "allowed_change": [
+                    "Prove that adjudication can compile shared task-contract rewrite semantics through the registry.",
+                ],
+                "replace_allowed_changes": True,
+                "replace_risks": True,
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
         invalidate_task_contract_plan = json.dumps(
             {
                 "plan_type": "invalidate-invalidated-task-contracts",
@@ -433,6 +457,8 @@ def main() -> None:
             "--invalidate-id",
             exception_contract_id,
             "--executor-plan-json",
+            rewrite_task_contract_plan,
+            "--executor-plan-json",
             invalidate_task_contract_plan,
             "--executor-plan-json",
             rewrite_then_close_plan,
@@ -469,7 +495,7 @@ def main() -> None:
             str(adjudication_result["adjudication_id"]),
             "--in-place",
         )
-        if int(compile_result["compiled_followup_count"]) != 5:
+        if int(compile_result["compiled_followup_count"]) != 7:
             raise SystemExit("adjudication executor plan compiler did not emit the expected bounded followups")
 
         execute_result = run_json(
@@ -546,6 +572,23 @@ def main() -> None:
             task_contract_meta, task_contract_sections = load_task_contract_file(task_contract_path)
             if str(task_contract_meta.get("status") or "").strip() != "invalidated":
                 raise SystemExit(f"task-contract plan did not invalidate `{task_contract_id}`")
+            if str(task_contract_sections.get("Summary", "")).strip() != (
+                "Adjudication rewrote this disposable task contract before status transition."
+            ):
+                raise SystemExit(f"task-contract rewrite plan did not rewrite summary for `{task_contract_id}`")
+            if parse_bullet_list(str(task_contract_sections.get("Allowed Changes", ""))) != [
+                "Prove that adjudication can compile shared task-contract rewrite semantics through the registry.",
+            ]:
+                raise SystemExit(f"task-contract rewrite plan did not replace allowed changes for `{task_contract_id}`")
+            if parse_bullet_list(str(task_contract_sections.get("Active Risks", ""))) != [
+                "If task-contract rewrite still requires private executor code paths, owner-layer semantics remain fragmented.",
+                "If open task contracts survive, the round close-chain should stay blocked.",
+            ]:
+                raise SystemExit(f"task-contract plans did not preserve rewrite risk plus invalidation risk for `{task_contract_id}`")
+            if "Rewritten through adjudication plan fanout before task-contract invalidation." not in str(
+                task_contract_sections.get("Status Notes", "")
+            ):
+                raise SystemExit(f"task-contract rewrite plan did not append the adjudication rewrite note for `{task_contract_id}`")
             if "Invalidated through adjudication plan fanout before round close-chain execution." not in str(
                 task_contract_sections.get("Status Notes", "")
             ):

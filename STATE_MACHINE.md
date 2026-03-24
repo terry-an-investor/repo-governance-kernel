@@ -442,6 +442,8 @@ Current implementation already does these things:
   - can resolve bounded task-contract plan targets from adjudication durable
     `Objects Invalidated` when the selected object set maps deterministically
     to still-open task contracts
+  - can compile one bounded task-contract rewrite plan family into explicit
+    `rewrite-open-task-contract` payloads for one or more target task contracts
   - can resolve bounded exception-contract plan targets from adjudication
     durable `Objects Invalidated` when the selected object set maps
     deterministically to active exception contracts
@@ -457,6 +459,8 @@ Current implementation already does these things:
     task-contract status, retire or invalidate one exception contract, refresh
     one round scope, change phase explicitly, and then open one successor round
     when the adjudication record is structured enough
+  - builds mutable rewrite command CLIs through one shared registry-backed
+    executor path instead of duplicating one rewrite builder per command
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - now enforces explicit phase changes through:

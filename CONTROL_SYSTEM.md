@@ -699,6 +699,9 @@ auditable.
 That includes resolving open task-contract targets from `Objects Invalidated`
 and resolving one open round target from explicit `round_id`, one invalidated
 still-open round, or one open round in the adjudication objective context.
+It also includes letting shared executor command-building consume the same
+registry-owned mutable-field semantics for both round and task-contract rewrite
+commands, instead of leaving each rewrite command on its own private builder.
 They may also reuse the adjudication's existing round bootstrap fields when the
 repo is compiling a bounded phase-side-effect bundle such as entering
 `execution` and auto-opening one round.

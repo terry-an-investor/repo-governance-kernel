@@ -30,19 +30,6 @@ from transition_specs import (
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
-GENERIC_EXECUTOR_COMMANDS = frozenset(
-    {
-        "close-objective",
-        "invalidate-exception-contract",
-        "refresh-round-scope",
-        "retire-exception-contract",
-        "set-phase",
-        "update-task-contract-status",
-        "update-round-status",
-    }
-)
-
-ExecutorCommandBuilder = Callable[[str, dict[str, object]], list[str]]
 BundleExecutorHandler = Callable[[str, dict[str, object]], tuple[bool, str]]
 
 
@@ -238,6 +225,20 @@ def _append_executor_field_specs(cmd: list[str], payload: dict[str, object], com
         )
 
 
+def _append_mutable_field_specs(cmd: list[str], payload: dict[str, object], command_name: str) -> None:
+    for field_spec in mutable_field_specs_for_command(command_name):
+        cli_flag = f"--{field_spec.cli_flag}"
+        if field_spec.value_kind == "scalar":
+            value = str(payload.get(field_spec.payload_key) or "").strip()
+            if value:
+                cmd.extend([cli_flag, value])
+        else:
+            for item in _string_list(payload.get(field_spec.payload_key)):
+                cmd.extend([cli_flag, item])
+        if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
+            cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
+
+
 def _validate_bundle_payload(payload: dict[str, object], bundle_name: str) -> None:
     _reject_unknown_payload_keys(
         bundle_name,
@@ -398,59 +399,17 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
     )
 
 
-def build_rewrite_open_round_command(project_id: str, payload: dict[str, object]) -> list[str]:
-    cmd = [sys.executable, str(SCRIPTS / "rewrite_open_round.py"), "--project-id", project_id]
-    _append_executor_field_specs(cmd, payload, "rewrite-open-round")
-    for field_spec in mutable_field_specs_for_command("rewrite-open-round"):
-        cli_flag = f"--{field_spec.cli_flag}"
-        if field_spec.value_kind == "scalar":
-            value = str(payload.get(field_spec.payload_key) or "").strip()
-            if value:
-                cmd.extend([cli_flag, value])
-        else:
-            for item in _string_list(payload.get(field_spec.payload_key)):
-                cmd.extend([cli_flag, item])
-        if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
-            cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
-    return cmd
-
-
-def build_rewrite_open_task_contract_command(project_id: str, payload: dict[str, object]) -> list[str]:
-    cmd = [sys.executable, str(SCRIPTS / "rewrite_open_task_contract.py"), "--project-id", project_id]
-    _append_executor_field_specs(cmd, payload, "rewrite-open-task-contract")
-    for field_spec in mutable_field_specs_for_command("rewrite-open-task-contract"):
-        cli_flag = f"--{field_spec.cli_flag}"
-        if field_spec.value_kind == "scalar":
-            value = str(payload.get(field_spec.payload_key) or "").strip()
-            if value:
-                cmd.extend([cli_flag, value])
-        else:
-            for item in _string_list(payload.get(field_spec.payload_key)):
-                cmd.extend([cli_flag, item])
-        if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
-            cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
-    return cmd
-
-
-EXECUTOR_COMMAND_BUILDERS: dict[str, ExecutorCommandBuilder] = {
-    "rewrite-open-round": build_rewrite_open_round_command,
-    "rewrite-open-task-contract": build_rewrite_open_task_contract_command,
-}
-
-
 def build_registry_executor_command(project_id: str, payload: dict[str, object], command_name: str) -> list[str]:
     cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
     _append_executor_field_specs(cmd, payload, command_name)
+    _append_mutable_field_specs(cmd, payload, command_name)
     return cmd
 
 
 def build_executor_command(project_id: str, payload: dict[str, object]) -> list[str]:
     command_name = str(payload.get("command") or "").strip()
-    if command_name in GENERIC_EXECUTOR_COMMANDS:
+    if command_name in executor_supported_command_names():
         return build_registry_executor_command(project_id, payload, command_name)
-    builder = EXECUTOR_COMMAND_BUILDERS.get(command_name)
-    if builder is not None:
-        return builder(project_id, payload)
 
     raise SystemExit(f"unsupported executor command `{command_name}`")
 

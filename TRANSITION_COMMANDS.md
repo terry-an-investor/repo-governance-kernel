@@ -860,6 +860,7 @@ Current implementation status:
   plan family
   - current supported plan-contract families include:
     - `rewrite-open-round-then-close-chain`
+    - `rewrite-open-task-contracts`
     - `invalidate-invalidated-task-contracts`
     - `abandon-invalidated-task-contracts`
     - `retire-invalidated-exception-contracts`
@@ -892,10 +893,16 @@ Current implementation status:
 - bounded task-contract plan bundles can target open task contracts through
   adjudication `Objects Invalidated` when the mapping stays deterministic and
   auditable
+- bounded task-contract rewrite plans can fan out across explicit
+  `task_contract_ids` through the same registry-owned payload-template surface
+  used by round rewrite plans
 - `rewrite-open-round-then-close-chain` can now resolve its round target from
   explicit `round_id`, one invalidated still-open round, or one open round in
   the adjudication objective context instead of requiring a hand-authored round
   id every time
+- executor command-building for mutable rewrite commands now flows through one
+  shared registry-backed builder path instead of separate per-command rewrite
+  branches
 - bounded phase-side-effect plans can compile `set-phase --auto-open-round`
   from the adjudication's existing round bootstrap fields instead of requiring
   one hand-authored low-level phase payload

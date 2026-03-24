@@ -1,25 +1,26 @@
 # Active Round
 
-- Round id: `round-2026-03-24-1134-land-m1-m2-automatic-rewrite-contracts`
+- Round id: `round-2026-03-24-1151-land-m3-owner-layer-rewrite-semantics-and-unified-transition-engine-foundation`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- Lift governed bundle payload semantics into the transition registry so bundle execution stops carrying private payload keys.
-- Broaden adjudication plan contracts to cover task-contract and round target resolution through the existing owner-layer pattern.
+- Extend registry-owned adjudication rewrite semantics beyond the current bounded round/task/exception slice without inventing new private executor branches.
+- Extract shared execution-building primitives so owner-layer commands stop accumulating one-off if/else dispatch paths.
 
 ## Deliverable
 
-M1 bundle payload semantics and M2 adjudication plan-family expansion land with smoke coverage and honest docs.
+A new M3 slice that broadens rewrite semantics honestly and lands the first unified transition-engine foundation.
 
 ## Validation Plan
 
-Registry audit, worktree enforcement, targeted py_compile, and adjudication followup smoke pass on the changed path.
+Targeted py_compile, audit-control-state, enforce-worktree, and focused smoke coverage pass on the M3 path.
 
 ## Active Risks
 
-- Expanding executor support too broadly could reintroduce private semantics instead of reducing them.
+- Expanding rewrite semantics too fast could reintroduce private owner-layer behavior under a cleaner name.
+- A premature unified engine abstraction could hide domain differences instead of making them explicit.
 
 ## Blockers
 
