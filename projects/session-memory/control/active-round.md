@@ -6,16 +6,17 @@
 
 ## Scope
 
-- Promote host adoption assessment and report generation into the kernel owner layer.
+- Promote host adoption assessment and external-target single-assessment workflow into the kernel owner layer.
 - Keep live-host rollout in shadow mode by producing honest assessment output before any broader automation claim.
+- Refresh canonical docs and alpha preview package metadata so public release claims match the implemented owner-layer surface.
 
 ## Deliverable
 
-A kernel command and helper surface that can assess a host adoption state and write a readable shadow-adoption report.
+A kernel-owned host adoption assessment surface plus a bundle-backed external-target single-assessment flow, one bounded intent entry, and aligned alpha preview docs/version metadata.
 
 ## Validation Plan
 
-Run focused host-adoption smokes plus audit-control-state and enforce-worktree on the repo after the owner-layer command lands.
+Run focused host-adoption smokes, product-doc audit, uv build, isolated install help check, audit-control-state, and enforce-worktree after the doc/version refresh lands.
 
 ## Active Risks
 

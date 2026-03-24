@@ -143,6 +143,7 @@ That includes:
 
 - primitive transition commands
 - governed bundle wrappers
+- bounded intent surfaces that compile only into governed commands or bundles
 - bounded adjudication follow-up compilation and execution
 
 This layer must stay registry-first.
@@ -177,6 +178,9 @@ The current external-host validation evidence now covers one honest sequence:
 - adopt one explicit host-side objective, round, and task contract
 - re-run `enforce-worktree` and expect any remaining `blocked` verdict to be
   about real scope law, not missing adoption authority
+- for one external target repo, draft dirty-path scope first, then run one
+  governed bundle-backed single assessment and expect the final verdict to
+  reflect the adopted dirty-path boundary instead of hand-authored ambiguity
 
 ## Task-Contract Consequence
 
@@ -206,6 +210,7 @@ The current governed bundle wrappers include:
 
 - `round-close-chain`
 - `round-close-chain-then-hard-pivot`
+- `assess-external-target-once`
 
 A bundle wrapper is acceptable only when:
 
@@ -216,6 +221,22 @@ A bundle wrapper is acceptable only when:
 - it remains bounded, audit-visible, and smoke-proven
 
 The ban is on private bundle semantics, not on bundles themselves.
+
+## Bounded Intent Surfaces
+
+Bounded intent surfaces are allowed only when they fail closed into the same
+owner-layer command and bundle contracts.
+
+The current bounded intent surface is:
+
+- `assess-external-target-from-intent`
+
+An intent surface is acceptable only when:
+
+- it compiles only into an existing governed command or bundle
+- it does not introduce broader mutation authority than the compiled target
+- accepted intent classes stay narrow, explicit, and smoke-proven
+- requests implying continuous monitoring or freeform mutation are rejected
 
 ## Kernelization Direction
 

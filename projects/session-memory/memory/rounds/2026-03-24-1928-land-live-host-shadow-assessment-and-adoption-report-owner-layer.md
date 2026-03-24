@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 0493b1658e01acd42738d3d22ca9bf5ce93fc6f3
+git_sha: bd220d0e673e7162f02cdf3d8c823145bd11d88a
 paths:
   - kernel
   - scripts/evaluation_bundle.py
@@ -18,6 +18,11 @@ paths:
   - RELEASE.md
   - TRANSITION_COMMANDS.md
   - scripts/smoke_assess_host_adoption.py
+  - ARCHITECTURE.md
+  - CONTROL_SYSTEM.md
+  - PRODUCT.md
+  - pyproject.toml
+  - uv.lock
 thread_ids: []
 evidence_refs: []
 tags:
@@ -25,7 +30,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T19:28:36+08:00
-updated_at: 2026-03-24T19:38:43+08:00
+updated_at: 2026-03-24T21:00:42+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -34,20 +39,21 @@ superseded_by: []
 
 ## Summary
 
-A kernel command and helper surface that can assess a host adoption state and write a readable shadow-adoption report.
+Land owner-layer host adoption assessment, bundle-backed external-target single assessment, bounded intent entry, and aligned alpha preview docs/version metadata.
 
 ## Scope
 
-- Promote host adoption assessment and report generation into the kernel owner layer.
+- Promote host adoption assessment and external-target single-assessment workflow into the kernel owner layer.
 - Keep live-host rollout in shadow mode by producing honest assessment output before any broader automation claim.
+- Refresh canonical docs and alpha preview package metadata so public release claims match the implemented owner-layer surface.
 
 ## Deliverable
 
-A kernel command and helper surface that can assess a host adoption state and write a readable shadow-adoption report.
+A kernel-owned host adoption assessment surface plus a bundle-backed external-target single-assessment flow, one bounded intent entry, and aligned alpha preview docs/version metadata.
 
 ## Validation Plan
 
-Run focused host-adoption smokes plus audit-control-state and enforce-worktree on the repo after the owner-layer command lands.
+Run focused host-adoption smokes, product-doc audit, uv build, isolated install help check, audit-control-state, and enforce-worktree after the doc/version refresh lands.
 
 ## Active Risks
 
@@ -62,3 +68,5 @@ _none recorded_
 _none recorded_
 
 Round rewritten because The stage-1 implementation also touched the host canonical command doc and the new command-level smoke, so the round scope must cover the real changed paths honestly.
+
+Round rewritten because The round now also covers canonical doc refresh and alpha preview version metadata alignment, so the declared boundary must match the real changed paths and deliverable.

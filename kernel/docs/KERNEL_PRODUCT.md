@@ -34,6 +34,14 @@ The kernel supports bounded registry-owned execution.
 
 It is not a general autonomous rewrite engine.
 
+Current package-facing execution proof includes:
+
+- registry-owned primitive transition commands
+- registry-owned governed bundles such as `assess-external-target-once`
+- one bounded intent surface, `assess-external-target-from-intent`, that
+  compiles only into an existing governed bundle instead of introducing new
+  mutation authority
+
 ## Canonical Implementation Surfaces
 
 - `kernel/transition_specs.py`

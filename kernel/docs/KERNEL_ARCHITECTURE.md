@@ -15,6 +15,15 @@ Scope: reusable repo-governance kernel architecture
 
 The kernel package owns the reusable Python implementation.
 
+That includes:
+
+- registry-owned transition specs
+- command entrypoints under `kernel/commands/`
+- shared executor helpers under `kernel/executor_runtime.py`
+- shared governed-bundle execution under `kernel/governed_bundle_runtime.py`
+- bounded intent compilation when it lowers only into existing governed
+  commands or bundles
+
 The host repository may still provide:
 
 - repo-local CLI wrappers under `scripts/`

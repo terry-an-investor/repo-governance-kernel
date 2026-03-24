@@ -8,7 +8,7 @@ Scope: alpha release preparation for the reusable kernel
 Current target:
 
 - package name: `repo-governance-kernel`
-- version: `0.1.0a0`
+- version: `0.1.0a1`
 - release level: alpha / internal preview
 
 ## What Ships
@@ -73,15 +73,15 @@ Preview validation completed on 2026-03-24.
   - bounded natural-language entry compiles one supported intent into the same governed bundle-backed flow
 - `uv build`
   - produced:
-    - `dist/repo_governance_kernel-0.1.0a0.tar.gz`
-    - `dist/repo_governance_kernel-0.1.0a0-py3-none-any.whl`
+    - `dist/repo_governance_kernel-0.1.0a1.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0a1-py3-none-any.whl`
 - installed-package check
-  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a0-py3-none-any.whl`
+  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a1-py3-none-any.whl`
   - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
   - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
 
 ## Preview Residual Risks
 
-- frozen-host adoption proof is honest preview evidence, not yet live-host shadow-mode proof
-- live-host shadow mode now has an owner-layer draft-plus-assessment surface, one governed bundle-backed single-pass wrapper, and one bounded natural-language entry, but it is still not a stable general live-host mutation contract
+- frozen-host adoption proof remains honest preview evidence for adopted host snapshots rather than the whole live-host story
+- external-target shadow mode now has one smoke-proven owner-layer draft-plus-assessment path, one governed bundle-backed single-pass wrapper, and one bounded natural-language entry, but it is still not a stable general live-host mutation contract
 - host repo and package still share one source repository, so preview packaging hygiene can still regress if repo-local docs and package docs drift

@@ -119,7 +119,11 @@ Primary kernel surfaces:
 
 - `kernel/transition_specs.py`
 - shared resolver/runtime helpers under `kernel/`
-- transition command entrypoints under `scripts/`
+- `kernel/governed_bundle_runtime.py`
+- `kernel/executor_runtime.py`
+- transition command entrypoints under `kernel/commands/`
+- bounded intent-compilation entrypoints under `kernel/commands/`
+- repo-local compatibility wrappers under `scripts/`
 - bounded adjudication follow-up compiler/executor
 
 This runtime must stay registry-first:

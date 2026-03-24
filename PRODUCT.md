@@ -97,6 +97,11 @@ Today the product already provides:
   command subset
 - registry-owned governed bundle semantics for the implemented bounded bundle
   subset
+- one governed external-target single-assessment bundle that can draft scope,
+  rewrite the active round and task-contract, refresh the anchor, and run
+  assessment in one bounded flow
+- one bounded natural-language entry that compiles a narrow external-target
+  single-assessment request into that same governed bundle
 - control audit and worktree enforcement
 - assembled and role-specific contexts that surface active control state
 - bounded adjudication follow-up execution for the explicit safe subset
@@ -104,6 +109,9 @@ Today the product already provides:
 - host-repo bootstrap for disposable repos and frozen copied host snapshots
 - frozen-host adoption evidence that advances a host from "missing round
   authority" blocking to real scope/task enforcement blocking
+- one smoke-proven external-target shadow path that turns observed dirty paths
+  into adopted scope and then runs one governed single assessment without
+  mutating the target repo
 - a real dogfood/example sample that keeps the kernel pressure-tested on a live
   repository
 
@@ -167,7 +175,10 @@ Near-term product milestones:
   runtime
 - separate reusable kernel surfaces from `session-memory` dogfood/sample
   surfaces
-- turn frozen-host adoption evidence into live-host shadow mode without
-  mutating the host repo
+- strengthen package-facing proof for the current single-pass live-host shadow
+  assessment path without widening it into a general live-host mutation
+  contract
+- keep bounded intent compilation narrow and explicit instead of broadening
+  into free-form natural-language orchestration
 - validate the kernel on more non-self-hosted repositories before broadening
   automation
