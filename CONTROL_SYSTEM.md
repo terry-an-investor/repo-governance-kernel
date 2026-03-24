@@ -179,7 +179,9 @@ That registry-owned contract now includes:
 - required inputs
 - guard coverage
 - guard rendering semantics
+- write-target semantics
 - write-target coverage
+- transition-command side-effect semantics
 - durable owners
 - projection owners
 - artifact owners
@@ -229,7 +231,7 @@ Phase and round-scope changes are now first-class owner-layer transitions, not
 manual edits:
 
 - `set-phase` changes durable objective phase and active-objective projection together
-- objective-line plus phase commands consume one shared registry-backed owner-layer contract for declared inputs, guard coverage, write-target coverage, owner-layer coverage, and transition-event expectations
+- objective-line plus phase commands consume one shared registry-backed owner-layer contract for declared inputs, guard coverage, write-target semantics, transition-command side-effect semantics, write-target coverage, owner-layer coverage, and transition-event expectations
 - entering `execution` must already have one bounded round or bootstrap one in
   the same command
 - `refresh-round-scope` rewrites durable round `paths` from live dirty-path
@@ -240,6 +242,9 @@ manual edits:
 - round, exception-contract, and anchor-maintenance commands also consume the same shared registry-backed owner-layer assertion path
 - shared owner-layer consumers should discover implemented commands by registry
   domain instead of maintaining private per-domain command lists
+- shared owner-layer consumers should validate command side-effect coverage
+  against registry-owned write-target and owner semantics instead of keeping
+  private write-target allowlists
 - `audit_control_state` now warns when any shared domain consumer drifts from the semantic transition registry
 
 ## Precision Surfaces

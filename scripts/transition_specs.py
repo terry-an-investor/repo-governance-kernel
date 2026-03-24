@@ -34,6 +34,42 @@ class GuardSpec:
 
 
 @dataclass(frozen=True)
+class WriteTargetSpec:
+    target: str
+    surface: str
+    owner_bucket: str = "none"
+    owner_labels: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "target": self.target,
+            "surface": self.surface,
+            "owner_bucket": self.owner_bucket,
+            "owner_labels": list(self.owner_labels),
+        }
+
+
+@dataclass(frozen=True)
+class TransitionSideEffectSpec:
+    code: str
+    write_targets: tuple[str, ...] = ()
+    durable_owners: tuple[str, ...] = ()
+    projection_owners: tuple[str, ...] = ()
+    artifact_owners: tuple[str, ...] = ()
+    live_inspection_owners: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "code": self.code,
+            "write_targets": list(self.write_targets),
+            "durable_owners": list(self.durable_owners),
+            "projection_owners": list(self.projection_owners),
+            "artifact_owners": list(self.artifact_owners),
+            "live_inspection_owners": list(self.live_inspection_owners),
+        }
+
+
+@dataclass(frozen=True)
 class TransitionCommandSpec:
     name: str
     domain: str
@@ -102,6 +138,68 @@ SUPPORTED_ARTIFACT_OWNER_LABELS = {
 SUPPORTED_LIVE_INSPECTION_OWNER_LABELS = {
     "workspace:git-status",
 }
+
+
+WRITE_TARGET_SPECS: tuple[WriteTargetSpec, ...] = (
+    WriteTargetSpec("durable:objective", "durable", "durable", ("memory:objective",)),
+    WriteTargetSpec("durable:pivot", "durable", "durable", ("memory:pivot",)),
+    WriteTargetSpec("durable:round", "durable", "durable", ("memory:round",)),
+    WriteTargetSpec("durable:exception-contract", "durable", "durable", ("memory:exception-contract",)),
+    WriteTargetSpec("control:active-objective", "projection", "projection", ("control:active-objective",)),
+    WriteTargetSpec("control:pivot-log", "projection", "projection", ("control:pivot-log",)),
+    WriteTargetSpec("control:active-round", "projection", "projection", ("control:active-round",)),
+    WriteTargetSpec("control:exception-ledger", "projection", "projection", ("control:exception-ledger",)),
+    WriteTargetSpec("current:current-task", "current", "durable", ("current:current-task",)),
+    WriteTargetSpec("artifact:live-workspace-projection", "artifact", "artifact", ("artifact:live-workspace-projection",)),
+    WriteTargetSpec("snapshot:historical", "snapshot", "artifact", ("snapshot:historical",)),
+    WriteTargetSpec("memory:transition-event", "event"),
+)
+
+
+TRANSITION_SIDE_EFFECT_SPECS: tuple[TransitionSideEffectSpec, ...] = (
+    TransitionSideEffectSpec("activate_objective_line", ("durable:objective",), durable_owners=("memory:objective",)),
+    TransitionSideEffectSpec("refresh_active_objective_projection", ("control:active-objective",), projection_owners=("control:active-objective",)),
+    TransitionSideEffectSpec("refresh_pivot_log_projection", ("control:pivot-log",), projection_owners=("control:pivot-log",)),
+    TransitionSideEffectSpec("close_active_objective", ("durable:objective",), durable_owners=("memory:objective",)),
+    TransitionSideEffectSpec("rewrite_active_objective_in_place", ("durable:objective",), durable_owners=("memory:objective",)),
+    TransitionSideEffectSpec("record_pivot_lineage", ("durable:pivot",), durable_owners=("memory:pivot",)),
+    TransitionSideEffectSpec("force_explicit_round_review_path"),
+    TransitionSideEffectSpec("supersede_previous_objective", ("durable:objective",), durable_owners=("memory:objective",)),
+    TransitionSideEffectSpec("activate_new_objective_line", ("durable:objective",), durable_owners=("memory:objective",)),
+    TransitionSideEffectSpec("review_or_resolve_stale_exception_contracts"),
+    TransitionSideEffectSpec("rewrite_objective_phase", ("durable:objective",), durable_owners=("memory:objective",)),
+    TransitionSideEffectSpec("optionally_bootstrap_execution_round", ("control:active-round",), projection_owners=("control:active-round",)),
+    TransitionSideEffectSpec("optionally_rewrite_open_rounds", ("control:active-round",), projection_owners=("control:active-round",)),
+    TransitionSideEffectSpec("open_bounded_execution_round", ("durable:round",), durable_owners=("memory:round",)),
+    TransitionSideEffectSpec("refresh_active_round_projection", ("control:active-round",), projection_owners=("control:active-round",)),
+    TransitionSideEffectSpec("rewrite_round_scope_paths", ("durable:round",), durable_owners=("memory:round",)),
+    TransitionSideEffectSpec("preserve_round_identity"),
+    TransitionSideEffectSpec("advance_round_lifecycle_state", ("durable:round",), durable_owners=("memory:round",)),
+    TransitionSideEffectSpec("record_blocker_or_validation_history", ("durable:round",), durable_owners=("memory:round",)),
+    TransitionSideEffectSpec("rewrite_open_round_contract", ("durable:round",), durable_owners=("memory:round",)),
+    TransitionSideEffectSpec("record_active_exception_contract", ("durable:exception-contract",), durable_owners=("memory:exception-contract",)),
+    TransitionSideEffectSpec("refresh_exception_ledger_projection", ("control:exception-ledger",), projection_owners=("control:exception-ledger",)),
+    TransitionSideEffectSpec("retire_exception_contract", ("durable:exception-contract",), durable_owners=("memory:exception-contract",)),
+    TransitionSideEffectSpec("invalidate_exception_contract", ("durable:exception-contract",), durable_owners=("memory:exception-contract",)),
+    TransitionSideEffectSpec(
+        "refresh_current_task_control_locator",
+        ("current:current-task",),
+        durable_owners=("current:current-task",),
+        live_inspection_owners=("workspace:git-status",),
+    ),
+    TransitionSideEffectSpec(
+        "render_live_workspace_projection",
+        ("artifact:live-workspace-projection",),
+        artifact_owners=("artifact:live-workspace-projection",),
+        live_inspection_owners=("workspace:git-status",),
+    ),
+    TransitionSideEffectSpec(
+        "capture_phase_or_handoff_snapshot",
+        ("snapshot:historical",),
+        artifact_owners=("snapshot:historical",),
+        live_inspection_owners=("workspace:git-status",),
+    ),
+)
 
 
 GUARD_SPECS: tuple[GuardSpec, ...] = (
@@ -301,7 +399,13 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
             "round_review_path_explicit_when_objective_shape_changes",
         ),
         write_targets=("durable:objective", "durable:pivot", "control:active-objective", "control:pivot-log", "memory:transition-event"),
-        side_effect_codes=("rewrite_active_objective_in_place", "record_pivot_lineage", "force_explicit_round_review_path"),
+        side_effect_codes=(
+            "rewrite_active_objective_in_place",
+            "record_pivot_lineage",
+            "refresh_active_objective_projection",
+            "refresh_pivot_log_projection",
+            "force_explicit_round_review_path",
+        ),
         durable_owners=("memory:objective", "memory:pivot"),
         projection_owners=("control:active-objective", "control:pivot-log"),
     ),
@@ -317,7 +421,14 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
             "no_open_rounds_on_previous_objective",
         ),
         write_targets=("durable:objective", "durable:pivot", "control:active-objective", "control:pivot-log", "memory:transition-event"),
-        side_effect_codes=("supersede_previous_objective", "activate_new_objective_line", "review_or_resolve_stale_exception_contracts"),
+        side_effect_codes=(
+            "supersede_previous_objective",
+            "activate_new_objective_line",
+            "record_pivot_lineage",
+            "refresh_active_objective_projection",
+            "refresh_pivot_log_projection",
+            "review_or_resolve_stale_exception_contracts",
+        ),
         durable_owners=("memory:objective", "memory:pivot"),
         projection_owners=("control:active-objective", "control:pivot-log"),
     ),
@@ -329,7 +440,12 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         required_inputs=("project_id", "phase", "reason"),
         guard_codes=("phase_supported", "phase_transition_prerequisites_met", "execution_phase_has_or_bootstraps_round"),
         write_targets=("durable:objective", "control:active-objective", "control:active-round", "memory:transition-event"),
-        side_effect_codes=("rewrite_objective_phase", "optionally_bootstrap_execution_round", "optionally_rewrite_open_rounds"),
+        side_effect_codes=(
+            "rewrite_objective_phase",
+            "refresh_active_objective_projection",
+            "optionally_bootstrap_execution_round",
+            "optionally_rewrite_open_rounds",
+        ),
         durable_owners=("memory:objective",),
         projection_owners=("control:active-objective", "control:active-round"),
     ),
@@ -639,25 +755,159 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
 )
 
 
+WRITE_TARGET_SPEC_BY_NAME = {spec.target: spec for spec in WRITE_TARGET_SPECS}
+TRANSITION_SIDE_EFFECT_SPEC_BY_CODE = {spec.code: spec for spec in TRANSITION_SIDE_EFFECT_SPECS}
 GUARD_SPEC_BY_CODE = {spec.code: spec for spec in GUARD_SPECS}
 COMMAND_SPEC_BY_NAME = {spec.name: spec for spec in TRANSITION_COMMAND_SPECS}
 PLAN_SPEC_BY_TYPE = {spec.plan_type: spec for spec in ADJUDICATION_PLAN_SPECS}
 
 
+def _owner_labels_for_command(spec: TransitionCommandSpec, owner_bucket: str) -> set[str]:
+    if owner_bucket == "durable":
+        return set(spec.durable_owners)
+    if owner_bucket == "projection":
+        return set(spec.projection_owners)
+    if owner_bucket == "artifact":
+        return set(spec.artifact_owners)
+    return set()
+
+
+def validate_transition_command_semantics(spec: TransitionCommandSpec) -> None:
+    declared_write_targets = set(spec.write_targets)
+    non_event_write_targets = {
+        target
+        for target in declared_write_targets
+        if WRITE_TARGET_SPEC_BY_NAME[target].surface != "event"
+    }
+    covered_write_targets: set[str] = set()
+
+    covered_owner_labels = {
+        "durable": set(),
+        "projection": set(),
+        "artifact": set(),
+        "live inspection": set(),
+    }
+
+    for target in declared_write_targets:
+        target_spec = WRITE_TARGET_SPEC_BY_NAME[target]
+        expected_owner_labels = set(target_spec.owner_labels)
+        command_owner_labels = _owner_labels_for_command(spec, target_spec.owner_bucket)
+        if not expected_owner_labels.issubset(command_owner_labels):
+            missing = ", ".join(sorted(expected_owner_labels - command_owner_labels))
+            raise SystemExit(
+                f"transition command `{spec.name}` writes `{target}` but does not declare owner labels `{missing}`"
+            )
+
+    for code in spec.side_effect_codes:
+        side_effect = TRANSITION_SIDE_EFFECT_SPEC_BY_CODE[code]
+        if not set(side_effect.write_targets).issubset(declared_write_targets):
+            unsupported_targets = ", ".join(sorted(set(side_effect.write_targets) - declared_write_targets))
+            raise SystemExit(
+                f"transition command `{spec.name}` side effect `{code}` reaches undeclared write targets: {unsupported_targets}"
+            )
+        covered_write_targets.update(side_effect.write_targets)
+        covered_owner_labels["durable"].update(side_effect.durable_owners)
+        covered_owner_labels["projection"].update(side_effect.projection_owners)
+        covered_owner_labels["artifact"].update(side_effect.artifact_owners)
+        covered_owner_labels["live inspection"].update(side_effect.live_inspection_owners)
+
+        if not set(side_effect.durable_owners).issubset(spec.durable_owners):
+            raise SystemExit(
+                f"transition command `{spec.name}` side effect `{code}` reaches undeclared durable owners"
+            )
+        if not set(side_effect.projection_owners).issubset(spec.projection_owners):
+            raise SystemExit(
+                f"transition command `{spec.name}` side effect `{code}` reaches undeclared projection owners"
+            )
+        if not set(side_effect.artifact_owners).issubset(spec.artifact_owners):
+            raise SystemExit(
+                f"transition command `{spec.name}` side effect `{code}` reaches undeclared artifact owners"
+            )
+        if not set(side_effect.live_inspection_owners).issubset(spec.live_inspection_owners):
+            raise SystemExit(
+                f"transition command `{spec.name}` side effect `{code}` reaches undeclared live inspection owners"
+            )
+
+    uncovered_write_targets = sorted(non_event_write_targets - covered_write_targets)
+    if uncovered_write_targets:
+        raise SystemExit(
+            f"transition command `{spec.name}` does not cover non-event write targets through side-effect semantics: {', '.join(uncovered_write_targets)}"
+        )
+
+    for owner_bucket, command_owner_labels in [
+        ("durable", set(spec.durable_owners)),
+        ("projection", set(spec.projection_owners)),
+        ("artifact", set(spec.artifact_owners)),
+        ("live inspection", set(spec.live_inspection_owners)),
+    ]:
+        uncovered_labels = sorted(command_owner_labels - covered_owner_labels[owner_bucket])
+        if uncovered_labels:
+            raise SystemExit(
+                f"transition command `{spec.name}` does not cover {owner_bucket} owners through side-effect semantics: {', '.join(uncovered_labels)}"
+            )
+
+
 def validate_transition_specs() -> None:
     valid_implementation_statuses = {"implemented", "partial", "planned"}
+    valid_write_target_surfaces = {"durable", "projection", "current", "artifact", "snapshot", "event"}
+    valid_owner_buckets = {"durable", "projection", "artifact", "none"}
     owner_label_sets = {
         "durable": SUPPORTED_DURABLE_OWNER_LABELS,
         "projection": SUPPORTED_PROJECTION_OWNER_LABELS,
         "artifact": SUPPORTED_ARTIFACT_OWNER_LABELS,
         "live inspection": SUPPORTED_LIVE_INSPECTION_OWNER_LABELS,
     }
+    if len(WRITE_TARGET_SPEC_BY_NAME) != len(WRITE_TARGET_SPECS):
+        raise SystemExit("duplicate write targets found in transition registry")
+    if len(TRANSITION_SIDE_EFFECT_SPEC_BY_CODE) != len(TRANSITION_SIDE_EFFECT_SPECS):
+        raise SystemExit("duplicate transition side-effect codes found in transition registry")
     if len(GUARD_SPEC_BY_CODE) != len(GUARD_SPECS):
         raise SystemExit("duplicate guard codes found in transition registry")
     if len(COMMAND_SPEC_BY_NAME) != len(TRANSITION_COMMAND_SPECS):
         raise SystemExit("duplicate transition command names found in transition registry")
     if len(PLAN_SPEC_BY_TYPE) != len(ADJUDICATION_PLAN_SPECS):
         raise SystemExit("duplicate adjudication plan types found in transition registry")
+
+    for target_spec in WRITE_TARGET_SPECS:
+        if target_spec.surface not in valid_write_target_surfaces:
+            raise SystemExit(
+                f"write target `{target_spec.target}` uses unsupported surface `{target_spec.surface}`"
+            )
+        if target_spec.owner_bucket not in valid_owner_buckets:
+            raise SystemExit(
+                f"write target `{target_spec.target}` uses unsupported owner bucket `{target_spec.owner_bucket}`"
+            )
+        if target_spec.owner_bucket == "durable":
+            unsupported_labels = sorted(set(target_spec.owner_labels) - SUPPORTED_DURABLE_OWNER_LABELS)
+        elif target_spec.owner_bucket == "projection":
+            unsupported_labels = sorted(set(target_spec.owner_labels) - SUPPORTED_PROJECTION_OWNER_LABELS)
+        elif target_spec.owner_bucket == "artifact":
+            unsupported_labels = sorted(set(target_spec.owner_labels) - SUPPORTED_ARTIFACT_OWNER_LABELS)
+        else:
+            unsupported_labels = sorted(set(target_spec.owner_labels))
+        if unsupported_labels:
+            raise SystemExit(
+                f"write target `{target_spec.target}` declares unsupported owner labels: {', '.join(unsupported_labels)}"
+            )
+
+    known_write_targets = set(WRITE_TARGET_SPEC_BY_NAME)
+    for side_effect_spec in TRANSITION_SIDE_EFFECT_SPECS:
+        unknown_targets = sorted(set(side_effect_spec.write_targets) - known_write_targets)
+        if unknown_targets:
+            raise SystemExit(
+                f"transition side effect `{side_effect_spec.code}` declares unknown write targets: {', '.join(unknown_targets)}"
+            )
+        for owner_kind, declared_labels, allowed_labels in [
+            ("durable", set(side_effect_spec.durable_owners), SUPPORTED_DURABLE_OWNER_LABELS),
+            ("projection", set(side_effect_spec.projection_owners), SUPPORTED_PROJECTION_OWNER_LABELS),
+            ("artifact", set(side_effect_spec.artifact_owners), SUPPORTED_ARTIFACT_OWNER_LABELS),
+            ("live inspection", set(side_effect_spec.live_inspection_owners), SUPPORTED_LIVE_INSPECTION_OWNER_LABELS),
+        ]:
+            unsupported_labels = sorted(declared_labels - allowed_labels)
+            if unsupported_labels:
+                raise SystemExit(
+                    f"transition side effect `{side_effect_spec.code}` declares unsupported {owner_kind} owner labels: {', '.join(unsupported_labels)}"
+                )
 
     for spec in TRANSITION_COMMAND_SPECS:
         if spec.implementation_status not in valid_implementation_statuses:
@@ -675,15 +925,27 @@ def validate_transition_specs() -> None:
                 raise SystemExit(
                     f"transition command `{spec.name}` declares unsupported {owner_kind} owner labels: {', '.join(unsupported_labels)}"
                 )
+        unknown_write_targets = sorted(set(spec.write_targets) - known_write_targets)
+        if unknown_write_targets:
+            raise SystemExit(
+                f"transition command `{spec.name}` declares unknown write targets: {', '.join(unknown_write_targets)}"
+            )
         unknown_guard_codes = sorted(set(spec.guard_codes) - set(GUARD_SPEC_BY_CODE))
         if unknown_guard_codes:
             raise SystemExit(
                 f"transition command `{spec.name}` declares unknown guard codes: {', '.join(unknown_guard_codes)}"
             )
+        unknown_side_effect_codes = sorted(set(spec.side_effect_codes) - set(TRANSITION_SIDE_EFFECT_SPEC_BY_CODE))
+        if unknown_side_effect_codes:
+            raise SystemExit(
+                f"transition command `{spec.name}` declares unknown transition side-effect codes: {', '.join(unknown_side_effect_codes)}"
+            )
         if spec.emits_transition_event and "memory:transition-event" not in spec.write_targets and spec.implementation_status == "implemented":
             raise SystemExit(f"transition command `{spec.name}` emits transition events but does not declare `memory:transition-event`")
         if not spec.emits_transition_event and "memory:transition-event" in spec.write_targets:
             raise SystemExit(f"transition command `{spec.name}` declares `memory:transition-event` despite `emits_transition_event=False`")
+        if spec.implementation_status in {"implemented", "partial"}:
+            validate_transition_command_semantics(spec)
 
     known_commands = set(COMMAND_SPEC_BY_NAME)
     allowed_bundle_commands = {"round-close-chain"}
@@ -730,6 +992,22 @@ def transition_command_specs_for_domains(
     return [spec for spec in TRANSITION_COMMAND_SPECS if spec.domain in expected_domains]
 
 
+def write_target_spec(target: str) -> WriteTargetSpec:
+    validate_transition_specs()
+    spec = WRITE_TARGET_SPEC_BY_NAME.get(target.strip())
+    if spec is None:
+        raise SystemExit(f"unknown write target `{target}`")
+    return spec
+
+
+def transition_side_effect_spec(code: str) -> TransitionSideEffectSpec:
+    validate_transition_specs()
+    spec = TRANSITION_SIDE_EFFECT_SPEC_BY_CODE.get(code.strip())
+    if spec is None:
+        raise SystemExit(f"unknown transition side effect `{code}`")
+    return spec
+
+
 def semantic_transition_command_names() -> list[str]:
     validate_transition_specs()
     return [spec.name for spec in TRANSITION_COMMAND_SPECS if spec.has_semantic_contract()]
@@ -774,6 +1052,8 @@ def export_transition_registry() -> dict[str, object]:
     validate_transition_specs()
     return {
         "guard_semantics": [spec.to_dict() for spec in GUARD_SPECS],
+        "write_target_semantics": [spec.to_dict() for spec in WRITE_TARGET_SPECS],
+        "transition_side_effect_semantics": [spec.to_dict() for spec in TRANSITION_SIDE_EFFECT_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
     }

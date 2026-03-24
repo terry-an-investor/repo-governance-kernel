@@ -17,7 +17,13 @@ from assemble_context import (
     read_text,
 )
 from build_index import parse_evidence_refs, parse_frontmatter, parse_string_list, split_frontmatter
-from transition_specs import guard_spec, render_guard_text, transition_command_spec, transition_command_specs_for_domains
+from transition_specs import (
+    guard_spec,
+    render_guard_text,
+    transition_command_spec,
+    transition_command_specs_for_domains,
+    validate_transition_command_semantics,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,29 +36,6 @@ ROUND_STATUS_TRANSITIONS = {
     "captured": {"closed"},
     "closed": set(),
     "abandoned": set(),
-}
-ROUND_WRITE_TARGET_LABELS = {
-    "durable:round",
-    "control:active-round",
-    "memory:transition-event",
-}
-OBJECTIVE_PHASE_WRITE_TARGET_LABELS = {
-    "durable:objective",
-    "durable:pivot",
-    "control:active-objective",
-    "control:pivot-log",
-    "control:active-round",
-    "memory:transition-event",
-}
-EXCEPTION_CONTRACT_WRITE_TARGET_LABELS = {
-    "durable:exception-contract",
-    "control:exception-ledger",
-    "memory:transition-event",
-}
-ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS = {
-    "current:current-task",
-    "artifact:live-workspace-projection",
-    "snapshot:historical",
 }
 
 
@@ -263,7 +246,6 @@ def _assert_command_contract(
     domain_label: str,
     spec,
     provided_inputs: set[str],
-    allowed_write_targets: set[str],
     emits_transition_event: bool,
 ):
     missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
@@ -274,12 +256,7 @@ def _assert_command_contract(
 
     for guard_code in spec.guard_codes:
         guard_spec(guard_code)
-
-    unsupported_write_targets = sorted(set(spec.write_targets) - allowed_write_targets)
-    if unsupported_write_targets:
-        raise SystemExit(
-            f"{domain_label} command `{command_name}` declares unsupported write targets: {', '.join(unsupported_write_targets)}"
-        )
+    validate_transition_command_semantics(spec)
 
     if spec.emits_transition_event != emits_transition_event:
         raise SystemExit(
@@ -300,7 +277,6 @@ def assert_round_command_contract(
         domain_label="round-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
 
@@ -317,7 +293,6 @@ def assert_objective_phase_command_contract(
         domain_label="objective/phase-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
 
@@ -334,7 +309,6 @@ def assert_exception_contract_command_contract(
         domain_label="exception-contract-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
 
@@ -351,7 +325,6 @@ def assert_anchor_maintenance_command_contract(
         domain_label="anchor-maintenance-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
 
@@ -412,7 +385,6 @@ def _validate_domain_registry_contracts(
     expected_domains: set[str],
     domain_label: str,
     allowed_statuses: set[str],
-    allowed_write_targets: set[str],
 ) -> None:
     for spec in transition_command_specs_for_domains(expected_domains):
         command_name = spec.name
@@ -423,12 +395,9 @@ def _validate_domain_registry_contracts(
             raise SystemExit(
                 f"{domain_label} command `{command_name}` must remain in {rendered_statuses} while the shared helper consumes it"
             )
-        if not set(spec.write_targets).issubset(allowed_write_targets):
-            raise SystemExit(
-                f"{domain_label} command `{command_name}` declares unsupported write targets: {', '.join(sorted(set(spec.write_targets) - allowed_write_targets))}"
-            )
         for guard_code in spec.guard_codes:
             guard_spec(guard_code)
+        validate_transition_command_semantics(spec)
 
 
 def validate_round_domain_registry_contracts() -> None:
@@ -436,7 +405,6 @@ def validate_round_domain_registry_contracts() -> None:
         expected_domains={"round"},
         domain_label="round-domain",
         allowed_statuses={"implemented"},
-        allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
     )
 
 
@@ -445,7 +413,6 @@ def validate_objective_phase_domain_registry_contracts() -> None:
         expected_domains={"objective-line", "phase"},
         domain_label="objective/phase-domain",
         allowed_statuses={"implemented"},
-        allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
     )
 
 
@@ -454,7 +421,6 @@ def validate_exception_contract_domain_registry_contracts() -> None:
         expected_domains={"exception-contract"},
         domain_label="exception-contract-domain",
         allowed_statuses={"implemented"},
-        allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
     )
 
 
@@ -463,7 +429,6 @@ def validate_anchor_maintenance_domain_registry_contracts() -> None:
         expected_domains={"anchor-maintenance"},
         domain_label="anchor-maintenance-domain",
         allowed_statuses={"implemented", "partial"},
-        allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
     )
 
 

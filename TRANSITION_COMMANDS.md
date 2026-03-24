@@ -29,8 +29,10 @@ The registry still does not encode every full rewrite semantics, but it now owns
 - required inputs
 - guard codes
 - guard rendering semantics
+- write-target semantics
 - write targets
 - side-effect codes
+- transition-command side-effect semantics
 - durable owners
 - projection owners
 - artifact owners
@@ -756,9 +758,9 @@ Current implementation status:
 - transition-registry note:
   - the current owner-layer registry covers command names, domains,
     implementation status, required inputs, guard codes, guard rendering
-    semantics, write targets, side-effect codes, executor support,
-    adjudication plan families, and bounded adjudication payload-template
-    semantics
+    semantics, write-target semantics, write targets, side-effect codes,
+    transition-command side-effect semantics, executor support,
+    adjudication plan families, and bounded adjudication payload-template semantics
   - `audit-control-state` now warns if `TRANSITION_COMMANDS.md` documents command
     or plan names that the registry does not yet cover semantically
 
@@ -802,10 +804,13 @@ These slices already do these things:
 - update `control/active-objective.md`, `control/pivot-log.md`, `control/active-round.md`, and `control/exception-ledger.md`
 - make the objective-line plus phase command slice consume one shared
   registry-backed owner-layer contract for declared inputs, guard coverage,
-  guard rendering semantics, write-target coverage, and transition-event expectations
-- make the round command slice consume one shared registry-backed owner-layer contract for guard coverage, guard rendering semantics, write-target coverage, and transition-event expectations
+  guard rendering semantics, write-target semantics, transition-command side-effect semantics, write-target coverage, and transition-event expectations
+- make the round command slice consume one shared registry-backed owner-layer contract for guard coverage, guard rendering semantics, write-target semantics, transition-command side-effect semantics, write-target coverage, and transition-event expectations
 - discover implemented command membership from registry domains instead of
   maintaining private per-domain command sets in the shared helper
+- remove private write-target allowlists from shared domain helpers by making
+  command side-effect coverage validate against registry-owned write-target and
+  owner semantics
 - reject illegal round-status transitions
 - refuse hard pivots that would silently outrun a durable still-open round tied to the old objective
 - refuse opening a second active objective when a durable active objective already exists
