@@ -58,6 +58,10 @@ The immediate objective is:
   - leave `execution` for `paused` through an adjudication plan contract
   - rewrite the still-open round through the same governed `set-phase` primitive
   - keep compile/execute on registry-declared `set-phase` payload semantics instead of a phase-local private executor branch
+- `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded hard-pivot replacement compilation:
+  - compile one governed `round-close-chain-then-hard-pivot` payload from adjudication durable truth
+  - close one blocked predecessor round before recording the hard pivot
+  - leave the previous objective superseded and the successor objective active through the same bounded bundle family
 - `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded objective rewrite compilation:
   - compile one adjudication objective rewrite plan into `record-soft-pivot`
   - preserve objective identity while rewriting the active objective line
@@ -100,6 +104,7 @@ The immediate objective is:
   - `scripts/resolver_runtime.py` now owns the bounded round / task-contract / exception-contract target resolution helpers
   - bundle `state_resolver` names are now declared in `scripts/transition_specs.py` and consumed at runtime
   - adjudication `plan_spec.target_resolution` is now an explicit runtime gate instead of a doc-only registry field
+  - close-capable round target resolution and hard-pivot bundle state resolution now also live in the same shared runtime instead of bundle-local branching
 - round-domain commands now consume one shared registry-backed owner-layer helper for:
   - guard coverage
   - guard rendering semantics
@@ -144,6 +149,7 @@ The immediate objective is:
   - bundle route states are declared in `scripts/transition_specs.py`
   - bundle step templates are declared in `scripts/transition_specs.py`
   - `scripts/execute_adjudication_followups.py` now runs one generic governed-bundle engine instead of one private handler per bundle
+  - governed bundle steps can now also compose other governed bundles through the same owner-layer execution path instead of falling back to private nested orchestration
 - more already-implemented primitive commands now also declare executor payload semantics:
   - `open-objective`
   - `record-hard-pivot`
@@ -327,6 +333,7 @@ The immediate objective is:
   - invalidate an active exception contract through a bounded exception plan contract
   - enter execution and open one bounded round through a bounded phase-side-effect plan contract
   - leave execution and rewrite one still-open round through a bounded phase fallback plan contract
+  - close one blocked predecessor round and then record one hard pivot through a bounded replacement bundle plan contract
   - open a successor round from adjudication bootstrap fields
   - block one prose-only follow-up instead of guessing a durable rewrite
   - finish with clean control audit
@@ -415,15 +422,16 @@ The immediate objective is:
   rewrite plans automatically beyond explicit bounded command contracts.
 - The new adjudication compiler will still be narrow at first:
   - only supported bounded plan types should compile
-  - hard-pivot replacement bundles and broader multi-object verdict execution still remain outside the safe automatic subset
+  - broader multi-object verdict execution still remains outside the safe automatic subset
 - Exception-contract plan resolution is now more capable, but it still assumes
   one adjudication object set maps deterministically to a bounded set of active
   exception contracts; broader mixed-object verdict plans still need clearer
   contracts before they should compile automatically.
 - Phase-side-effect planning now compiles execution bootstrap honestly, but it
-  now also covers bounded execution fallback with open-round rewrite, but
-  broader multi-round replacement and hard-pivot-driven rewrite bundles still
-  remain outside the bounded automatic subset.
+  now also covers bounded execution fallback with open-round rewrite, while
+  hard-pivot replacement now has one bounded predecessor-round close-chain path;
+  broader multi-round replacement bundles still remain outside the bounded
+  automatic subset.
 - The new harness law now governs disposable fixture project leakage, but it
   still only checks declared fixture paths; richer contamination classes such as
   shared artifact collisions or index reuse policy remain outside the current suite runner.
@@ -443,7 +451,7 @@ The immediate objective is:
   overclaimed autonomous rewrite product.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
-  - round scope refresh and round rewrite now exist, but broader multi-round replacement or hard-pivot-driven rewrite bundles still are not automatic
+  - round scope refresh, bounded phase fallback, and one bounded hard-pivot replacement bundle now exist, but broader multi-round replacement still is not automatic
 - Phase transitions are now explicit, but phase-side effects are still conservative:
   - the system records review notes, optional bootstrap, and bounded round rewrites, but it still does not auto-close or auto-re-scope open rounds without explicit rewrite inputs
 
@@ -455,10 +463,9 @@ The immediate objective is:
    drifting silently.
 3. Continue broadening bounded plan and bundle families only where the
    underlying command semantics are already registry-owned and auditable.
-4. Register the next bounded family around broader bundle admission and
-   multi-object adjudication surfaces without introducing private bundle
-   semantics.
+4. Register the next bounded family around broader multi-object adjudication
+   surfaces without introducing private bundle semantics.
 5. Decide which additional resolver families deserve first-class machine
-   semantics before expanding toward broader multi-round replacement behavior.
+   semantics before expanding beyond one predecessor-round replacement path.
 6. Validate the product on more non-self-hosted repositories after the product
    positioning and owner-layer contracts stabilize.

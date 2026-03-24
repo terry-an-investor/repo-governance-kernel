@@ -60,6 +60,7 @@ The current milestone also adds one first enforcement owner layer:
 The current governed bundle wrappers include:
 
 - `round-close-chain`
+- `round-close-chain-then-hard-pivot`
 
 ## Design Position
 
@@ -892,9 +893,16 @@ Current implementation status:
   contract mutation without changing round identity
 - `round-close-chain` is the first bounded multi-step bundle:
   - reuses legal `update-round-status` transitions only
+  - supports `blocked -> active -> validation_pending -> captured -> closed`
   - supports `active -> validation_pending -> captured -> closed`
   - supports resuming from `validation_pending` or `captured`
   - refuses unsupported starting statuses instead of improvising
+  - remains a governed bundle wrapper, not a primitive transition command
+- `round-close-chain-then-hard-pivot` is the first bounded replacement bundle:
+  - reuses governed `round-close-chain` plus `record-hard-pivot`
+  - closes one predecessor round before the hard pivot runs
+  - can resume from a still-open predecessor round or no-op once the previous
+    objective is already superseded
   - remains a governed bundle wrapper, not a primitive transition command
 - bounded exception-contract plan bundles can target active exception contracts
   through adjudication `Objects Invalidated` when the mapping stays
@@ -944,12 +952,19 @@ Current implementation status:
   so adjudication can move an objective out of `execution` while rewriting the
   still-open round contract through the same governed phase primitive instead of
   inventing one phase-local private rewrite path
+- bounded hard-pivot replacement plans can now also compile one governed
+  `round-close-chain-then-hard-pivot` payload so adjudication can close the
+  predecessor round before recording the hard pivot instead of hand-authoring
+  nested round-close plus hard-pivot payloads
 - can rerun control audit after those follow-ups
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly
 - can move one execution objective into `paused` or `exploration` through
   adjudication when the follow-up stays inside explicit `set-phase` plus
   bounded open-round rewrite semantics
+- can close one predecessor round and then record one hard pivot through
+  adjudication when the follow-up stays inside explicit governed close-chain
+  plus `record-hard-pivot` semantics
 - treats an already-open aligned round as `noop` instead of reopening it
 - reports prose-only, unsupported, or underspecified follow-ups as blocked instead of
   pretending they were executed
@@ -1045,8 +1060,8 @@ It does not yet implement:
 
 - adjudication-driven automatic follow-up rewrites beyond the explicit bounded
   command subset already encoded in `executor_followups`
-- hard-pivot-driven automatic round rewrites or broader multi-round replacement
-  bundles
+- broader multi-round replacement bundles beyond one predecessor-round
+  close-chain plus hard pivot
 
 ## Explicit Non-Goal
 

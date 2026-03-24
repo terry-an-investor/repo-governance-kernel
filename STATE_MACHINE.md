@@ -460,6 +460,9 @@ Current implementation already does these things:
   - can also compile one bounded phase fallback bundle that leaves `execution`
     for `paused` or `exploration` through `set-phase` while rewriting the
     still-open round contract through the same governed phase primitive
+  - can also compile one bounded hard-pivot replacement bundle that closes one
+    predecessor round through governed close-chain semantics before recording
+    the hard pivot through the existing objective primitive
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states
@@ -505,9 +508,8 @@ Current implementation does not yet do these things:
 - apply adjudication verdicts as a fully general automatic rewrite engine
 - infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
 - infer objective, task-contract, or round rewrite targets from ambiguous multi-object verdicts
-- auto-close or re-scope active rounds when an allowed hard pivot demands it
-- auto-invalidate or automatically replace stale round contracts after hard pivots
-  or broader verdict bundles without an explicit rewrite contract
+- auto-invalidate or automatically replace stale round contracts after broader
+  multi-round verdict bundles without an explicit rewrite contract
 - enforce the same worktree gate before every repository mutation path such as commit or push
 - cover objective, pivot, round, task-contract, and exception-contract domains with the same unified enforcement depth
 - provide a richer harness integration layer for runtimes that do expose native hooks, without making correctness depend on them

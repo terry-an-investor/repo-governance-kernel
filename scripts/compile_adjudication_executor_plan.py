@@ -9,6 +9,7 @@ from resolver_runtime import (
     first_list,
     first_scalar,
     normalize_list as _normalize_list,
+    resolve_round_close_target_id,
     resolve_round_validated_by,
     resolve_target_exception_contract_ids,
     resolve_target_round_id,
@@ -147,6 +148,24 @@ def _resolve_round_target_id(
     )
 
 
+def _resolve_round_close_target_id(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return resolve_round_close_target_id(
+        project_id,
+        contract,
+        binding.source_keys,
+        adjudication_meta,
+        adjudication_sections,
+    )
+
+
 def _resolve_round_validated_by_list(
     project_id: str,
     *,
@@ -173,6 +192,7 @@ ADJUDICATION_BINDING_RESOLVERS = {
     "exception_contract_target_ids": _resolve_exception_contract_target_ids,
     "task_contract_target_ids": _resolve_task_contract_target_ids,
     "round_target_id": _resolve_round_target_id,
+    "round_close_target_id": _resolve_round_close_target_id,
     "round_validated_by_list": _resolve_round_validated_by_list,
 }
 
@@ -203,6 +223,22 @@ def _apply_plan_target_resolution(
         return
     if target_resolution == "resolve_active_exception_contracts_from_invalidated_objects":
         resolve_target_exception_contract_ids(project_id, contract, tuple(), adjudication_sections)
+        return
+    if target_resolution == "explicit_or_adjudication_objective_and_round_close_target_context":
+        if not (
+            first_scalar(contract, ("previous_objective_id", "objective_id",))
+            or first_scalar(adjudication_meta, ("objective_id",))
+        ):
+            raise SystemExit(
+                f"executor plan `{plan_spec.plan_type}` could not resolve previous objective target from explicit input or adjudication context"
+            )
+        resolve_round_close_target_id(
+            project_id,
+            contract,
+            ("round_id",),
+            adjudication_meta,
+            adjudication_sections,
+        )
         return
     raise SystemExit(f"unsupported adjudication plan target-resolution `{target_resolution}`")
 

@@ -8,7 +8,7 @@ from pathlib import Path
 from compile_adjudication_executor_plan import compile_plan_contracts
 from executor_command_builder import string_list
 from executor_runtime import run_registry_command
-from resolver_runtime import resolve_round_status_from_round_id
+from resolver_runtime import resolve_hard_pivot_bundle_state, resolve_round_status_from_round_id
 from round_control import (
     load_all_adjudications,
     parse_bullet_list,
@@ -218,6 +218,7 @@ def supported_executor_commands() -> set[str]:
 
 GOVERNED_BUNDLE_STATE_RESOLVERS = {
     "round_status_from_round_id": resolve_round_status_from_round_id,
+    "hard_pivot_bundle_state_from_previous_objective_and_round": resolve_hard_pivot_bundle_state,
 }
 
 
@@ -296,12 +297,15 @@ def execute_governed_bundle(project_id: str, payload: dict[str, object], bundle_
             payload,
             from_state=current_state,
         )
-        success, detail = run_registry_command(
-            project_id,
-            step_payload,
-            command_name,
-            failure_message="executor follow-up failed",
-        )
+        if command_name in bundle_governance_names():
+            success, detail = execute_governed_bundle(project_id, {"command": command_name, **step_payload}, command_name)
+        else:
+            success, detail = run_registry_command(
+                project_id,
+                step_payload,
+                command_name,
+                failure_message="executor follow-up failed",
+            )
         if not success:
             target_label = f"round `{round_id}`" if round_id else f"bundle `{bundle_name}` target"
             return False, f"{target_label} {step_label} failed: {detail}"

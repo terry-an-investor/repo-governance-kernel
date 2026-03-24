@@ -761,6 +761,7 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
 
 BUNDLE_EXECUTOR_FIELD_SPECS: tuple[BundleExecutorFieldSpec, ...] = (
     BundleExecutorFieldSpec("round-close-chain", "round_id", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain", "reactivation_reason", "scalar"),
     BundleExecutorFieldSpec("round-close-chain", "validation_pending_reason", "scalar"),
     BundleExecutorFieldSpec("round-close-chain", "captured_reason", "scalar"),
     BundleExecutorFieldSpec("round-close-chain", "closed_reason", "scalar"),
@@ -768,6 +769,32 @@ BUNDLE_EXECUTOR_FIELD_SPECS: tuple[BundleExecutorFieldSpec, ...] = (
     BundleExecutorFieldSpec("round-close-chain", "blocker", "list"),
     BundleExecutorFieldSpec("round-close-chain", "risk", "list"),
     BundleExecutorFieldSpec("round-close-chain", "clear_blockers", "bool"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "round_id", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "reactivation_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "validation_pending_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "captured_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "closed_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "validated_by", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "blocker", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "close_chain_risk", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "clear_blockers", "bool"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "previous_objective_id", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "title", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "summary", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "problem", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "success_criterion", "list", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "non_goal", "list", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "why_now", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "phase", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "trigger", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "pivot_title", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "evidence", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "retained_decision", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "invalidated_assumption", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "next_control_change", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "objective_risk", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "path", "list"),
+    BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "supersession_notes", "scalar"),
 )
 
 
@@ -780,6 +807,14 @@ BUNDLE_GOVERNANCE_SPECS: tuple[BundleGovernanceSpec, ...] = (
         state_resolver="round_status_from_round_id",
         required_validations=("scripts/smoke_adjudication_followups.py",),
     ),
+    BundleGovernanceSpec(
+        name="round-close-chain-then-hard-pivot",
+        bundle_kind="executor-wrapper",
+        purpose="Close one predecessor round through the governed close chain and then record one hard pivot without inventing private replacement semantics.",
+        composed_commands=("round-close-chain", "record-hard-pivot"),
+        state_resolver="hard_pivot_bundle_state_from_previous_objective_and_round",
+        required_validations=("scripts/smoke_adjudication_followups.py",),
+    ),
 )
 
 
@@ -788,18 +823,42 @@ BUNDLE_STATE_RESOLVER_SPECS: tuple[BundleStateResolverSpec, ...] = (
         "round_status_from_round_id",
         "Resolve the current bundle route state from the durable status of the target round referenced by `round_id`.",
     ),
+    BundleStateResolverSpec(
+        "hard_pivot_bundle_state_from_previous_objective_and_round",
+        "Resolve hard-pivot bundle state from the previous objective status plus the durable status of the target predecessor round.",
+    ),
 )
 
 
 BUNDLE_ROUTE_STATE_SPECS: tuple[BundleRouteStateSpec, ...] = (
+    BundleRouteStateSpec("round-close-chain", "blocked", required_payload_keys=("reactivation_reason", "validated_by", "validation_pending_reason", "captured_reason", "closed_reason")),
     BundleRouteStateSpec("round-close-chain", "active", required_payload_keys=("validated_by", "validation_pending_reason", "captured_reason", "closed_reason")),
     BundleRouteStateSpec("round-close-chain", "validation_pending", required_payload_keys=("validated_by", "captured_reason", "closed_reason")),
     BundleRouteStateSpec("round-close-chain", "captured", required_payload_keys=("closed_reason",)),
     BundleRouteStateSpec("round-close-chain", "closed", terminal=True),
+    BundleRouteStateSpec("round-close-chain-then-hard-pivot", "blocked", required_payload_keys=("reactivation_reason", "validated_by", "validation_pending_reason", "captured_reason", "closed_reason")),
+    BundleRouteStateSpec("round-close-chain-then-hard-pivot", "active", required_payload_keys=("validated_by", "validation_pending_reason", "captured_reason", "closed_reason")),
+    BundleRouteStateSpec("round-close-chain-then-hard-pivot", "validation_pending", required_payload_keys=("validated_by", "captured_reason", "closed_reason")),
+    BundleRouteStateSpec("round-close-chain-then-hard-pivot", "captured", required_payload_keys=("closed_reason",)),
+    BundleRouteStateSpec("round-close-chain-then-hard-pivot", "closed", required_payload_keys=("previous_objective_id", "title", "problem", "success_criterion", "non_goal", "why_now", "phase", "trigger")),
+    BundleRouteStateSpec("round-close-chain-then-hard-pivot", "pivoted", terminal=True),
 )
 
 
 BUNDLE_STEP_TEMPLATE_SPECS: tuple[BundleStepTemplateSpec, ...] = (
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain",
+        from_state="blocked",
+        to_state="active",
+        command_name="update-round-status",
+        label="blocked -> active",
+        static_scalar_fields=(("status", "active"),),
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("reason", "reactivation_reason"),
+            BundleStepBindingSpec("clear_blockers", "clear_blockers", "bool"),
+        ),
+    ),
     BundleStepTemplateSpec(
         bundle_name="round-close-chain",
         from_state="active",
@@ -840,6 +899,94 @@ BUNDLE_STEP_TEMPLATE_SPECS: tuple[BundleStepTemplateSpec, ...] = (
             BundleStepBindingSpec("reason", "closed_reason"),
         ),
     ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain-then-hard-pivot",
+        from_state="blocked",
+        to_state="closed",
+        command_name="round-close-chain",
+        label="blocked -> closed",
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("reactivation_reason", "reactivation_reason"),
+            BundleStepBindingSpec("validation_pending_reason", "validation_pending_reason"),
+            BundleStepBindingSpec("captured_reason", "captured_reason"),
+            BundleStepBindingSpec("closed_reason", "closed_reason"),
+            BundleStepBindingSpec("validated_by", "validated_by", "list"),
+            BundleStepBindingSpec("blocker", "blocker", "list"),
+            BundleStepBindingSpec("risk", "close_chain_risk", "list"),
+            BundleStepBindingSpec("clear_blockers", "clear_blockers", "bool"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain-then-hard-pivot",
+        from_state="active",
+        to_state="closed",
+        command_name="round-close-chain",
+        label="active -> closed",
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("validation_pending_reason", "validation_pending_reason"),
+            BundleStepBindingSpec("captured_reason", "captured_reason"),
+            BundleStepBindingSpec("closed_reason", "closed_reason"),
+            BundleStepBindingSpec("validated_by", "validated_by", "list"),
+            BundleStepBindingSpec("blocker", "blocker", "list"),
+            BundleStepBindingSpec("risk", "close_chain_risk", "list"),
+            BundleStepBindingSpec("clear_blockers", "clear_blockers", "bool"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain-then-hard-pivot",
+        from_state="validation_pending",
+        to_state="closed",
+        command_name="round-close-chain",
+        label="validation_pending -> closed",
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("captured_reason", "captured_reason"),
+            BundleStepBindingSpec("closed_reason", "closed_reason"),
+            BundleStepBindingSpec("validated_by", "validated_by", "list"),
+            BundleStepBindingSpec("blocker", "blocker", "list"),
+            BundleStepBindingSpec("risk", "close_chain_risk", "list"),
+            BundleStepBindingSpec("clear_blockers", "clear_blockers", "bool"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain-then-hard-pivot",
+        from_state="captured",
+        to_state="closed",
+        command_name="round-close-chain",
+        label="captured -> closed",
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("closed_reason", "closed_reason"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain-then-hard-pivot",
+        from_state="closed",
+        to_state="pivoted",
+        command_name="record-hard-pivot",
+        label="closed -> pivoted",
+        bindings=(
+            BundleStepBindingSpec("previous_objective_id", "previous_objective_id"),
+            BundleStepBindingSpec("title", "title"),
+            BundleStepBindingSpec("summary", "summary"),
+            BundleStepBindingSpec("problem", "problem"),
+            BundleStepBindingSpec("success_criterion", "success_criterion", "list"),
+            BundleStepBindingSpec("non_goal", "non_goal", "list"),
+            BundleStepBindingSpec("why_now", "why_now"),
+            BundleStepBindingSpec("phase", "phase"),
+            BundleStepBindingSpec("trigger", "trigger"),
+            BundleStepBindingSpec("pivot_title", "pivot_title"),
+            BundleStepBindingSpec("evidence", "evidence", "list"),
+            BundleStepBindingSpec("retained_decision", "retained_decision", "list"),
+            BundleStepBindingSpec("invalidated_assumption", "invalidated_assumption", "list"),
+            BundleStepBindingSpec("next_control_change", "next_control_change", "list"),
+            BundleStepBindingSpec("risk", "objective_risk", "list"),
+            BundleStepBindingSpec("path", "path", "list"),
+            BundleStepBindingSpec("supersession_notes", "supersession_notes"),
+        ),
+    ),
 )
 
 
@@ -863,6 +1010,10 @@ ADJUDICATION_TARGET_RESOLUTION_SPECS: tuple[AdjudicationTargetResolutionSpec, ..
     AdjudicationTargetResolutionSpec(
         "resolve_active_exception_contracts_from_invalidated_objects",
         "Resolve active exception contracts from adjudication invalidated objects.",
+    ),
+    AdjudicationTargetResolutionSpec(
+        "explicit_or_adjudication_objective_and_round_close_target_context",
+        "Resolve the previous objective from explicit input or adjudication context and resolve one round-close-capable target from explicit round id, invalidated objects, or that objective context.",
     ),
 )
 
@@ -890,6 +1041,10 @@ ADJUDICATION_BINDING_RESOLVER_SPECS: tuple[AdjudicationBindingResolverSpec, ...]
     AdjudicationBindingResolverSpec(
         "round_target_id",
         "Resolve one open round id from explicit input, adjudication invalidated objects, or objective context.",
+    ),
+    AdjudicationBindingResolverSpec(
+        "round_close_target_id",
+        "Resolve one round-close-capable round id from explicit input, adjudication invalidated objects, or objective context.",
     ),
     AdjudicationBindingResolverSpec(
         "round_validated_by_list",
@@ -950,6 +1105,14 @@ ADJUDICATION_PLAN_SIDE_EFFECT_SPECS: tuple[AdjudicationPlanSideEffectSpec, ...] 
     AdjudicationPlanSideEffectSpec(
         "rewrite_open_rounds_for_phase_fallback",
         "Rewrite still-open round contracts through the governed phase fallback surface.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "close_round_before_hard_pivot",
+        "Close one predecessor round through governed bundle semantics before the hard pivot runs.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "record_hard_pivot_after_round_close",
+        "Record one hard pivot after the predecessor round has been durably closed through the bounded bundle path.",
     ),
 )
 
@@ -1863,6 +2026,81 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
             ),
         ),
     ),
+    AdjudicationPlanSpec(
+        plan_type="close-round-and-record-hard-pivot",
+        compiled_commands=("round-close-chain-then-hard-pivot",),
+        requires_adjudication_fields=(
+            "title",
+            "problem",
+            "success_criterion",
+            "non_goal",
+            "why_now",
+            "phase",
+            "trigger",
+            "validation_pending_reason",
+            "captured_reason",
+            "closed_reason",
+        ),
+        target_resolution="explicit_or_adjudication_objective_and_round_close_target_context",
+        side_effect_codes=("close_round_before_hard_pivot", "record_hard_pivot_after_round_close"),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="round-close-chain-then-hard-pivot",
+                bindings=(
+                    AdjudicationPayloadBindingSpec("round_id", "round_close_target_id", ("round_id",), required=True),
+                    AdjudicationPayloadBindingSpec(
+                        "previous_objective_id",
+                        "contract_or_meta_scalar",
+                        ("previous_objective_id", "objective_id"),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "reactivation_reason",
+                        "contract_scalar",
+                        ("reactivation_reason",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "validation_pending_reason",
+                        "contract_scalar",
+                        ("validation_pending_reason",),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "captured_reason",
+                        "contract_scalar",
+                        ("captured_reason",),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "closed_reason",
+                        "contract_scalar",
+                        ("closed_reason",),
+                        required=True,
+                    ),
+                    AdjudicationPayloadBindingSpec("validated_by", "round_validated_by_list", ("validated_by",)),
+                    AdjudicationPayloadBindingSpec("clear_blockers", "contract_bool", ("clear_blockers",)),
+                    AdjudicationPayloadBindingSpec("blocker", "contract_list", ("close_chain_blocker",)),
+                    AdjudicationPayloadBindingSpec("close_chain_risk", "contract_list", ("close_chain_risk",)),
+                    AdjudicationPayloadBindingSpec("title", "contract_scalar", ("title",), required=True),
+                    AdjudicationPayloadBindingSpec("summary", "contract_scalar", ("summary",)),
+                    AdjudicationPayloadBindingSpec("problem", "contract_scalar", ("problem",), required=True),
+                    AdjudicationPayloadBindingSpec("success_criterion", "contract_list", ("success_criterion",), required=True),
+                    AdjudicationPayloadBindingSpec("non_goal", "contract_list", ("non_goal",), required=True),
+                    AdjudicationPayloadBindingSpec("why_now", "contract_scalar", ("why_now",), required=True),
+                    AdjudicationPayloadBindingSpec("phase", "contract_scalar", ("phase",), required=True),
+                    AdjudicationPayloadBindingSpec("trigger", "contract_scalar", ("trigger",), required=True),
+                    AdjudicationPayloadBindingSpec("pivot_title", "contract_scalar", ("pivot_title",)),
+                    AdjudicationPayloadBindingSpec("evidence", "contract_list", ("evidence",)),
+                    AdjudicationPayloadBindingSpec("retained_decision", "contract_list", ("retained_decision",)),
+                    AdjudicationPayloadBindingSpec("invalidated_assumption", "contract_list", ("invalidated_assumption",)),
+                    AdjudicationPayloadBindingSpec("next_control_change", "contract_list", ("next_control_change",)),
+                    AdjudicationPayloadBindingSpec("objective_risk", "contract_list", ("risk",)),
+                    AdjudicationPayloadBindingSpec("path", "contract_list", ("path",)),
+                    AdjudicationPayloadBindingSpec("supersession_notes", "contract_scalar", ("supersession_notes",)),
+                ),
+            ),
+        ),
+    ),
 )
 
 
@@ -2185,6 +2423,7 @@ def validate_transition_specs() -> None:
             payload_keys.add(field_spec.payload_key)
 
     valid_bundle_binding_value_kinds = {"scalar", "list", "bool"}
+    all_step_target_names = known_commands | set(BUNDLE_GOVERNANCE_SPEC_BY_NAME)
     for bundle_name, route_states in BUNDLE_ROUTE_STATES_BY_BUNDLE.items():
         if bundle_name not in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
             raise SystemExit(f"bundle route semantics reference unknown governed bundle `{bundle_name}`")
@@ -2218,12 +2457,15 @@ def validate_transition_specs() -> None:
                 raise SystemExit(
                     f"bundle `{bundle_name}` step template `{step_template.label}` ends at unknown state `{step_template.to_state}`"
                 )
-            if step_template.command_name not in known_commands:
+            if step_template.command_name not in all_step_target_names:
                 raise SystemExit(
                     f"bundle `{bundle_name}` step template `{step_template.label}` references unknown command `{step_template.command_name}`"
                 )
             stepped_from_states.add(step_template.from_state)
-            allowed_step_payload_keys = command_allowed_executor_payload_keys(step_template.command_name)
+            if step_template.command_name in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
+                allowed_step_payload_keys = bundle_allowed_payload_keys(step_template.command_name)
+            else:
+                allowed_step_payload_keys = command_allowed_executor_payload_keys(step_template.command_name)
             template_target_keys = {
                 key for key, _value in step_template.static_scalar_fields
             } | {
@@ -2265,12 +2507,15 @@ def validate_transition_specs() -> None:
             raise SystemExit(
                 f"bundle governance `{bundle_spec.name}` declares unknown bundle state resolver `{bundle_spec.state_resolver}`"
             )
-        unknown_composed_commands = sorted(set(bundle_spec.composed_commands) - known_commands)
+        known_governed_commands = known_commands | set(BUNDLE_GOVERNANCE_SPEC_BY_NAME)
+        unknown_composed_commands = sorted(set(bundle_spec.composed_commands) - known_governed_commands)
         if unknown_composed_commands:
             raise SystemExit(
                 f"bundle governance `{bundle_spec.name}` composes unknown transition commands: {', '.join(unknown_composed_commands)}"
             )
         for command_name in bundle_spec.composed_commands:
+            if command_name in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
+                continue
             command_spec = COMMAND_SPEC_BY_NAME[command_name]
             if not command_spec.executor_supported:
                 raise SystemExit(

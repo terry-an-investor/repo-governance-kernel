@@ -122,6 +122,9 @@ autonomous rewrite engine after a verdict is recorded.
   - can also compile bounded phase fallback plans that leave `execution`
     through the existing `set-phase` primitive while rewriting open-round
     contracts through declared owner-layer payload semantics
+  - can also compile one bounded hard-pivot replacement plan that closes one
+    predecessor round through governed bundle semantics before recording the
+    hard pivot through the existing objective primitive
   - now treats plan target-resolution names, binding resolvers, and plan
     side-effect names as explicit registry-owned machine semantics
   - now routes mutable rewrite executor commands through one shared

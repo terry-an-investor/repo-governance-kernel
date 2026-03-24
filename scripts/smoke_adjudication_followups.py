@@ -30,6 +30,8 @@ PHASE_BUNDLE_FIXTURE_PROJECT_ID = "__adjudication_phase_bundle_smoke__"
 PHASE_BUNDLE_FIXTURE_PROJECT_DIR = ROOT / "projects" / PHASE_BUNDLE_FIXTURE_PROJECT_ID
 PHASE_FALLBACK_FIXTURE_PROJECT_ID = "__adjudication_phase_fallback_smoke__"
 PHASE_FALLBACK_FIXTURE_PROJECT_DIR = ROOT / "projects" / PHASE_FALLBACK_FIXTURE_PROJECT_ID
+HARD_PIVOT_FIXTURE_PROJECT_ID = "__adjudication_hard_pivot_smoke__"
+HARD_PIVOT_FIXTURE_PROJECT_DIR = ROOT / "projects" / HARD_PIVOT_FIXTURE_PROJECT_ID
 
 
 def write_fixture_files() -> None:
@@ -281,6 +283,89 @@ def write_phase_fallback_fixture_files() -> None:
         encoding="utf-8",
     )
     ledger_path = PHASE_FALLBACK_FIXTURE_PROJECT_DIR / "control" / "exception-ledger.md"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(
+        "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
+
+
+def write_hard_pivot_fixture_files() -> None:
+    current_task_path = HARD_PIVOT_FIXTURE_PROJECT_DIR / "current" / "current-task.md"
+    current_task_path.parent.mkdir(parents=True, exist_ok=True)
+    current_task_path.write_text(
+        "\n".join(
+            [
+                "# Current Task",
+                "",
+                "## Goal",
+                "",
+                "Validate adjudication-driven hard pivot after governed predecessor-round closure on a disposable fixture project.",
+                "",
+                "## Current State",
+                "",
+                f"- Project: `{HARD_PIVOT_FIXTURE_PROJECT_ID}`",
+                "- Workspace id: `ws-adjudication-hard-pivot-smoke`",
+                f"- Workspace root: `{HARD_PIVOT_FIXTURE_PROJECT_DIR.as_posix()}`",
+                "- Branch: `master`",
+                "- HEAD anchor: `adjudication-hard-pivot-smoke`",
+                "",
+                "## Validated Facts",
+                "",
+                "- Fixture project is disposable and should be deleted after validation.",
+                "",
+                "## Active Risks",
+                "",
+                "- None recorded yet.",
+                "",
+                "## Next Steps",
+                "",
+                "- Use adjudication to close the predecessor round and then record a hard pivot through one governed bundle family.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    blockers_path = HARD_PIVOT_FIXTURE_PROJECT_DIR / "current" / "blockers.md"
+    blockers_path.parent.mkdir(parents=True, exist_ok=True)
+    blockers_path.write_text(
+        "# Blockers\n\n## Active\n\n- None recorded yet.\n\n## Waiting\n\n- None recorded yet.\n\n## Cleared\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
+    constitution_path = HARD_PIVOT_FIXTURE_PROJECT_DIR / "control" / "constitution.md"
+    constitution_path.parent.mkdir(parents=True, exist_ok=True)
+    constitution_path.write_text(
+        "\n".join(
+            [
+                "# Constitution",
+                "",
+                "## Product Boundaries",
+                "",
+                "- This fixture exists only to validate adjudication-driven hard-pivot replacement bundles.",
+                "",
+                "## Architecture Invariants",
+                "",
+                "- Hard pivot replacement should reuse existing round-close and record-hard-pivot contracts.",
+                "",
+                "## Quality Bar",
+                "",
+                "- Adjudication must compile hard pivot replacement from durable truth instead of hand-authored nested payload JSON.",
+                "",
+                "## Validation Rules",
+                "",
+                "- The fixture must close the predecessor round and then record the hard pivot through the bounded plan compiler path.",
+                "",
+                "## Forbidden Shortcuts",
+                "",
+                "- Do not preserve the fixture after validation.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    ledger_path = HARD_PIVOT_FIXTURE_PROJECT_DIR / "control" / "exception-ledger.md"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
     ledger_path.write_text(
         "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
@@ -1094,6 +1179,201 @@ def main() -> None:
         if phase_fallback_audit["summary"]["errors"] != 0:
             raise SystemExit("phase fallback fixture audit reported errors")
 
+        reset_fixture_repo(HARD_PIVOT_FIXTURE_PROJECT_DIR)
+        write_hard_pivot_fixture_files()
+        init_fixture_repo(HARD_PIVOT_FIXTURE_PROJECT_DIR, commit_message="Initialize adjudication hard-pivot fixture")
+
+        hard_pivot_objective_result = run_json(
+            "open_objective.py",
+            "--project-id",
+            HARD_PIVOT_FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable adjudication hard pivot predecessor objective",
+            "--problem",
+            "Validate that adjudication can close the predecessor round and then record a hard pivot through the bounded bundle family.",
+            "--success-criterion",
+            "Adjudication can compile predecessor-round closure plus hard pivot into one governed bundle payload.",
+            "--success-criterion",
+            "The same plan can leave the previous objective superseded and the successor objective active.",
+            "--non-goal",
+            "Hand-author a nested hard-pivot replacement executor payload.",
+            "--why-now",
+            "Hard-pivot replacement semantics should reuse the same governed round and objective primitives instead of inventing private bundle logic.",
+            "--phase",
+            "execution",
+            "--path",
+            "current/current-task.md",
+        )
+        hard_pivot_previous_objective_id = str(hard_pivot_objective_result["objective_id"])
+
+        hard_pivot_round_result = run_json(
+            "open_round.py",
+            "--project-id",
+            HARD_PIVOT_FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable hard pivot predecessor round",
+            "--scope-item",
+            "Prove that hard-pivot adjudication can close the predecessor round before replacing the objective line.",
+            "--deliverable",
+            "A disposable predecessor round that will be closed by the hard-pivot bundle.",
+            "--validation-plan",
+            "Drive the round through a governed close chain and then confirm the hard pivot durable state.",
+            "--scope-path",
+            "current/",
+            "--scope-path",
+            "control/",
+            "--scope-path",
+            "memory/",
+        )
+        hard_pivot_round_id = str(hard_pivot_round_result["round_id"])
+
+        run_json(
+            "update_round_status.py",
+            "--project-id",
+            HARD_PIVOT_FIXTURE_PROJECT_ID,
+            "--round-id",
+            hard_pivot_round_id,
+            "--status",
+            "blocked",
+            "--reason",
+            "The predecessor round is intentionally paused until adjudication decides whether to replace the objective line.",
+            "--blocker",
+            "Need governed close-chain plus hard-pivot bundle validation before replacement.",
+        )
+
+        hard_pivot_plan = json.dumps(
+            {
+                "plan_type": "close-round-and-record-hard-pivot",
+                "previous_objective_id": hard_pivot_previous_objective_id,
+                "reactivation_reason": "Adjudication resumes the predecessor round only to close it honestly before the hard pivot.",
+                "validation_pending_reason": "The predecessor round is ready for final validation before the objective line is replaced.",
+                "captured_reason": "The predecessor round was validated and can be captured before hard pivot replacement.",
+                "closed_reason": "The predecessor round must close before the objective line is superseded.",
+                "close_chain_risk": [
+                    "Objective replacement should not strand a predecessor round in open status."
+                ],
+                "clear_blockers": True,
+                "title": "Disposable adjudication hard pivot successor objective",
+                "summary": "A successor objective opened through the bounded hard-pivot adjudication bundle.",
+                "problem": "Replace the predecessor objective after its execution slice is durably closed.",
+                "success_criterion": [
+                    "The predecessor round is durably closed before the hard pivot executes.",
+                    "The successor objective becomes the active objective after the hard pivot.",
+                ],
+                "non_goal": [
+                    "Leave the predecessor objective active after replacement."
+                ],
+                "why_now": "The predecessor framing is done and the project needs a new objective line.",
+                "phase": "exploration",
+                "trigger": "The predecessor objective finished its bounded slice and a replacement objective is now required.",
+                "pivot_title": "Disposable governed hard pivot after predecessor-round closure",
+                "retained_decision": [
+                    "Keep the durable record that the predecessor round was completed before replacement."
+                ],
+                "invalidated_assumption": [
+                    "The predecessor objective should continue as the active mainline."
+                ],
+                "next_control_change": [
+                    "Open a new bounded round only after the successor objective is active."
+                ],
+                "risk": [
+                    "If bundle semantics drift, hard pivot could outrun predecessor-round closure."
+                ],
+                "path": [
+                    "current/current-task.md"
+                ],
+                "supersession_notes": "Recorded through the bounded hard-pivot adjudication bundle.",
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+        hard_pivot_adjudication_result = run_json(
+            "adjudicate_control_state.py",
+            "--project-id",
+            HARD_PIVOT_FIXTURE_PROJECT_ID,
+            "--allow-clean",
+            "--title",
+            "Disposable hard pivot adjudication follow-up execution smoke",
+            "--question",
+            "Can adjudication close the predecessor round and then record a hard pivot through one governed bundle family?",
+            "--verdict",
+            "Close the predecessor round and then record the hard pivot through the bounded hard-pivot replacement plan compiler path.",
+            "--retain-id",
+            hard_pivot_previous_objective_id,
+            "--invalidate-id",
+            hard_pivot_round_id,
+            "--executor-plan-json",
+            hard_pivot_plan,
+            "--follow-up",
+            "rerun audit-control-state",
+        )
+        hard_pivot_compile_result = run_json(
+            "compile_adjudication_executor_plan.py",
+            "--project-id",
+            HARD_PIVOT_FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(hard_pivot_adjudication_result["adjudication_id"]),
+        )
+        if int(hard_pivot_compile_result["compiled_followup_count"]) != 1:
+            raise SystemExit("hard-pivot plan compiler did not emit the expected governed bundle payload")
+        compiled_hard_pivot_payloads = hard_pivot_compile_result.get("compiled_followups") or []
+        if not compiled_hard_pivot_payloads:
+            raise SystemExit("hard-pivot plan compiler emitted no payloads")
+        compiled_hard_pivot_payload = compiled_hard_pivot_payloads[0]
+        if compiled_hard_pivot_payload.get("command") != "round-close-chain-then-hard-pivot":
+            raise SystemExit("hard-pivot plan compiler did not compile through the governed bundle")
+        if compiled_hard_pivot_payload.get("previous_objective_id") != hard_pivot_previous_objective_id:
+            raise SystemExit("hard-pivot plan compiler lost the previous objective target")
+
+        hard_pivot_execute_result = run_json(
+            "execute_adjudication_followups.py",
+            "--project-id",
+            HARD_PIVOT_FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(hard_pivot_adjudication_result["adjudication_id"]),
+        )
+        if hard_pivot_execute_result["blocked"]:
+            raise SystemExit(
+                f"hard-pivot plan execution reported blocked steps: {hard_pivot_execute_result['blocked']}"
+            )
+
+        hard_pivot_previous_objective_path = None
+        hard_pivot_successor_objective_path = None
+        hard_pivot_successor_objective_id = ""
+        for candidate in (HARD_PIVOT_FIXTURE_PROJECT_DIR / "memory" / "objectives").glob("*.md"):
+            candidate_meta, _candidate_sections = load_objective_file(candidate)
+            candidate_id = str(candidate_meta.get("id") or "").strip()
+            candidate_status = str(candidate_meta.get("status") or "").strip()
+            if candidate_id == hard_pivot_previous_objective_id:
+                hard_pivot_previous_objective_path = candidate
+                if candidate_status != "superseded":
+                    raise SystemExit("hard-pivot plan did not supersede the previous objective")
+            elif candidate_status == "active":
+                hard_pivot_successor_objective_path = candidate
+                hard_pivot_successor_objective_id = candidate_id
+        if hard_pivot_previous_objective_path is None:
+            raise SystemExit("hard-pivot plan lost the previous objective durable file")
+        if hard_pivot_successor_objective_path is None or not hard_pivot_successor_objective_id:
+            raise SystemExit("hard-pivot plan did not leave one active successor objective")
+
+        hard_pivot_round_path = locate_round_file(HARD_PIVOT_FIXTURE_PROJECT_ID, hard_pivot_round_id)
+        if hard_pivot_round_path is None:
+            raise SystemExit("hard-pivot predecessor round durable file disappeared")
+        hard_pivot_round_meta, _hard_pivot_round_sections = load_round_file(hard_pivot_round_path)
+        if str(hard_pivot_round_meta.get("status") or "").strip() != "closed":
+            raise SystemExit("hard-pivot plan did not close the predecessor round")
+
+        hard_pivot_pivots = list((HARD_PIVOT_FIXTURE_PROJECT_DIR / "memory" / "pivots").glob("*.md"))
+        if len(hard_pivot_pivots) != 1:
+            raise SystemExit("hard-pivot plan did not leave exactly one pivot record")
+        hard_pivot_pivot_meta, _hard_pivot_pivot_sections = load_pivot_file(hard_pivot_pivots[0])
+        if str(hard_pivot_pivot_meta.get("objective_id") or "").strip() != hard_pivot_successor_objective_id:
+            raise SystemExit("hard-pivot plan pivot record does not point at the successor objective")
+
+        hard_pivot_audit = run_json("audit_control_state.py", "--project-id", HARD_PIVOT_FIXTURE_PROJECT_ID)
+        if hard_pivot_audit["summary"]["errors"] != 0:
+            raise SystemExit("hard-pivot fixture audit reported errors")
+
         reset_fixture_repo(FIXTURE_PROJECT_DIR)
         write_fixture_files()
         init_fixture_repo(FIXTURE_PROJECT_DIR, commit_message="Initialize adjudication objective-rewrite fixture")
@@ -1257,6 +1537,9 @@ def main() -> None:
                     "execution_bootstrap_round_id": execution_bootstrap_round_id,
                     "phase_fallback_objective_id": phase_fallback_objective_id,
                     "phase_fallback_round_id": phase_fallback_round_id,
+                    "hard_pivot_previous_objective_id": hard_pivot_previous_objective_id,
+                    "hard_pivot_successor_objective_id": hard_pivot_successor_objective_id,
+                    "hard_pivot_round_id": hard_pivot_round_id,
                     "objective_rewrite_objective_id": objective_rewrite_objective_id,
                     "objective_rewrite_round_id": objective_rewrite_round_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
@@ -1265,6 +1548,7 @@ def main() -> None:
                     "invalidated_applied": invalidating_execute_result["applied"],
                     "execution_bootstrap_applied": execution_bootstrap_execute_result["applied"],
                     "phase_fallback_applied": phase_fallback_execute_result["applied"],
+                    "hard_pivot_applied": hard_pivot_execute_result["applied"],
                     "objective_rewrite_applied": objective_rewrite_execute_result["applied"],
                     "blocked": blocked_execute_result["blocked"],
                     "fixture_audit": final_boundary_audit["status"],
@@ -1277,6 +1561,7 @@ def main() -> None:
         reset_fixture_repo(FIXTURE_PROJECT_DIR)
         reset_fixture_repo(PHASE_BUNDLE_FIXTURE_PROJECT_DIR)
         reset_fixture_repo(PHASE_FALLBACK_FIXTURE_PROJECT_DIR)
+        reset_fixture_repo(HARD_PIVOT_FIXTURE_PROJECT_DIR)
 
 
 if __name__ == "__main__":
