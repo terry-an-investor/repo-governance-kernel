@@ -544,6 +544,16 @@ COMMAND_MUTABLE_FIELD_SPECS: tuple[CommandMutableFieldSpec, ...] = (
 
 
 COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
+    CommandExecutorFieldSpec("open-objective", "title", "title", "scalar", required=True),
+    CommandExecutorFieldSpec("open-objective", "summary", "summary", "scalar"),
+    CommandExecutorFieldSpec("open-objective", "problem", "problem", "scalar", required=True),
+    CommandExecutorFieldSpec("open-objective", "success_criterion", "success-criterion", "list", required=True),
+    CommandExecutorFieldSpec("open-objective", "non_goal", "non-goal", "list", required=True),
+    CommandExecutorFieldSpec("open-objective", "why_now", "why-now", "scalar", required=True),
+    CommandExecutorFieldSpec("open-objective", "phase", "phase", "scalar", required=True),
+    CommandExecutorFieldSpec("open-objective", "risk", "risk", "list"),
+    CommandExecutorFieldSpec("open-objective", "path", "path", "list"),
+    CommandExecutorFieldSpec("open-objective", "supersession_notes", "supersession-notes", "scalar"),
     CommandExecutorFieldSpec("close-objective", "objective_id", "objective-id", "scalar"),
     CommandExecutorFieldSpec("close-objective", "closing_status", "closing-status", "scalar", required=True),
     CommandExecutorFieldSpec("close-objective", "reason", "reason", "scalar", required=True),
@@ -591,6 +601,23 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("record-soft-pivot", "replace_round_scope_paths", "replace-round-scope-paths", "bool"),
     CommandExecutorFieldSpec("record-soft-pivot", "replace_round_risks", "replace-round-risks", "bool"),
     CommandExecutorFieldSpec("record-soft-pivot", "replace_round_blockers", "replace-round-blockers", "bool"),
+    CommandExecutorFieldSpec("record-hard-pivot", "previous_objective_id", "previous-objective-id", "scalar"),
+    CommandExecutorFieldSpec("record-hard-pivot", "title", "title", "scalar", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "summary", "summary", "scalar"),
+    CommandExecutorFieldSpec("record-hard-pivot", "problem", "problem", "scalar", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "success_criterion", "success-criterion", "list", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "non_goal", "non-goal", "list", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "why_now", "why-now", "scalar", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "phase", "phase", "scalar", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "trigger", "trigger", "scalar", required=True),
+    CommandExecutorFieldSpec("record-hard-pivot", "pivot_title", "pivot-title", "scalar"),
+    CommandExecutorFieldSpec("record-hard-pivot", "evidence", "evidence", "list"),
+    CommandExecutorFieldSpec("record-hard-pivot", "retained_decision", "retained-decision", "list"),
+    CommandExecutorFieldSpec("record-hard-pivot", "invalidated_assumption", "invalidated-assumption", "list"),
+    CommandExecutorFieldSpec("record-hard-pivot", "next_control_change", "next-control-change", "list"),
+    CommandExecutorFieldSpec("record-hard-pivot", "risk", "risk", "list"),
+    CommandExecutorFieldSpec("record-hard-pivot", "path", "path", "list"),
+    CommandExecutorFieldSpec("record-hard-pivot", "supersession_notes", "supersession-notes", "scalar"),
     CommandExecutorFieldSpec("update-round-status", "round_id", "round-id", "scalar", required=True),
     CommandExecutorFieldSpec("update-round-status", "status", "status", "scalar", required=True),
     CommandExecutorFieldSpec("update-round-status", "reason", "reason", "scalar", required=True),
@@ -606,6 +633,16 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("refresh-round-scope", "no_live_dirty_paths", "no-live-dirty-paths", "bool"),
     CommandExecutorFieldSpec("rewrite-open-round", "round_id", "round-id", "scalar"),
     CommandExecutorFieldSpec("rewrite-open-round", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "title", "title", "scalar", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "summary", "summary", "scalar"),
+    CommandExecutorFieldSpec("open-task-contract", "round_id", "round-id", "scalar"),
+    CommandExecutorFieldSpec("open-task-contract", "intent", "intent", "scalar", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "path", "path", "list", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "allowed_change", "allowed-change", "list", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "forbidden_change", "forbidden-change", "list", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "completion_criterion", "completion-criterion", "list", required=True),
+    CommandExecutorFieldSpec("open-task-contract", "risk", "risk", "list"),
+    CommandExecutorFieldSpec("open-task-contract", "status_note", "status-note", "scalar"),
     CommandExecutorFieldSpec("update-task-contract-status", "task_contract_id", "task-contract-id", "scalar", required=True),
     CommandExecutorFieldSpec("update-task-contract-status", "status", "status", "scalar", required=True),
     CommandExecutorFieldSpec("update-task-contract-status", "reason", "reason", "scalar", required=True),
@@ -629,6 +666,16 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("set-phase", "round_risk", "round-risk", "list"),
     CommandExecutorFieldSpec("set-phase", "round_blocker", "round-blocker", "list"),
     CommandExecutorFieldSpec("set-phase", "round_status_note", "round-status-note", "scalar"),
+    CommandExecutorFieldSpec("activate-exception-contract", "title", "title", "scalar", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "objective_id", "objective-id", "scalar"),
+    CommandExecutorFieldSpec("activate-exception-contract", "summary", "summary", "scalar", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "temporary_behavior", "temporary-behavior", "scalar", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "risk", "risk", "scalar", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "exit_condition", "exit-condition", "scalar", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "owner_scope", "owner-scope", "list", required=True),
+    CommandExecutorFieldSpec("activate-exception-contract", "path", "path", "list"),
+    CommandExecutorFieldSpec("activate-exception-contract", "evidence", "evidence", "list"),
     CommandExecutorFieldSpec("retire-exception-contract", "exception_contract_id", "exception-contract-id", "scalar", required=True),
     CommandExecutorFieldSpec("retire-exception-contract", "reason", "reason", "scalar", required=True),
     CommandExecutorFieldSpec("retire-exception-contract", "evidence", "evidence", "list"),
@@ -946,6 +993,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "open-objective",
         "objective-line",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "title", "problem", "success_criteria", "non_goals", "phase"),
         guard_codes=("objective_fields_present", "active_objective_phase_valid", "no_other_active_objective"),
@@ -999,6 +1047,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "record-hard-pivot",
         "objective-line",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "previous_objective_id", "title", "problem", "success_criteria", "non_goals", "phase", "trigger"),
         guard_codes=(
@@ -1123,6 +1172,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "open-task-contract",
         "task-contract",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=(
             "project_id",
@@ -1193,6 +1243,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "activate-exception-contract",
         "exception-contract",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "title", "summary", "reason", "temporary_behavior", "risk", "owner_scope", "exit_condition"),
         guard_codes=("active_objective_available", "exception_contract_required_fields_present"),
@@ -1970,7 +2021,7 @@ def validate_transition_specs() -> None:
             required_runtime_inputs = {
                 field_name for field_name in spec.required_inputs if field_name not in {"project_id", "mutable_fields"}
             }
-            covered_runtime_inputs = {field_spec.payload_key for field_spec in executor_specs}
+            covered_runtime_inputs = executor_runtime_inputs_covered(spec.name)
             missing_runtime_inputs = sorted(required_runtime_inputs - covered_runtime_inputs)
             if missing_runtime_inputs:
                 raise SystemExit(
@@ -2124,6 +2175,51 @@ def command_allowed_executor_payload_keys(command_name: str) -> set[str]:
     if "mutable_fields" in spec.required_inputs:
         allowed.update(command_allowed_mutation_payload_keys(normalized_name))
     return allowed
+
+
+def executor_runtime_inputs_covered(command_name: str) -> set[str]:
+    normalized_name = command_name.strip()
+    spec = COMMAND_SPEC_BY_NAME.get(normalized_name)
+    if spec is None:
+        raise SystemExit(f"unknown transition command `{command_name}`")
+    covered = {
+        field_spec.payload_key for field_spec in COMMAND_EXECUTOR_FIELDS_BY_COMMAND.get(normalized_name, ())
+    }
+    plural_runtime_aliases = {
+        "success_criterion": "success_criteria",
+        "non_goal": "non_goals",
+        "allowed_change": "allowed_changes",
+        "forbidden_change": "forbidden_changes",
+        "completion_criterion": "completion_criteria",
+        "path": "paths",
+        "owner_scope": "owner_scope",
+    }
+    for payload_key, runtime_key in plural_runtime_aliases.items():
+        if payload_key in covered:
+            covered.add(runtime_key)
+    return covered
+
+
+def normalize_runtime_input_keys(command_name: str, provided_inputs: set[str]) -> set[str]:
+    normalized_name = command_name.strip()
+    spec = COMMAND_SPEC_BY_NAME.get(normalized_name)
+    if spec is None:
+        raise SystemExit(f"unknown transition command `{command_name}`")
+    normalized = set(provided_inputs)
+    alias_pairs = (
+        ("success_criterion", "success_criteria"),
+        ("non_goal", "non_goals"),
+        ("allowed_change", "allowed_changes"),
+        ("forbidden_change", "forbidden_changes"),
+        ("completion_criterion", "completion_criteria"),
+        ("path", "paths"),
+    )
+    for singular_key, plural_key in alias_pairs:
+        if singular_key in normalized:
+            normalized.add(plural_key)
+        if plural_key in normalized:
+            normalized.add(singular_key)
+    return normalized
 
 
 def bundle_allowed_payload_keys(bundle_name: str) -> set[str]:

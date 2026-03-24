@@ -3,10 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
-from pathlib import Path
 
-from executor_command_builder import build_registry_executor_command
+from executor_runtime import run_registry_command_json
 from round_control import (
     OPEN_ROUND_STATUSES,
     active_objective_path,
@@ -25,7 +23,6 @@ from round_control import (
 
 
 ALLOWED_PHASES = {"exploration", "execution", "paused"}
-SCRIPTS_DIR = Path(__file__).resolve().parent
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,20 +67,12 @@ def _run_open_round(args: argparse.Namespace) -> dict[str, object]:
         "blocker": _clean_list(args.round_blocker),
         "status_note": args.round_status_note.strip(),
     }
-    cmd = build_registry_executor_command(args.project_id, payload, "open-round")
-    completed = subprocess.run(
-        cmd,
-        cwd=str(SCRIPTS_DIR.parent),
-        capture_output=True,
-        text=True,
-        check=False,
+    return run_registry_command_json(
+        args.project_id,
+        payload,
+        "open-round",
+        failure_message="auto-open-round failed",
     )
-    if completed.returncode != 0:
-        raise SystemExit(completed.stderr.strip() or completed.stdout.strip() or "auto-open-round failed")
-    try:
-        return json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"auto-open-round returned invalid json: {exc}") from exc
 
 
 def _run_rewrite_open_round(args: argparse.Namespace, round_id: str) -> dict[str, object]:
@@ -105,20 +94,12 @@ def _run_rewrite_open_round(args: argparse.Namespace, round_id: str) -> dict[str
         "replace_risks": bool(args.replace_round_risks),
         "replace_blockers": bool(args.replace_round_blockers),
     }
-    cmd = build_registry_executor_command(args.project_id, payload, "rewrite-open-round")
-    completed = subprocess.run(
-        cmd,
-        cwd=str(SCRIPTS_DIR.parent),
-        capture_output=True,
-        text=True,
-        check=False,
+    return run_registry_command_json(
+        args.project_id,
+        payload,
+        "rewrite-open-round",
+        failure_message="rewrite-open-round failed",
     )
-    if completed.returncode != 0:
-        raise SystemExit(completed.stderr.strip() or completed.stdout.strip() or "rewrite-open-round failed")
-    try:
-        return json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"rewrite-open-round returned invalid json: {exc}") from exc
 
 
 def main() -> int:

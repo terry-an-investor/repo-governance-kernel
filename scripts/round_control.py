@@ -18,6 +18,7 @@ from assemble_context import (
 )
 from build_index import parse_evidence_refs, parse_frontmatter, parse_string_list, split_frontmatter
 from transition_specs import (
+    normalize_runtime_input_keys,
     guard_spec,
     render_guard_text,
     transition_command_spec,
@@ -268,7 +269,8 @@ def _assert_command_contract(
     provided_inputs: set[str],
     emits_transition_event: bool,
 ):
-    missing_inputs = sorted(set(spec.required_inputs) - provided_inputs)
+    normalized_inputs = normalize_runtime_input_keys(command_name, provided_inputs)
+    missing_inputs = sorted(set(spec.required_inputs) - normalized_inputs)
     if missing_inputs:
         raise SystemExit(
             f"{domain_label} command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"

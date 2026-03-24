@@ -76,6 +76,9 @@ That means:
   in private executor or script branches
 - supported automatic executor commands should admit only registry-declared
   payload keys and CLI bindings
+- command contract assertions and executor payload coverage should normalize the
+  same command-facing alias pairs instead of drifting on singular/plural field
+  names
 - bundle wrappers are explicit exceptions:
   - they must be governed explicitly
   - executor bundle dispatch must go through one governed handler registry instead of private branches
@@ -914,6 +917,14 @@ Current implementation status:
   branches
 - `open-round` is now also executor-supported through the same registry-backed
   payload builder surface used by other bounded executor commands
+- nested command execution now also flows through one shared executor runtime
+  helper instead of each caller hand-rolling `subprocess + json` handling
+- additional already-implemented primitive commands now also declare
+  executor-supported payload semantics:
+  - `open-objective`
+  - `record-hard-pivot`
+  - `open-task-contract`
+  - `activate-exception-contract`
 - bounded phase-side-effect plans can compile `set-phase --auto-open-round`
   from the adjudication's existing round bootstrap fields instead of requiring
   one hand-authored low-level phase payload

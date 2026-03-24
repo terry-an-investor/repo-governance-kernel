@@ -470,6 +470,11 @@ Current implementation already does these things:
   - now routes bounded round bootstrap/open-round executor payloads through the
     same shared registry-backed executor path instead of one private phase-side
     builder branch
+  - now routes nested command execution through one shared executor runtime
+    helper instead of repeating per-caller subprocess/json handling
+  - now normalizes command-facing runtime-input aliases consistently across
+    contract assertions and executor coverage checks, so command consumers do
+    not drift on singular/plural payload names
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - now enforces explicit phase changes through:

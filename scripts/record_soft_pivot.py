@@ -3,10 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
-from pathlib import Path
 
-from executor_command_builder import build_registry_executor_command
+from executor_runtime import run_registry_command_json
 from round_control import (
     OPEN_ROUND_STATUSES,
     active_objective_path,
@@ -32,7 +30,6 @@ from round_control import (
 
 ALLOWED_PHASES = {"exploration", "execution"}
 OBJECTIVE_SHAPE_FIELDS = {"problem", "success_criteria", "non_goals", "why_now", "phase"}
-SCRIPTS_DIR = Path(__file__).resolve().parent
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,20 +105,12 @@ def _rewrite_open_round(args: argparse.Namespace, round_id: str, reason: str) ->
         "replace_risks": bool(args.replace_round_risks),
         "replace_blockers": bool(args.replace_round_blockers),
     }
-    cmd = build_registry_executor_command(args.project_id, payload, "rewrite-open-round")
-    completed = subprocess.run(
-        cmd,
-        cwd=str(SCRIPTS_DIR.parent),
-        capture_output=True,
-        text=True,
-        check=False,
+    return run_registry_command_json(
+        args.project_id,
+        payload,
+        "rewrite-open-round",
+        failure_message="rewrite-open-round failed during soft pivot",
     )
-    if completed.returncode != 0:
-        raise SystemExit(completed.stderr.strip() or completed.stdout.strip() or "rewrite-open-round failed during soft pivot")
-    try:
-        return json.loads(completed.stdout)
-    except json.JSONDecodeError as exc:
-        raise SystemExit(f"rewrite-open-round returned invalid json during soft pivot: {exc}") from exc
 
 
 def main() -> int:

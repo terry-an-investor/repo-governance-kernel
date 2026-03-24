@@ -103,6 +103,14 @@ The immediate objective is:
   - payload key admission
   - CLI flag binding
   - required runtime executor fields
+- command contract assertions and executor-surface validation now share one
+  runtime-input alias layer for command-facing pluralization differences such as:
+  - `success_criterion` / `success_criteria`
+  - `non_goal` / `non_goals`
+  - `allowed_change` / `allowed_changes`
+  - `forbidden_change` / `forbidden_changes`
+  - `completion_criterion` / `completion_criteria`
+  - `path` / `paths`
 - mutable rewrite executor command-building now also flows through one shared
   repo-owned builder:
   - `rewrite-open-round`
@@ -111,6 +119,15 @@ The immediate objective is:
 - `open-round` is now also on the executor-supported shared payload surface:
   - registry-owned executor payload fields now cover bounded round bootstrap inputs too
   - nested phase/bootstrap and soft-pivot follow-up consumers no longer need one private round-open CLI builder branch
+- nested command execution now also has one shared runtime layer:
+  - adjudication follow-up execution
+  - `set-phase` auto-open / rewrite-open-round follow-ups
+  - `record-soft-pivot` bounded round rewrite follow-up
+- more already-implemented primitive commands now also declare executor payload semantics:
+  - `open-objective`
+  - `record-hard-pivot`
+  - `open-task-contract`
+  - `activate-exception-contract`
 - bundle wrapper admission is now being pulled into one explicit governance
   surface so executor and plan validation stop carrying hidden bundle exception
   literals

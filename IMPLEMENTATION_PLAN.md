@@ -126,6 +126,11 @@ autonomous rewrite engine after a verdict is recorded.
     builder branch per command
   - now routes bounded round bootstrap/open-round executor payloads through the
     same shared registry-backed builder instead of phase-local CLI assembly
+  - now routes nested command execution through one shared executor runtime
+    helper instead of repeating per-caller subprocess/json handling
+  - now extends executor payload semantics to more already-implemented
+    primitive commands instead of leaving that coverage concentrated only on
+    rewrite/status paths
   - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
   - broader multi-round and multi-object adjudication replacement semantics

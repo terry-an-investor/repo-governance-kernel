@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
 
 from compile_adjudication_executor_plan import compile_plan_contracts
 from executor_command_builder import build_registry_executor_command as build_shared_registry_executor_command, string_list
+from executor_runtime import run_command, run_registry_command
 from round_control import (
     load_all_adjudications,
     load_round_file,
@@ -227,16 +227,7 @@ def build_update_round_status_command(
 
 
 def run_executor_command(cmd: list[str]) -> tuple[bool, str]:
-    completed = subprocess.run(
-        cmd,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if completed.returncode != 0:
-        return False, completed.stderr.strip() or completed.stdout.strip() or "executor follow-up failed"
-    return True, completed.stdout.strip()
+    return run_command(cmd, failure_message="executor follow-up failed")
 
 
 def build_round_close_chain_commands(project_id: str, payload: dict[str, object]) -> tuple[str, list[tuple[str, list[str]]]]:
@@ -435,43 +426,25 @@ def maybe_execute_open_round(args: argparse.Namespace, adjudication_meta: dict[s
     if not required_present:
         return False, "missing structured round bootstrap inputs in adjudication or CLI"
 
-    cmd = [
-        sys.executable,
-        str(SCRIPTS / "open_round.py"),
-        "--project-id",
+    success, detail = run_registry_command(
         args.project_id,
-        "--title",
-        str(bootstrap["title"]).strip(),
-        "--deliverable",
-        str(bootstrap["deliverable"]).strip(),
-        "--validation-plan",
-        str(bootstrap["validation_plan"]).strip(),
-    ]
-    for item in bootstrap["scope_items"]:
-        if str(item).strip():
-            cmd.extend(["--scope-item", str(item).strip()])
-    for item in bootstrap["scope_paths"]:
-        if str(item).strip():
-            cmd.extend(["--scope-path", str(item).strip()])
-    for item in bootstrap["risks"]:
-        if str(item).strip():
-            cmd.extend(["--risk", str(item).strip()])
-    for item in bootstrap["blockers"]:
-        if str(item).strip():
-            cmd.extend(["--blocker", str(item).strip()])
-    if str(bootstrap["status_note"]).strip():
-        cmd.extend(["--status-note", str(bootstrap["status_note"]).strip()])
-
-    completed = subprocess.run(
-        cmd,
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
+        {
+            "command": "open-round",
+            "title": str(bootstrap["title"]).strip(),
+            "scope_item": [str(item).strip() for item in bootstrap["scope_items"] if str(item).strip()],
+            "scope_path": [str(item).strip() for item in bootstrap["scope_paths"] if str(item).strip()],
+            "deliverable": str(bootstrap["deliverable"]).strip(),
+            "validation_plan": str(bootstrap["validation_plan"]).strip(),
+            "risk": [str(item).strip() for item in bootstrap["risks"] if str(item).strip()],
+            "blocker": [str(item).strip() for item in bootstrap["blockers"] if str(item).strip()],
+            "status_note": str(bootstrap["status_note"]).strip(),
+        },
+        "open-round",
+        failure_message="open-round failed",
     )
-    if completed.returncode != 0:
-        return False, completed.stderr.strip() or completed.stdout.strip() or "open-round failed"
-    return True, completed.stdout.strip()
+    if not success:
+        return False, detail
+    return True, detail
 
 
 def main() -> int:
