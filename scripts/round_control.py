@@ -385,12 +385,7 @@ def _assert_command_contract(
     domain_label: str,
     spec,
     provided_inputs: set[str],
-    satisfied_guard_codes: set[str],
-    write_targets: set[str],
-    durable_owners: set[str],
-    projection_owners: set[str],
-    artifact_owners: set[str],
-    live_inspection_owners: set[str],
+    guard_text_map: dict[str, object],
     allowed_write_targets: set[str],
     emits_transition_event: bool,
 ):
@@ -400,50 +395,17 @@ def _assert_command_contract(
             f"{domain_label} command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
         )
 
-    expected_guards = set(spec.guard_codes)
-    missing_guards = sorted(expected_guards - satisfied_guard_codes)
-    unexpected_guards = sorted(satisfied_guard_codes - expected_guards)
-    if missing_guards:
+    unsupported_guards = sorted(guard_code for guard_code in spec.guard_codes if guard_code not in guard_text_map)
+    if unsupported_guards:
         raise SystemExit(
-            f"{domain_label} command `{command_name}` is missing registry-declared guards: {', '.join(missing_guards)}"
-        )
-    if unexpected_guards:
-        raise SystemExit(
-            f"{domain_label} command `{command_name}` declared unexpected guard coverage outside the registry: {', '.join(unexpected_guards)}"
+            f"{domain_label} command `{command_name}` declares unsupported guard renderers: {', '.join(unsupported_guards)}"
         )
 
-    expected_write_targets = set(spec.write_targets)
-    missing_write_targets = sorted(expected_write_targets - write_targets)
-    unexpected_write_targets = sorted(write_targets - expected_write_targets)
-    if missing_write_targets:
+    unsupported_write_targets = sorted(set(spec.write_targets) - allowed_write_targets)
+    if unsupported_write_targets:
         raise SystemExit(
-            f"{domain_label} command `{command_name}` is missing registry-declared write targets: {', '.join(missing_write_targets)}"
+            f"{domain_label} command `{command_name}` declares unsupported write targets: {', '.join(unsupported_write_targets)}"
         )
-    if unexpected_write_targets:
-        raise SystemExit(
-            f"{domain_label} command `{command_name}` declared unexpected write targets outside the registry: {', '.join(unexpected_write_targets)}"
-        )
-    if not write_targets.issubset(allowed_write_targets):
-        raise SystemExit(
-            f"{domain_label} command `{command_name}` declared unsupported write targets: {', '.join(sorted(write_targets - allowed_write_targets))}"
-        )
-
-    for owner_kind, expected_labels, provided_labels in [
-        ("durable owners", set(spec.durable_owners), durable_owners),
-        ("projection owners", set(spec.projection_owners), projection_owners),
-        ("artifact owners", set(spec.artifact_owners), artifact_owners),
-        ("live inspection owners", set(spec.live_inspection_owners), live_inspection_owners),
-    ]:
-        missing_labels = sorted(expected_labels - provided_labels)
-        unexpected_labels = sorted(provided_labels - expected_labels)
-        if missing_labels:
-            raise SystemExit(
-                f"{domain_label} command `{command_name}` is missing registry-declared {owner_kind}: {', '.join(missing_labels)}"
-            )
-        if unexpected_labels:
-            raise SystemExit(
-                f"{domain_label} command `{command_name}` declared unexpected {owner_kind} outside the registry: {', '.join(unexpected_labels)}"
-            )
 
     if spec.emits_transition_event != emits_transition_event:
         raise SystemExit(
@@ -456,12 +418,6 @@ def assert_round_command_contract(
     command_name: str,
     *,
     provided_inputs: set[str],
-    satisfied_guard_codes: set[str],
-    write_targets: set[str],
-    durable_owners: set[str],
-    projection_owners: set[str],
-    artifact_owners: set[str],
-    live_inspection_owners: set[str],
     emits_transition_event: bool = True,
 ) -> object:
     spec = round_command_spec(command_name)
@@ -470,12 +426,7 @@ def assert_round_command_contract(
         domain_label="round-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        satisfied_guard_codes=satisfied_guard_codes,
-        write_targets=write_targets,
-        durable_owners=durable_owners,
-        projection_owners=projection_owners,
-        artifact_owners=artifact_owners,
-        live_inspection_owners=live_inspection_owners,
+        guard_text_map=ROUND_COMMAND_GUARD_TEXT,
         allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
@@ -485,12 +436,6 @@ def assert_objective_phase_command_contract(
     command_name: str,
     *,
     provided_inputs: set[str],
-    satisfied_guard_codes: set[str],
-    write_targets: set[str],
-    durable_owners: set[str],
-    projection_owners: set[str],
-    artifact_owners: set[str],
-    live_inspection_owners: set[str],
     emits_transition_event: bool = True,
 ) -> object:
     spec = objective_phase_command_spec(command_name)
@@ -499,12 +444,7 @@ def assert_objective_phase_command_contract(
         domain_label="objective/phase-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        satisfied_guard_codes=satisfied_guard_codes,
-        write_targets=write_targets,
-        durable_owners=durable_owners,
-        projection_owners=projection_owners,
-        artifact_owners=artifact_owners,
-        live_inspection_owners=live_inspection_owners,
+        guard_text_map=OBJECTIVE_PHASE_COMMAND_GUARD_TEXT,
         allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
@@ -514,12 +454,6 @@ def assert_exception_contract_command_contract(
     command_name: str,
     *,
     provided_inputs: set[str],
-    satisfied_guard_codes: set[str],
-    write_targets: set[str],
-    durable_owners: set[str],
-    projection_owners: set[str],
-    artifact_owners: set[str],
-    live_inspection_owners: set[str],
     emits_transition_event: bool = True,
 ) -> object:
     spec = exception_contract_command_spec(command_name)
@@ -528,12 +462,7 @@ def assert_exception_contract_command_contract(
         domain_label="exception-contract-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        satisfied_guard_codes=satisfied_guard_codes,
-        write_targets=write_targets,
-        durable_owners=durable_owners,
-        projection_owners=projection_owners,
-        artifact_owners=artifact_owners,
-        live_inspection_owners=live_inspection_owners,
+        guard_text_map=EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT,
         allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
@@ -543,12 +472,6 @@ def assert_anchor_maintenance_command_contract(
     command_name: str,
     *,
     provided_inputs: set[str],
-    satisfied_guard_codes: set[str],
-    write_targets: set[str],
-    durable_owners: set[str],
-    projection_owners: set[str],
-    artifact_owners: set[str],
-    live_inspection_owners: set[str],
     emits_transition_event: bool = False,
 ) -> object:
     spec = anchor_maintenance_command_spec(command_name)
@@ -557,12 +480,7 @@ def assert_anchor_maintenance_command_contract(
         domain_label="anchor-maintenance-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        satisfied_guard_codes=satisfied_guard_codes,
-        write_targets=write_targets,
-        durable_owners=durable_owners,
-        projection_owners=projection_owners,
-        artifact_owners=artifact_owners,
-        live_inspection_owners=live_inspection_owners,
+        guard_text_map=ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT,
         allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )

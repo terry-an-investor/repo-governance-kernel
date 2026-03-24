@@ -149,12 +149,6 @@ def main() -> int:
     assert_anchor_maintenance_command_contract(
         "refresh-anchor",
         provided_inputs={"project_id"},
-        satisfied_guard_codes={"current_task_anchor_exists", "live_workspace_available"},
-        write_targets={"current:current-task"},
-        durable_owners={"current:current-task"},
-        projection_owners=set(),
-        artifact_owners=set(),
-        live_inspection_owners={"workspace:git-status"},
     )
     refreshed_current_state = refresh_current_state_section(current_state, workspace_root, control_values)
     updated_text = replace_h2_section(text, CURRENT_STATE_SECTION, refreshed_current_state)

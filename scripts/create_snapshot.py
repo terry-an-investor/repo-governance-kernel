@@ -139,12 +139,6 @@ def main() -> int:
     assert_anchor_maintenance_command_contract(
         "capture-snapshot",
         provided_inputs={"project_id", "slug"},
-        satisfied_guard_codes={"project_control_state_available", "workspace_anchor_available"},
-        write_targets={"snapshot:historical"},
-        durable_owners=set(),
-        projection_owners=set(),
-        artifact_owners={"snapshot:historical"},
-        live_inspection_owners={"workspace:git-status"},
     )
 
     frontmatter = build_snapshot_frontmatter(

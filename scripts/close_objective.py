@@ -121,17 +121,6 @@ def main() -> int:
     assert_objective_phase_command_contract(
         "close-objective",
         provided_inputs={"project_id", "objective_id", "closing_status", "reason"},
-        satisfied_guard_codes={
-            "target_matches_active_objective",
-            "closing_status_supported",
-            "no_open_rounds_for_objective",
-            "no_active_exception_contracts_for_objective",
-        },
-        write_targets={"durable:objective", "control:active-objective", "control:pivot-log", "memory:transition-event"},
-        durable_owners={"memory:objective"},
-        projection_owners={"control:active-objective", "control:pivot-log"},
-        artifact_owners=set(),
-        live_inspection_owners=set(),
     )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,

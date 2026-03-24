@@ -142,21 +142,9 @@ def main() -> int:
         control_write["text"] = active_round_text
 
     next_state = f"round `{round_id}` is now `{args.status}`"
-    guard_codes = {
-        "round_exists",
-        "status_transition_legal",
-        "promotion_passes_enforcement_when_required",
-        "captured_has_validation_record",
-    }
     assert_round_command_contract(
         "update-round-status",
         provided_inputs={"project_id", "round_id", "status", "reason"},
-        satisfied_guard_codes=guard_codes,
-        write_targets={"durable:round", "control:active-round", "memory:transition-event"},
-        durable_owners={"memory:round"},
-        projection_owners={"control:active-round"},
-        artifact_owners=set(),
-        live_inspection_owners=set(),
     )
     evidence = [args.reason] + [item.strip() for item in args.validated_by if item.strip()]
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")

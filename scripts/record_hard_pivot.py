@@ -206,23 +206,6 @@ def main() -> int:
             "phase",
             "trigger",
         },
-        satisfied_guard_codes={
-            "previous_objective_is_active",
-            "new_objective_fields_present",
-            "previous_objective_matches_control_truth",
-            "no_open_rounds_on_previous_objective",
-        },
-        write_targets={
-            "durable:objective",
-            "durable:pivot",
-            "control:active-objective",
-            "control:pivot-log",
-            "memory:transition-event",
-        },
-        durable_owners={"memory:objective", "memory:pivot"},
-        projection_owners={"control:active-objective", "control:pivot-log"},
-        artifact_owners=set(),
-        live_inspection_owners=set(),
     )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,

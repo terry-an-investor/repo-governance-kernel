@@ -121,22 +121,9 @@ def main() -> int:
         else "no active round was present"
     )
     next_state = f"round `{round_id}` is now active for objective `{objective_id}`"
-    guard_codes = {
-        "linked_objective_is_active",
-        "linked_objective_is_execution",
-        "scope_present",
-        "validation_plan_present",
-        "no_conflicting_open_round",
-    }
     assert_round_command_contract(
         "open-round",
         provided_inputs={"project_id", "objective_id", "title", "scope", "deliverable", "validation_plan"},
-        satisfied_guard_codes=guard_codes,
-        write_targets={"durable:round", "control:active-round", "memory:transition-event"},
-        durable_owners={"memory:round"},
-        projection_owners={"control:active-round"},
-        artifact_owners=set(),
-        live_inspection_owners=set(),
     )
     guards = render_round_guard_lines("open-round", context={"objective_id": objective_id})
     evidence = [args.validation_plan]

@@ -165,22 +165,9 @@ def main() -> int:
     )
 
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
-    guard_codes = {
-        "round_remains_open",
-        "rewrite_reason_present",
-        "rewritten_round_contract_stays_complete",
-        "round_identity_preserved",
-        "rewrite_produces_material_change",
-    }
     assert_round_command_contract(
         "rewrite-open-round",
         provided_inputs={"project_id", "round_id", "reason", "mutable_fields"},
-        satisfied_guard_codes=guard_codes,
-        write_targets={"durable:round", "control:active-round", "memory:transition-event"},
-        durable_owners={"memory:round"},
-        projection_owners={"control:active-round"},
-        artifact_owners=set(),
-        live_inspection_owners=set(),
     )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,

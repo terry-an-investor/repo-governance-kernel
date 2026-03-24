@@ -40,12 +40,6 @@ def main() -> int:
     assert_anchor_maintenance_command_contract(
         "render-live-workspace",
         provided_inputs={"project_id"},
-        satisfied_guard_codes={"workspace_locator_available", "live_workspace_available"},
-        write_targets={"artifact:live-workspace-projection"},
-        durable_owners=set(),
-        projection_owners=set(),
-        artifact_owners={"artifact:live-workspace-projection"},
-        live_inspection_owners={"workspace:git-status"},
     )
 
     projection = render_live_workspace_projection(

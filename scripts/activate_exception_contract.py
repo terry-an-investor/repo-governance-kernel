@@ -94,12 +94,6 @@ def main() -> int:
     assert_exception_contract_command_contract(
         "activate-exception-contract",
         provided_inputs={"project_id", "title", "summary", "reason", "temporary_behavior", "risk", "owner_scope", "exit_condition"},
-        satisfied_guard_codes={"active_objective_available", "exception_contract_required_fields_present"},
-        write_targets={"durable:exception-contract", "control:exception-ledger", "memory:transition-event"},
-        durable_owners={"memory:exception-contract"},
-        projection_owners={"control:exception-ledger"},
-        artifact_owners=set(),
-        live_inspection_owners=set(),
     )
     _side_effects, event_id, event_path = apply_transition_transaction(
         project_id=args.project_id,

@@ -59,6 +59,7 @@ Current implementation status:
 
 - all implemented transition command domains now consume shared registry-backed owner-layer contract assertions
 - partial commands must also declare owner-layer fields before they are treated as semantically covered
+- command callers should only provide runtime-specific inputs and context; they should not restate registry-owned static guard, write-target, or owner declarations
 
 ## Command Domains
 

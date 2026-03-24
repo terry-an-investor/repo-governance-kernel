@@ -169,6 +169,11 @@ For implemented command domains, those transition gates should converge toward
 shared registry-backed owner-layer consumers instead of letting each command
 silently own its own private guard and write semantics.
 
+That convergence should also remove duplicated static restatement in command
+callers. When guards, write targets, transition-event expectations, and owner
+layers already live in the machine-readable registry, command callers should
+not copy those static declarations again just to prove they match themselves.
+
 That registry-owned contract now includes:
 
 - required inputs
