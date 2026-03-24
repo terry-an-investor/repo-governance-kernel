@@ -472,6 +472,9 @@ Current implementation already does these things:
     builder branch
   - now routes nested command execution through one shared executor runtime
     helper instead of repeating per-caller subprocess/json handling
+  - now routes `round-close-chain` bundle steps through registry-built
+    `update-round-status` payloads on that same shared runtime instead of one
+    bundle-local CLI assembly path
   - now normalizes command-facing runtime-input aliases consistently across
     contract assertions and executor coverage checks, so command consumers do
     not drift on singular/plural payload names

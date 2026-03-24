@@ -123,6 +123,12 @@ The immediate objective is:
   - adjudication follow-up execution
   - `set-phase` auto-open / rewrite-open-round follow-ups
   - `record-soft-pivot` bounded round rewrite follow-up
+- `round-close-chain` bundle execution now also consumes the same shared
+  registry/runtime path:
+  - the bundle now composes registry payloads for `update-round-status` instead
+    of hand-building nested script CLIs
+  - executor smoke now proves `update-round-status` through
+    `scripts/executor_runtime.py` with explicit registry-owned payload fields
 - more already-implemented primitive commands now also declare executor payload semantics:
   - `open-objective`
   - `record-hard-pivot`
@@ -411,8 +417,6 @@ The immediate objective is:
 - The compiler/executor boundary can still drift if future changes let in-place
   compilation overwrite explicit payloads, admit undeclared command-specific
   keys, or execute the same payload twice.
-- `round-close-chain` still remains a bundle-local executor semantic surface
-  instead of a fully registry-declared payload builder.
 - broader bundle payload semantics are still intentionally narrow:
   - the repo now governs wrapper admission explicitly
   - but bundle-local payload semantics should not expand casually while this

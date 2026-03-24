@@ -919,6 +919,9 @@ Current implementation status:
   payload builder surface used by other bounded executor commands
 - nested command execution now also flows through one shared executor runtime
   helper instead of each caller hand-rolling `subprocess + json` handling
+- `round-close-chain` bundle execution now also composes registry payloads for
+  `update-round-status` through the same shared runtime instead of hand-building
+  nested script CLIs
 - additional already-implemented primitive commands now also declare
   executor-supported payload semantics:
   - `open-objective`

@@ -128,6 +128,9 @@ autonomous rewrite engine after a verdict is recorded.
     same shared registry-backed builder instead of phase-local CLI assembly
   - now routes nested command execution through one shared executor runtime
     helper instead of repeating per-caller subprocess/json handling
+  - now routes `round-close-chain` bundle execution through registry-built
+    `update-round-status` payloads on that same shared runtime instead of a
+    bundle-local nested CLI path
   - now extends executor payload semantics to more already-implemented
     primitive commands instead of leaving that coverage concentrated only on
     rewrite/status paths

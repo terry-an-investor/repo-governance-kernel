@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from executor_runtime import run_registry_command_json
 from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_json
 
 
@@ -186,58 +187,73 @@ def main() -> None:
             raise SystemExit("set-phase did not auto-open the transition-engine fixture round")
         patch_current_task(objective_id=first_objective_id, round_id=round_id)
 
-        run_json(
-            "update_round_status.py",
-            "--project-id",
+        blocked_result = run_registry_command_json(
             FIXTURE_PROJECT_ID,
-            "--status",
-            "blocked",
-            "--reason",
-            "fixture status transition smoke",
-            "--blocker",
-            "temporary fixture blocker",
+            {
+                "round_id": round_id,
+                "status": "blocked",
+                "reason": "fixture status transition smoke",
+                "blocker": ["temporary fixture blocker"],
+            },
+            "update-round-status",
+            failure_message="fixture blocked status transition failed",
         )
-        run_json(
-            "update_round_status.py",
-            "--project-id",
+        if str(blocked_result.get("status") or "").strip() != "blocked":
+            raise SystemExit("shared runtime did not drive the fixture round into blocked status")
+
+        active_result = run_registry_command_json(
             FIXTURE_PROJECT_ID,
-            "--status",
-            "active",
-            "--reason",
-            "resume fixture round after blocker smoke",
-            "--clear-blockers",
+            {
+                "round_id": round_id,
+                "status": "active",
+                "reason": "resume fixture round after blocker smoke",
+                "clear_blockers": True,
+            },
+            "update-round-status",
+            failure_message="fixture active status transition failed",
         )
-        run_json(
-            "update_round_status.py",
-            "--project-id",
+        if str(active_result.get("status") or "").strip() != "active":
+            raise SystemExit("shared runtime did not resume the fixture round to active status")
+
+        validation_pending_result = run_registry_command_json(
             FIXTURE_PROJECT_ID,
-            "--status",
-            "validation_pending",
-            "--reason",
-            "fixture round ready for validation",
+            {
+                "round_id": round_id,
+                "status": "validation_pending",
+                "reason": "fixture round ready for validation",
+            },
+            "update-round-status",
+            failure_message="fixture validation-pending status transition failed",
         )
-        run_json(
-            "update_round_status.py",
-            "--project-id",
+        if str(validation_pending_result.get("status") or "").strip() != "validation_pending":
+            raise SystemExit("shared runtime did not move the fixture round into validation_pending")
+
+        captured_result = run_registry_command_json(
             FIXTURE_PROJECT_ID,
-            "--status",
-            "captured",
-            "--reason",
-            "fixture round validated",
-            "--validated-by",
-            "shared transition engine fixture path",
+            {
+                "round_id": round_id,
+                "status": "captured",
+                "reason": "fixture round validated",
+                "validated_by": ["shared transition engine fixture path"],
+            },
+            "update-round-status",
+            failure_message="fixture captured status transition failed",
         )
-        run_json(
-            "update_round_status.py",
-            "--project-id",
+        if str(captured_result.get("status") or "").strip() != "captured":
+            raise SystemExit("shared runtime did not capture the fixture round")
+
+        closed_result = run_registry_command_json(
             FIXTURE_PROJECT_ID,
-            "--status",
-            "closed",
-            "--reason",
-            "fixture round completed before hard pivot",
-            "--round-id",
-            round_id,
+            {
+                "round_id": round_id,
+                "status": "closed",
+                "reason": "fixture round completed before hard pivot",
+            },
+            "update-round-status",
+            failure_message="fixture closed status transition failed",
         )
+        if str(closed_result.get("status") or "").strip() != "closed":
+            raise SystemExit("shared runtime did not close the fixture round")
 
         pivot_result = run_json(
             "record_hard_pivot.py",

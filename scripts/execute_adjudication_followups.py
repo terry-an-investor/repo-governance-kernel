@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from collections.abc import Callable
 from pathlib import Path
 
 from compile_adjudication_executor_plan import compile_plan_contracts
-from executor_command_builder import build_registry_executor_command as build_shared_registry_executor_command, string_list
-from executor_runtime import run_command, run_registry_command
+from executor_command_builder import string_list
+from executor_runtime import run_registry_command
 from round_control import (
     load_all_adjudications,
     load_round_file,
@@ -27,7 +26,6 @@ from transition_specs import (
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = ROOT / "scripts"
 BundleExecutorHandler = Callable[[str, dict[str, object]], tuple[bool, str]]
 
 
@@ -189,8 +187,7 @@ def _validate_bundle_payload(payload: dict[str, object], bundle_name: str) -> No
             raise SystemExit(f"executor {bundle_name} requires `{field_spec.payload_key}`")
 
 
-def build_update_round_status_command(
-    project_id: str,
+def build_update_round_status_payload(
     *,
     round_id: str,
     status: str,
@@ -199,38 +196,24 @@ def build_update_round_status_command(
     blockers: list[str] | None = None,
     risks: list[str] | None = None,
     clear_blockers: bool = False,
-) -> list[str]:
-    cmd = [
-        sys.executable,
-        str(SCRIPTS / "update_round_status.py"),
-        "--project-id",
-        project_id,
-        "--round-id",
-        round_id,
-        "--status",
-        status,
-        "--reason",
-        reason,
-    ]
-    for item in validated_by or []:
-        if item.strip():
-            cmd.extend(["--validated-by", item.strip()])
-    for item in blockers or []:
-        if item.strip():
-            cmd.extend(["--blocker", item.strip()])
-    for item in risks or []:
-        if item.strip():
-            cmd.extend(["--risk", item.strip()])
+) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "round_id": round_id,
+        "status": status,
+        "reason": reason,
+    }
+    if validated_by:
+        payload["validated_by"] = [item.strip() for item in validated_by if item.strip()]
+    if blockers:
+        payload["blocker"] = [item.strip() for item in blockers if item.strip()]
+    if risks:
+        payload["risk"] = [item.strip() for item in risks if item.strip()]
     if clear_blockers:
-        cmd.append("--clear-blockers")
-    return cmd
+        payload["clear_blockers"] = True
+    return payload
 
 
-def run_executor_command(cmd: list[str]) -> tuple[bool, str]:
-    return run_command(cmd, failure_message="executor follow-up failed")
-
-
-def build_round_close_chain_commands(project_id: str, payload: dict[str, object]) -> tuple[str, list[tuple[str, list[str]]]]:
+def build_round_close_chain_payloads(project_id: str, payload: dict[str, object]) -> tuple[str, list[tuple[str, dict[str, object]]]]:
     _validate_bundle_payload(payload, "round-close-chain")
     round_id = require_payload_text(payload, "round_id")
     round_path = locate_round_file(project_id, round_id)
@@ -253,8 +236,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
         return round_id, [
             (
                 "captured -> closed",
-                build_update_round_status_command(
-                    project_id,
+                build_update_round_status_payload(
                     round_id=round_id,
                     status="closed",
                     reason=require_payload_text(payload, "closed_reason"),
@@ -267,8 +249,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
         return round_id, [
             (
                 "validation_pending -> captured",
-                build_update_round_status_command(
-                    project_id,
+                build_update_round_status_payload(
                     round_id=round_id,
                     status="captured",
                     reason=require_payload_text(payload, "captured_reason"),
@@ -280,8 +261,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
             ),
             (
                 "captured -> closed",
-                build_update_round_status_command(
-                    project_id,
+                build_update_round_status_payload(
                     round_id=round_id,
                     status="closed",
                     reason=require_payload_text(payload, "closed_reason"),
@@ -294,8 +274,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
         return round_id, [
             (
                 "active -> validation_pending",
-                build_update_round_status_command(
-                    project_id,
+                build_update_round_status_payload(
                     round_id=round_id,
                     status="validation_pending",
                     reason=require_payload_text(payload, "validation_pending_reason"),
@@ -303,8 +282,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
             ),
             (
                 "validation_pending -> captured",
-                build_update_round_status_command(
-                    project_id,
+                build_update_round_status_payload(
                     round_id=round_id,
                     status="captured",
                     reason=require_payload_text(payload, "captured_reason"),
@@ -316,8 +294,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
             ),
             (
                 "captured -> closed",
-                build_update_round_status_command(
-                    project_id,
+                build_update_round_status_payload(
                     round_id=round_id,
                     status="closed",
                     reason=require_payload_text(payload, "closed_reason"),
@@ -329,25 +306,18 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
     )
 
 
-def build_registry_executor_command(project_id: str, payload: dict[str, object], command_name: str) -> list[str]:
-    return build_shared_registry_executor_command(project_id, payload, command_name)
-
-
-def build_executor_command(project_id: str, payload: dict[str, object]) -> list[str]:
-    command_name = str(payload.get("command") or "").strip()
-    if command_name in executor_supported_command_names():
-        return build_registry_executor_command(project_id, payload, command_name)
-
-    raise SystemExit(f"unsupported executor command `{command_name}`")
-
-
 def execute_round_close_chain(project_id: str, payload: dict[str, object]) -> tuple[bool, str]:
-    round_id, commands = build_round_close_chain_commands(project_id, payload)
-    if not commands:
+    round_id, step_payloads = build_round_close_chain_payloads(project_id, payload)
+    if not step_payloads:
         return True, f"round `{round_id}` already closed"
     executed_steps: list[str] = []
-    for step_label, cmd in commands:
-        success, detail = run_executor_command(cmd)
+    for step_label, step_payload in step_payloads:
+        success, detail = run_registry_command(
+            project_id,
+            step_payload,
+            "update-round-status",
+            failure_message="executor follow-up failed",
+        )
         if not success:
             return False, f"round `{round_id}` {step_label} failed: {detail}"
         executed_steps.append(step_label)
@@ -395,7 +365,14 @@ def maybe_execute_structured_payload(project_id: str, payload_text: str) -> tupl
     if bundle_handler is not None:
         return bundle_handler(project_id, payload)
 
-    success, detail = run_executor_command(build_executor_command(project_id, payload))
+    if command_name not in executor_supported_command_names():
+        raise SystemExit(f"unsupported executor command `{command_name}`")
+    success, detail = run_registry_command(
+        project_id,
+        payload,
+        command_name,
+        failure_message="executor follow-up failed",
+    )
     if not success:
         return False, detail
     return True, f"executed {command_name}"
