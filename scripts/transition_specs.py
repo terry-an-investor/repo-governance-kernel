@@ -102,6 +102,24 @@ class CommandMutableFieldSpec:
 
 
 @dataclass(frozen=True)
+class CommandExecutorFieldSpec:
+    command_name: str
+    payload_key: str
+    cli_flag: str
+    value_kind: str
+    required: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "command_name": self.command_name,
+            "payload_key": self.payload_key,
+            "cli_flag": self.cli_flag,
+            "value_kind": self.value_kind,
+            "required": self.required,
+        }
+
+
+@dataclass(frozen=True)
 class TransitionCommandSpec:
     name: str
     domain: str
@@ -339,6 +357,52 @@ COMMAND_MUTABLE_FIELD_SPECS: tuple[CommandMutableFieldSpec, ...] = (
         replace_flag="replace_scope_paths",
         required_after_write=True,
     ),
+)
+
+
+COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
+    CommandExecutorFieldSpec("close-objective", "objective_id", "objective-id", "scalar"),
+    CommandExecutorFieldSpec("close-objective", "closing_status", "closing-status", "scalar", required=True),
+    CommandExecutorFieldSpec("close-objective", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("close-objective", "evidence", "evidence", "list"),
+    CommandExecutorFieldSpec("close-objective", "supersession_note", "supersession-note", "scalar"),
+    CommandExecutorFieldSpec("update-round-status", "round_id", "round-id", "scalar", required=True),
+    CommandExecutorFieldSpec("update-round-status", "status", "status", "scalar", required=True),
+    CommandExecutorFieldSpec("update-round-status", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("update-round-status", "validated_by", "validated-by", "list"),
+    CommandExecutorFieldSpec("update-round-status", "blocker", "blocker", "list"),
+    CommandExecutorFieldSpec("update-round-status", "risk", "risk", "list"),
+    CommandExecutorFieldSpec("update-round-status", "clear_blockers", "clear-blockers", "bool"),
+    CommandExecutorFieldSpec("refresh-round-scope", "round_id", "round-id", "scalar"),
+    CommandExecutorFieldSpec("refresh-round-scope", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("refresh-round-scope", "evidence", "evidence", "list"),
+    CommandExecutorFieldSpec("refresh-round-scope", "add_scope_path", "add-scope-path", "list"),
+    CommandExecutorFieldSpec("refresh-round-scope", "drop_scope_path", "drop-scope-path", "list"),
+    CommandExecutorFieldSpec("refresh-round-scope", "no_live_dirty_paths", "no-live-dirty-paths", "bool"),
+    CommandExecutorFieldSpec("rewrite-open-round", "round_id", "round-id", "scalar"),
+    CommandExecutorFieldSpec("rewrite-open-round", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("set-phase", "objective_id", "objective-id", "scalar"),
+    CommandExecutorFieldSpec("set-phase", "phase", "phase", "scalar", required=True),
+    CommandExecutorFieldSpec("set-phase", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("set-phase", "evidence", "evidence", "list"),
+    CommandExecutorFieldSpec("set-phase", "scope_review_note", "scope-review-note", "list"),
+    CommandExecutorFieldSpec("set-phase", "auto_open_round", "auto-open-round", "bool"),
+    CommandExecutorFieldSpec("set-phase", "round_title", "round-title", "scalar"),
+    CommandExecutorFieldSpec("set-phase", "round_summary", "round-summary", "scalar"),
+    CommandExecutorFieldSpec("set-phase", "round_scope_item", "round-scope-item", "list"),
+    CommandExecutorFieldSpec("set-phase", "round_scope_path", "round-scope-path", "list"),
+    CommandExecutorFieldSpec("set-phase", "round_deliverable", "round-deliverable", "scalar"),
+    CommandExecutorFieldSpec("set-phase", "round_validation_plan", "round-validation-plan", "scalar"),
+    CommandExecutorFieldSpec("set-phase", "round_risk", "round-risk", "list"),
+    CommandExecutorFieldSpec("set-phase", "round_blocker", "round-blocker", "list"),
+    CommandExecutorFieldSpec("set-phase", "round_status_note", "round-status-note", "scalar"),
+    CommandExecutorFieldSpec("retire-exception-contract", "exception_contract_id", "exception-contract-id", "scalar", required=True),
+    CommandExecutorFieldSpec("retire-exception-contract", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("retire-exception-contract", "evidence", "evidence", "list"),
+    CommandExecutorFieldSpec("invalidate-exception-contract", "exception_contract_id", "exception-contract-id", "scalar", required=True),
+    CommandExecutorFieldSpec("invalidate-exception-contract", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("invalidate-exception-contract", "evidence", "evidence", "list"),
+    CommandExecutorFieldSpec("invalidate-exception-contract", "pivot_id", "pivot-id", "scalar"),
 )
 
 
@@ -921,6 +985,13 @@ for _mutable_field_spec in COMMAND_MUTABLE_FIELD_SPECS:
 COMMAND_MUTABLE_FIELD_SPEC_BY_COMMAND_AND_CODE = {
     (spec.command_name, spec.code): spec for spec in COMMAND_MUTABLE_FIELD_SPECS
 }
+COMMAND_EXECUTOR_FIELDS_BY_COMMAND: dict[str, tuple[CommandExecutorFieldSpec, ...]] = {}
+for _executor_field_spec in COMMAND_EXECUTOR_FIELD_SPECS:
+    COMMAND_EXECUTOR_FIELDS_BY_COMMAND.setdefault(_executor_field_spec.command_name, tuple())
+    COMMAND_EXECUTOR_FIELDS_BY_COMMAND[_executor_field_spec.command_name] = (
+        *COMMAND_EXECUTOR_FIELDS_BY_COMMAND[_executor_field_spec.command_name],
+        _executor_field_spec,
+    )
 
 
 def _owner_labels_for_command(spec: TransitionCommandSpec, owner_bucket: str) -> set[str]:
@@ -1015,6 +1086,7 @@ def validate_transition_specs() -> None:
     valid_mutable_value_kinds = {"scalar", "list"}
     valid_mutable_storage_kinds = {"meta_scalar", "meta_list", "section_text", "section_bullets"}
     valid_mutation_modes = {"replace_if_present", "merge_unique", "append_paragraphs"}
+    valid_executor_value_kinds = {"scalar", "list", "bool"}
     owner_label_sets = {
         "durable": SUPPORTED_DURABLE_OWNER_LABELS,
         "projection": SUPPORTED_PROJECTION_OWNER_LABELS,
@@ -1122,6 +1194,29 @@ def validate_transition_specs() -> None:
                     f"command mutable field `{command_name}.{field_spec.code}` includes reason notes without append_paragraph semantics"
                 )
 
+    for command_name, specs in COMMAND_EXECUTOR_FIELDS_BY_COMMAND.items():
+        if command_name not in known_commands:
+            raise SystemExit(
+                f"command executor-field semantics reference unknown transition command `{command_name}`"
+            )
+        payload_keys: set[str] = set()
+        cli_flags: set[str] = set()
+        for field_spec in specs:
+            if field_spec.value_kind not in valid_executor_value_kinds:
+                raise SystemExit(
+                    f"command executor field `{command_name}.{field_spec.payload_key}` uses unsupported value kind `{field_spec.value_kind}`"
+                )
+            if field_spec.payload_key in payload_keys:
+                raise SystemExit(
+                    f"command `{command_name}` reuses executor payload key `{field_spec.payload_key}`"
+                )
+            payload_keys.add(field_spec.payload_key)
+            if field_spec.cli_flag in cli_flags:
+                raise SystemExit(
+                    f"command `{command_name}` reuses executor cli flag `{field_spec.cli_flag}`"
+                )
+            cli_flags.add(field_spec.cli_flag)
+
     for spec in TRANSITION_COMMAND_SPECS:
         if spec.implementation_status not in valid_implementation_statuses:
             raise SystemExit(f"transition command `{spec.name}` uses unsupported implementation status `{spec.implementation_status}`")
@@ -1179,6 +1274,17 @@ def validate_transition_specs() -> None:
             raise SystemExit(
                 f"transition command `{spec.name}` has registry mutable field semantics not declared on the command spec: {', '.join(undocumented_mutable_specs)}"
             )
+        if spec.executor_supported:
+            executor_specs = COMMAND_EXECUTOR_FIELDS_BY_COMMAND.get(spec.name, ())
+            required_runtime_inputs = {
+                field_name for field_name in spec.required_inputs if field_name not in {"project_id", "mutable_fields"}
+            }
+            covered_runtime_inputs = {field_spec.payload_key for field_spec in executor_specs}
+            missing_runtime_inputs = sorted(required_runtime_inputs - covered_runtime_inputs)
+            if missing_runtime_inputs:
+                raise SystemExit(
+                    f"transition command `{spec.name}` is executor-supported but lacks executor payload semantics for: {', '.join(missing_runtime_inputs)}"
+                )
         if spec.implementation_status in {"implemented", "partial"}:
             validate_transition_command_semantics(spec)
     allowed_bundle_commands = {"round-close-chain"}
@@ -1203,17 +1309,9 @@ def validate_transition_specs() -> None:
                     f"adjudication plan `{plan_spec.plan_type}` declares payload template for undeclared command `{template.command_name}`"
                 )
             command_spec = COMMAND_SPEC_BY_NAME.get(template.command_name)
-            if command_spec is None or "mutable_fields" not in command_spec.required_inputs:
+            if command_spec is None or not command_spec.executor_supported:
                 continue
-            allowed_payload_targets = {
-                field_name
-                for field_name in command_spec.required_inputs
-                if field_name not in {"project_id", "mutable_fields"}
-            }
-            for field_spec in COMMAND_MUTABLE_FIELDS_BY_COMMAND.get(template.command_name, ()):
-                allowed_payload_targets.add(field_spec.payload_key)
-                if field_spec.replace_flag:
-                    allowed_payload_targets.add(field_spec.replace_flag)
+            allowed_payload_targets = command_allowed_executor_payload_keys(template.command_name)
             template_targets = {
                 key for key, _value in template.static_scalar_fields
             } | {
@@ -1224,7 +1322,7 @@ def validate_transition_specs() -> None:
             unknown_template_targets = sorted(template_targets - allowed_payload_targets)
             if unknown_template_targets:
                 raise SystemExit(
-                    f"adjudication plan `{plan_spec.plan_type}` targets undeclared mutable payload keys for `{template.command_name}`: {', '.join(unknown_template_targets)}"
+                    f"adjudication plan `{plan_spec.plan_type}` targets undeclared executor payload keys for `{template.command_name}`: {', '.join(unknown_template_targets)}"
                 )
 
 
@@ -1270,17 +1368,38 @@ def mutable_field_specs_for_command(command_name: str) -> list[CommandMutableFie
     return list(COMMAND_MUTABLE_FIELDS_BY_COMMAND.get(command_name.strip(), ()))
 
 
+def executor_field_specs_for_command(command_name: str) -> list[CommandExecutorFieldSpec]:
+    validate_transition_specs()
+    return list(COMMAND_EXECUTOR_FIELDS_BY_COMMAND.get(command_name.strip(), ()))
+
+
 def command_allowed_mutation_payload_keys(command_name: str) -> set[str]:
-    spec = transition_command_spec(command_name)
+    normalized_name = command_name.strip()
+    spec = COMMAND_SPEC_BY_NAME.get(normalized_name)
+    if spec is None:
+        raise SystemExit(f"unknown transition command `{command_name}`")
     allowed = {
         field_name
         for field_name in spec.required_inputs
         if field_name not in {"project_id", "mutable_fields"}
     }
-    for field_spec in mutable_field_specs_for_command(command_name):
+    for field_spec in COMMAND_MUTABLE_FIELDS_BY_COMMAND.get(normalized_name, ()):
         allowed.add(field_spec.payload_key)
         if field_spec.replace_flag:
             allowed.add(field_spec.replace_flag)
+    return allowed
+
+
+def command_allowed_executor_payload_keys(command_name: str) -> set[str]:
+    normalized_name = command_name.strip()
+    spec = COMMAND_SPEC_BY_NAME.get(normalized_name)
+    if spec is None:
+        raise SystemExit(f"unknown transition command `{command_name}`")
+    allowed = {
+        field_spec.payload_key for field_spec in COMMAND_EXECUTOR_FIELDS_BY_COMMAND.get(normalized_name, ())
+    }
+    if "mutable_fields" in spec.required_inputs:
+        allowed.update(command_allowed_mutation_payload_keys(normalized_name))
     return allowed
 
 
@@ -1331,6 +1450,7 @@ def export_transition_registry() -> dict[str, object]:
         "write_target_semantics": [spec.to_dict() for spec in WRITE_TARGET_SPECS],
         "transition_side_effect_semantics": [spec.to_dict() for spec in TRANSITION_SIDE_EFFECT_SPECS],
         "command_mutable_field_semantics": [spec.to_dict() for spec in COMMAND_MUTABLE_FIELD_SPECS],
+        "command_executor_field_semantics": [spec.to_dict() for spec in COMMAND_EXECUTOR_FIELD_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
     }

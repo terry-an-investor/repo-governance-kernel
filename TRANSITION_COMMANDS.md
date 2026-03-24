@@ -34,6 +34,7 @@ The registry still does not encode every full rewrite semantics, but it now owns
 - side-effect codes
 - transition-command side-effect semantics
 - command mutable-field semantics for bounded rewrite primitives
+- command executor payload-field semantics for supported automatic commands
 - durable owners
 - projection owners
 - artifact owners
@@ -61,6 +62,8 @@ That means:
 - owner-layer responsibility is registry-owned, not left to per-script private semantics
 - bounded rewrite-field semantics must also be registry-owned instead of living
   in private executor or script branches
+- supported automatic executor commands should admit only registry-declared
+  payload keys and CLI bindings
 
 Current implementation status:
 
@@ -763,7 +766,8 @@ Current implementation status:
   - the current owner-layer registry covers command names, domains,
     implementation status, required inputs, guard codes, guard rendering
     semantics, write-target semantics, write targets, side-effect codes,
-    transition-command side-effect semantics, command mutable-field semantics, executor support,
+    transition-command side-effect semantics, command mutable-field semantics,
+    command executor payload-field semantics, executor support,
     adjudication plan families, and bounded adjudication payload-template semantics
   - `audit-control-state` now warns if `TRANSITION_COMMANDS.md` documents command
     or plan names that the registry does not yet cover semantically
@@ -818,6 +822,9 @@ These slices already do these things:
 - make `rewrite-open-round` plus adjudication rewrite execution consume one
   registry-owned mutable-field contract for allowed field names, merge/replace
   semantics, and payload-key admission
+- make supported adjudication executor commands consume one registry-owned
+  payload-field contract instead of keeping private payload-to-CLI branches per
+  command
 - reject illegal round-status transitions
 - refuse hard pivots that would silently outrun a durable still-open round tied to the old objective
 - refuse opening a second active objective when a durable active objective already exists

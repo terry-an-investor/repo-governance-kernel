@@ -183,6 +183,7 @@ That registry-owned contract now includes:
 - write-target coverage
 - transition-command side-effect semantics
 - bounded command mutable-field semantics
+- executor payload-field semantics for supported automatic commands
 - durable owners
 - projection owners
 - artifact owners
@@ -254,6 +255,8 @@ manual edits:
   private write-target allowlists
 - adjudication rewrite execution should reject undeclared private payload keys
   instead of silently tolerating executor-local rewrite semantics
+- supported automatic executor commands should also consume registry-owned
+  payload-field semantics instead of private per-command payload builders
 - `audit_control_state` now warns when any shared domain consumer drifts from the semantic transition registry
 
 ## Precision Surfaces
@@ -590,6 +593,9 @@ commands.
 For bounded rewrite primitives, the same registry should also own the admitted
 mutable field surface instead of leaving field names and merge semantics spread
 across the rewrite script, the adjudication compiler, and the executor.
+For supported executor-backed commands, the same registry should also own the
+payload field surface and CLI binding surface instead of leaving those command
+arguments in one long private executor branch.
 For the supported bounded plan families, the registry should also own the
 payload-template bindings that materialize executor payload fields from plan
 contracts plus adjudication durable context, instead of leaving that mapping as

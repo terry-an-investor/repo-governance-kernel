@@ -17,8 +17,12 @@ from round_control import (
     project_dir,
     select_open_round_record,
 )
-from transition_specs import executor_supported_command_names
-from transition_specs import command_allowed_mutation_payload_keys, mutable_field_specs_for_command
+from transition_specs import (
+    command_allowed_executor_payload_keys,
+    executor_field_specs_for_command,
+    executor_supported_command_names,
+    mutable_field_specs_for_command,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -171,6 +175,39 @@ def _reject_unknown_payload_keys(command_name: str, payload: dict[str, object], 
     if unknown_keys:
         raise SystemExit(
             f"executor {command_name} payload carries undeclared private keys: {', '.join(unknown_keys)}"
+        )
+
+
+def _append_executor_field_specs(cmd: list[str], payload: dict[str, object], command_name: str) -> None:
+    _reject_unknown_payload_keys(
+        command_name,
+        payload,
+        command_allowed_executor_payload_keys(command_name),
+    )
+    for field_spec in executor_field_specs_for_command(command_name):
+        cli_flag = f"--{field_spec.cli_flag}"
+        if field_spec.value_kind == "scalar":
+            value = str(payload.get(field_spec.payload_key) or "").strip()
+            if field_spec.required and not value:
+                raise SystemExit(f"executor {command_name} requires `{field_spec.payload_key}`")
+            if value:
+                cmd.extend([cli_flag, value])
+            continue
+        if field_spec.value_kind == "list":
+            values = _string_list(payload.get(field_spec.payload_key))
+            if field_spec.required and not values:
+                raise SystemExit(f"executor {command_name} requires `{field_spec.payload_key}`")
+            for item in values:
+                cmd.extend([cli_flag, item])
+            continue
+        if field_spec.value_kind == "bool":
+            if field_spec.required and not bool(payload.get(field_spec.payload_key)):
+                raise SystemExit(f"executor {command_name} requires `{field_spec.payload_key}`")
+            if bool(payload.get(field_spec.payload_key)):
+                cmd.append(cli_flag)
+            continue
+        raise SystemExit(
+            f"executor {command_name} encountered unsupported executor value kind `{field_spec.value_kind}`"
         )
 
 
@@ -327,69 +364,19 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
     cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
 
     if command_name == "close-objective":
-        objective_id = str(payload.get("objective_id") or "").strip()
-        closing_status = str(payload.get("closing_status") or "").strip()
-        reason = str(payload.get("reason") or "").strip()
-        if not closing_status or not reason:
-            raise SystemExit("executor close-objective requires `closing_status` and `reason`")
-        if objective_id:
-            cmd.extend(["--objective-id", objective_id])
-        cmd.extend(["--closing-status", closing_status, "--reason", reason])
-        for item in _string_list(payload.get("evidence")):
-            cmd.extend(["--evidence", item])
-        supersession_note = str(payload.get("supersession_note") or "").strip()
-        if supersession_note:
-            cmd.extend(["--supersession-note", supersession_note])
+        _append_executor_field_specs(cmd, payload, command_name)
         return cmd
 
     if command_name == "update-round-status":
-        round_id = str(payload.get("round_id") or "").strip()
-        status = str(payload.get("status") or "").strip()
-        reason = str(payload.get("reason") or "").strip()
-        if not round_id or not status or not reason:
-            raise SystemExit("executor update-round-status requires `round_id`, `status`, and `reason`")
-        cmd.extend(["--round-id", round_id, "--status", status, "--reason", reason])
-        for item in _string_list(payload.get("validated_by")):
-            cmd.extend(["--validated-by", item])
-        for item in _string_list(payload.get("blocker")):
-            cmd.extend(["--blocker", item])
-        for item in _string_list(payload.get("risk")):
-            cmd.extend(["--risk", item])
-        if bool(payload.get("clear_blockers")):
-            cmd.append("--clear-blockers")
+        _append_executor_field_specs(cmd, payload, command_name)
         return cmd
 
     if command_name == "refresh-round-scope":
-        round_id = str(payload.get("round_id") or "").strip()
-        reason = str(payload.get("reason") or "").strip()
-        if not reason:
-            raise SystemExit("executor refresh-round-scope requires `reason`")
-        if round_id:
-            cmd.extend(["--round-id", round_id])
-        cmd.extend(["--reason", reason])
-        for item in _string_list(payload.get("evidence")):
-            cmd.extend(["--evidence", item])
-        for item in _string_list(payload.get("add_scope_path")):
-            cmd.extend(["--add-scope-path", item])
-        for item in _string_list(payload.get("drop_scope_path")):
-            cmd.extend(["--drop-scope-path", item])
-        if bool(payload.get("no_live_dirty_paths")):
-            cmd.append("--no-live-dirty-paths")
+        _append_executor_field_specs(cmd, payload, command_name)
         return cmd
 
     if command_name == "rewrite-open-round":
-        reason = str(payload.get("reason") or "").strip()
-        if not reason:
-            raise SystemExit("executor rewrite-open-round requires `reason`")
-        _reject_unknown_payload_keys(
-            command_name,
-            payload,
-            command_allowed_mutation_payload_keys("rewrite-open-round"),
-        )
-        round_id = str(payload.get("round_id") or "").strip()
-        if round_id:
-            cmd.extend(["--round-id", round_id])
-        cmd.extend(["--reason", reason])
+        _append_executor_field_specs(cmd, payload, command_name)
         for field_spec in mutable_field_specs_for_command("rewrite-open-round"):
             cli_flag = f"--{field_spec.cli_flag}"
             if field_spec.value_kind == "scalar":
@@ -404,66 +391,15 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
         return cmd
 
     if command_name == "set-phase":
-        phase = str(payload.get("phase") or "").strip()
-        reason = str(payload.get("reason") or "").strip()
-        if not phase or not reason:
-            raise SystemExit("executor set-phase requires `phase` and `reason`")
-        objective_id = str(payload.get("objective_id") or "").strip()
-        if objective_id:
-            cmd.extend(["--objective-id", objective_id])
-        cmd.extend(["--phase", phase, "--reason", reason])
-        for item in _string_list(payload.get("evidence")):
-            cmd.extend(["--evidence", item])
-        for item in _string_list(payload.get("scope_review_note")):
-            cmd.extend(["--scope-review-note", item])
-        if bool(payload.get("auto_open_round")):
-            cmd.append("--auto-open-round")
-        round_title = str(payload.get("round_title") or "").strip()
-        if round_title:
-            cmd.extend(["--round-title", round_title])
-        round_summary = str(payload.get("round_summary") or "").strip()
-        if round_summary:
-            cmd.extend(["--round-summary", round_summary])
-        for item in _string_list(payload.get("round_scope_item")):
-            cmd.extend(["--round-scope-item", item])
-        for item in _string_list(payload.get("round_scope_path")):
-            cmd.extend(["--round-scope-path", item])
-        round_deliverable = str(payload.get("round_deliverable") or "").strip()
-        if round_deliverable:
-            cmd.extend(["--round-deliverable", round_deliverable])
-        round_validation_plan = str(payload.get("round_validation_plan") or "").strip()
-        if round_validation_plan:
-            cmd.extend(["--round-validation-plan", round_validation_plan])
-        for item in _string_list(payload.get("round_risk")):
-            cmd.extend(["--round-risk", item])
-        for item in _string_list(payload.get("round_blocker")):
-            cmd.extend(["--round-blocker", item])
-        round_status_note = str(payload.get("round_status_note") or "").strip()
-        if round_status_note:
-            cmd.extend(["--round-status-note", round_status_note])
+        _append_executor_field_specs(cmd, payload, command_name)
         return cmd
 
     if command_name == "retire-exception-contract":
-        contract_id = str(payload.get("exception_contract_id") or "").strip()
-        reason = str(payload.get("reason") or "").strip()
-        if not contract_id or not reason:
-            raise SystemExit("executor retire-exception-contract requires `exception_contract_id` and `reason`")
-        cmd.extend(["--exception-contract-id", contract_id, "--reason", reason])
-        for item in _string_list(payload.get("evidence")):
-            cmd.extend(["--evidence", item])
+        _append_executor_field_specs(cmd, payload, command_name)
         return cmd
 
     if command_name == "invalidate-exception-contract":
-        contract_id = str(payload.get("exception_contract_id") or "").strip()
-        reason = str(payload.get("reason") or "").strip()
-        if not contract_id or not reason:
-            raise SystemExit("executor invalidate-exception-contract requires `exception_contract_id` and `reason`")
-        cmd.extend(["--exception-contract-id", contract_id, "--reason", reason])
-        pivot_id = str(payload.get("pivot_id") or "").strip()
-        if pivot_id:
-            cmd.extend(["--pivot-id", pivot_id])
-        for item in _string_list(payload.get("evidence")):
-            cmd.extend(["--evidence", item])
+        _append_executor_field_specs(cmd, payload, command_name)
         return cmd
 
     raise SystemExit(f"unsupported executor command `{command_name}`")
