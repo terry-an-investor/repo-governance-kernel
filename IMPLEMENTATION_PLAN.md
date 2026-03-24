@@ -122,6 +122,12 @@ verdict is recorded.
   - exception-contract commands
   - adjudication-driven round and objective rewrites
   - or a shared transition engine
+- future external-evidence slice should evaluate:
+  - using `xurl` as a provider-agnostic read/query adapter for external agent
+    session extraction
+  - accepting `agents://...` references as evidence or context inputs
+  - keeping governance, owner-layer semantics, and durable control state inside
+    `session-memory` instead of outsourcing them to the adapter
 
 ### `scripts/build_index.py`
 
