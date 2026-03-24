@@ -150,6 +150,9 @@ The immediate objective is:
   - bundle step templates are declared in `kernel/transition_specs.py`
   - `scripts/execute_adjudication_followups.py` now runs one generic governed-bundle engine instead of one private handler per bundle
   - governed bundle steps can now also compose other governed bundles through the same owner-layer execution path instead of falling back to private nested orchestration
+- the reusable unified CLI now exists at:
+  - `uv run python -m kernel.cli ...`
+  - `scripts/session_memory.py` now behaves as a host-repo adapter that forwards generic kernel commands and keeps repo-local smoke/eval commands local
 - more already-implemented primitive commands now also declare executor payload semantics:
   - `open-objective`
   - `record-hard-pivot`

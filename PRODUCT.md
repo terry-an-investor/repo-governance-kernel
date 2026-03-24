@@ -25,6 +25,10 @@ canonical_semantics_surfaces:
 Date: 2026-03-24
 Scope: Canonical product definition for the repository
 
+Host-repo note: this file defines the product and positioning of the
+`session-memory` repository as a host plus dogfood sample. Reusable kernel
+implementation and kernel-specific definition now live under `kernel/`.
+
 ## Product Definition
 
 `session-memory` is a repo governance kernel.

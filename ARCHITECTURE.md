@@ -3,6 +3,10 @@
 Date: 2026-03-24
 Scope: repo governance kernel
 
+Host-repo note: this file now describes how the host repository integrates the
+reusable kernel with its self-hosted sample data. Kernel-specific architecture
+notes live under `kernel/docs/`.
+
 ## Goal
 
 `session-memory` is a repo governance kernel.

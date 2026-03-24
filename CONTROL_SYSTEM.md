@@ -3,6 +3,10 @@
 Date: 2026-03-24
 Scope: repo governance kernel
 
+Host-repo note: this document explains the control model as used by the host
+repository and its dogfood sample. Reusable kernel implementation authority is
+owned by `kernel/`.
+
 ## Goal
 
 `session-memory` is a repo governance kernel.
