@@ -19,6 +19,8 @@ from round_control import (
 )
 from transition_specs import (
     bundle_governance_names,
+    bundle_allowed_payload_keys,
+    bundle_field_specs,
     command_allowed_executor_payload_keys,
     executor_field_specs_for_command,
     executor_supported_command_names,
@@ -35,6 +37,7 @@ GENERIC_EXECUTOR_COMMANDS = frozenset(
         "refresh-round-scope",
         "retire-exception-contract",
         "set-phase",
+        "update-task-contract-status",
         "update-round-status",
     }
 )
@@ -192,6 +195,16 @@ def _reject_unknown_payload_keys(command_name: str, payload: dict[str, object], 
         )
 
 
+def _field_value_present(value_kind: str, value: object) -> bool:
+    if value_kind == "scalar":
+        return bool(str(value or "").strip())
+    if value_kind == "list":
+        return bool(_string_list(value))
+    if value_kind == "bool":
+        return bool(value)
+    raise SystemExit(f"unsupported executor value kind `{value_kind}`")
+
+
 def _append_executor_field_specs(cmd: list[str], payload: dict[str, object], command_name: str) -> None:
     _reject_unknown_payload_keys(
         command_name,
@@ -223,6 +236,17 @@ def _append_executor_field_specs(cmd: list[str], payload: dict[str, object], com
         raise SystemExit(
             f"executor {command_name} encountered unsupported executor value kind `{field_spec.value_kind}`"
         )
+
+
+def _validate_bundle_payload(payload: dict[str, object], bundle_name: str) -> None:
+    _reject_unknown_payload_keys(
+        bundle_name,
+        payload,
+        bundle_allowed_payload_keys(bundle_name),
+    )
+    for field_spec in bundle_field_specs(bundle_name):
+        if field_spec.required and not _field_value_present(field_spec.value_kind, payload.get(field_spec.payload_key)):
+            raise SystemExit(f"executor {bundle_name} requires `{field_spec.payload_key}`")
 
 
 def build_update_round_status_command(
@@ -276,6 +300,7 @@ def run_executor_command(cmd: list[str]) -> tuple[bool, str]:
 
 
 def build_round_close_chain_commands(project_id: str, payload: dict[str, object]) -> tuple[str, list[tuple[str, list[str]]]]:
+    _validate_bundle_payload(payload, "round-close-chain")
     round_id = require_payload_text(payload, "round_id")
     round_path = locate_round_file(project_id, round_id)
     if round_path is None:
@@ -390,8 +415,26 @@ def build_rewrite_open_round_command(project_id: str, payload: dict[str, object]
     return cmd
 
 
+def build_rewrite_open_task_contract_command(project_id: str, payload: dict[str, object]) -> list[str]:
+    cmd = [sys.executable, str(SCRIPTS / "rewrite_open_task_contract.py"), "--project-id", project_id]
+    _append_executor_field_specs(cmd, payload, "rewrite-open-task-contract")
+    for field_spec in mutable_field_specs_for_command("rewrite-open-task-contract"):
+        cli_flag = f"--{field_spec.cli_flag}"
+        if field_spec.value_kind == "scalar":
+            value = str(payload.get(field_spec.payload_key) or "").strip()
+            if value:
+                cmd.extend([cli_flag, value])
+        else:
+            for item in _string_list(payload.get(field_spec.payload_key)):
+                cmd.extend([cli_flag, item])
+        if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
+            cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
+    return cmd
+
+
 EXECUTOR_COMMAND_BUILDERS: dict[str, ExecutorCommandBuilder] = {
     "rewrite-open-round": build_rewrite_open_round_command,
+    "rewrite-open-task-contract": build_rewrite_open_task_contract_command,
 }
 
 

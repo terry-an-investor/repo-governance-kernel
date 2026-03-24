@@ -11,9 +11,11 @@ from round_control import (
     load_exception_contract_file,
     load_objective_file,
     load_round_file,
+    load_task_contract_file,
     find_rounds,
     locate_exception_contract_file,
     locate_round_file,
+    locate_task_contract_file,
     parse_bullet_list,
 )
 from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_json
@@ -272,6 +274,56 @@ def main() -> None:
         initial_round_id = str(round_result["round_id"])
         patch_current_task(objective_id=objective_id, round_id=initial_round_id)
 
+        first_task_contract_result = run_json(
+            "open_task_contract.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--round-id",
+            initial_round_id,
+            "--title",
+            "Disposable first pre-close task contract",
+            "--summary",
+            "Disposable task contract that adjudication should invalidate before closing the predecessor round.",
+            "--intent",
+            "Prove that adjudication can invalidate open task contracts through the bounded plan compiler path.",
+            "--path",
+            "current/current-task.md",
+            "--allowed-change",
+            "Rewrite durable control files needed to validate adjudication follow-up execution.",
+            "--forbidden-change",
+            "Leave the predecessor round open after adjudication closes it.",
+            "--completion-criterion",
+            "The contract is invalidated before the predecessor round leaves open status.",
+            "--risk",
+            "If the contract stays open, round close-chain enforcement should block honestly.",
+        )
+        first_task_contract_id = str(first_task_contract_result["task_contract_id"])
+
+        second_task_contract_result = run_json(
+            "open_task_contract.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--round-id",
+            initial_round_id,
+            "--title",
+            "Disposable second pre-close task contract",
+            "--summary",
+            "Second disposable task contract used to prove multi-object task-contract invalidation fanout.",
+            "--intent",
+            "Prove that one adjudication plan family can fan out across multiple open task contracts.",
+            "--path",
+            "control/constitution.md",
+            "--allowed-change",
+            "Rewrite durable control contracts needed for adjudication smoke coverage.",
+            "--forbidden-change",
+            "Carry private executor semantics outside the registry.",
+            "--completion-criterion",
+            "The contract is invalidated through the same plan family as the first contract.",
+            "--risk",
+            "If only one contract invalidates, the plan family fanout is not real.",
+        )
+        second_task_contract_id = str(second_task_contract_result["task_contract_id"])
+
         exception_result = run_json(
             "activate_exception_contract.py",
             "--project-id",
@@ -298,7 +350,6 @@ def main() -> None:
         rewrite_then_close_plan = json.dumps(
             {
                 "plan_type": "rewrite-open-round-then-close-chain",
-                "round_id": initial_round_id,
                 "rewrite_reason": "Adjudication narrows the active round before it is closed so the durable round contract matches the verdict.",
                 "title": "Disposable predecessor round rewritten by adjudication",
                 "summary": "Adjudication narrows the predecessor round to one explicit validation slice before closure.",
@@ -337,6 +388,20 @@ def main() -> None:
             ensure_ascii=True,
             sort_keys=True,
         )
+        invalidate_task_contract_plan = json.dumps(
+            {
+                "plan_type": "invalidate-invalidated-task-contracts",
+                "reason": "Adjudication invalidated open task contracts before closing the predecessor round.",
+                "risk": [
+                    "If open task contracts survive, the round close-chain should stay blocked.",
+                ],
+                "status_note": [
+                    "Invalidated through adjudication plan fanout before round close-chain execution.",
+                ],
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
         retire_exception_plan = json.dumps(
             {
                 "plan_type": "retire-invalidated-exception-contracts",
@@ -360,9 +425,15 @@ def main() -> None:
             "--retain-id",
             objective_id,
             "--invalidate-id",
+            first_task_contract_id,
+            "--invalidate-id",
+            second_task_contract_id,
+            "--invalidate-id",
             initial_round_id,
             "--invalidate-id",
             exception_contract_id,
+            "--executor-plan-json",
+            invalidate_task_contract_plan,
             "--executor-plan-json",
             rewrite_then_close_plan,
             "--executor-plan-json",
@@ -398,7 +469,7 @@ def main() -> None:
             str(adjudication_result["adjudication_id"]),
             "--in-place",
         )
-        if int(compile_result["compiled_followup_count"]) != 3:
+        if int(compile_result["compiled_followup_count"]) != 5:
             raise SystemExit("adjudication executor plan compiler did not emit the expected bounded followups")
 
         execute_result = run_json(
@@ -467,6 +538,18 @@ def main() -> None:
             raise SystemExit("exception ledger did not reflect the retired contract after adjudication execution")
         if not active_round_path(FIXTURE_PROJECT_ID).exists():
             raise SystemExit("successor active-round projection missing after adjudication execution")
+
+        for task_contract_id in (first_task_contract_id, second_task_contract_id):
+            task_contract_path = locate_task_contract_file(FIXTURE_PROJECT_ID, task_contract_id)
+            if task_contract_path is None:
+                raise SystemExit(f"task-contract `{task_contract_id}` disappeared after adjudication execution")
+            task_contract_meta, task_contract_sections = load_task_contract_file(task_contract_path)
+            if str(task_contract_meta.get("status") or "").strip() != "invalidated":
+                raise SystemExit(f"task-contract plan did not invalidate `{task_contract_id}`")
+            if "Invalidated through adjudication plan fanout before round close-chain execution." not in str(
+                task_contract_sections.get("Status Notes", "")
+            ):
+                raise SystemExit(f"task-contract plan did not append the adjudication status note for `{task_contract_id}`")
 
         blocked_exception_result = run_json(
             "activate_exception_contract.py",
@@ -732,6 +815,8 @@ def main() -> None:
                     "initial_round_id": initial_round_id,
                     "successor_round_id": successor_round_id,
                     "exception_contract_id": exception_contract_id,
+                    "first_task_contract_id": first_task_contract_id,
+                    "second_task_contract_id": second_task_contract_id,
                     "blocked_exception_contract_id": blocked_exception_id,
                     "invalidated_exception_contract_id": invalidated_exception_id,
                     "execution_bootstrap_objective_id": execution_bootstrap_objective_id,

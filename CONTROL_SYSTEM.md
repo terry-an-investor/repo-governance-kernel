@@ -326,6 +326,7 @@ Bundle wrappers should stay under these repo laws:
 
 - a bundle wrapper must be explicitly governed before plan compilation or executor admission
 - executor bundle dispatch must go through one explicit handler registry aligned with the governed wrapper surface
+- bundle payload field semantics must be registry-owned instead of being admitted by private executor branches
 - a bundle wrapper must compose existing primitive transition commands only
 - a bundle wrapper must not write durable truth directly outside those primitive commands
 - a bundle wrapper must not invent private semantics in compiler or executor branches
@@ -685,6 +686,9 @@ across the rewrite script, the adjudication compiler, and the executor.
 For supported executor-backed commands, the same registry should also own the
 payload field surface and CLI binding surface instead of leaving those command
 arguments in one long private executor branch.
+For supported governed bundle wrappers, the same registry should also own the
+bundle payload field surface instead of leaving bundle admissibility and
+required-key semantics inside one private handler.
 For the supported bounded plan families, the registry should also own the
 payload-template bindings that materialize executor payload fields from plan
 contracts plus adjudication durable context, instead of leaving that mapping as
@@ -692,6 +696,9 @@ private compiler branching.
 Those bounded plan contracts may consume adjudication durable context such as
 the invalidated object set when target resolution remains deterministic and
 auditable.
+That includes resolving open task-contract targets from `Objects Invalidated`
+and resolving one open round target from explicit `round_id`, one invalidated
+still-open round, or one open round in the adjudication objective context.
 They may also reuse the adjudication's existing round bootstrap fields when the
 repo is compiling a bounded phase-side-effect bundle such as entering
 `execution` and auto-opening one round.

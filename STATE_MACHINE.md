@@ -439,17 +439,24 @@ Current implementation already does these things:
   - scaffolds missing control surfaces
   - compiles bounded `executor_plan_contracts` into explicit command payloads
     before executing them
+  - can resolve bounded task-contract plan targets from adjudication durable
+    `Objects Invalidated` when the selected object set maps deterministically
+    to still-open task contracts
   - can resolve bounded exception-contract plan targets from adjudication
     durable `Objects Invalidated` when the selected object set maps
     deterministically to active exception contracts
+  - can resolve one bounded round rewrite/close target from explicit
+    adjudication `round_id`, one invalidated still-open round, or one open
+    round in adjudication objective context
   - can compile one bounded phase-side-effect bundle that enters `execution`
     and auto-opens one round from adjudication durable round bootstrap fields
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states
-  - can rewrite one open round, retire or invalidate one exception contract,
-    refresh one round scope, change phase explicitly, and then open one
-    successor round when the adjudication record is structured enough
+  - can rewrite one open round, rewrite one open task contract, update one
+    task-contract status, retire or invalidate one exception contract, refresh
+    one round scope, change phase explicitly, and then open one successor round
+    when the adjudication record is structured enough
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - now enforces explicit phase changes through:
@@ -466,9 +473,9 @@ Current implementation already does these things:
 Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
-- advance task-contract lifecycle beyond initial creation
 - apply adjudication verdicts as a fully general automatic rewrite engine
 - infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
+- infer task-contract or round rewrite targets from ambiguous multi-object verdicts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate or automatically replace stale round contracts after hard pivots
   or broader verdict bundles without an explicit rewrite contract

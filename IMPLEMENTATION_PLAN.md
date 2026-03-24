@@ -35,8 +35,8 @@ Today that enforcement is intentionally narrow:
 - one audit path can now report control dishonesty without mutating state
 
 It is not yet a unified transition engine across every domain.
-It also does not yet include adjudication-driven durable rewrites after a
-verdict is recorded.
+It now includes a bounded adjudication executor subset, but not a general
+autonomous rewrite engine after a verdict is recorded.
 
 ## Phase 1 In Scope
 
@@ -111,17 +111,19 @@ verdict is recorded.
 - first adjudication support now exists:
   - `adjudicate-control-state`
   - records durable adjudication verdicts from the live audit result
-  - does not yet perform follow-up rewrites automatically
+  - records bounded machine-readable plan contracts and explicit executor
+    followups for the safe automatic subset
 - first adjudication follow-up executor now exists:
   - `execute-adjudication-followups`
   - can scaffold safe missing control surfaces
+  - can compile bounded task-contract, round-close, exception-contract, and
+    phase-bootstrap plan families from adjudication durable truth
   - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
-  - deeper task-contract executor or adjudication integration beyond lifecycle
-    and context consumption
-  - exception-contract commands
-  - adjudication-driven round and objective rewrites
-  - or a shared transition engine
+  - deeper owner-layer rewrite semantics for task contracts and objectives
+  - broader multi-round and multi-object adjudication replacement semantics
+  - a shared transition engine that consumes the same registry-backed machine
+    semantics end to end
 - future external-evidence slice should evaluate:
   - using `xurl` as a provider-agnostic read/query adapter for external agent
     session extraction

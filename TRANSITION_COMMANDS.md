@@ -860,6 +860,8 @@ Current implementation status:
   plan family
   - current supported plan-contract families include:
     - `rewrite-open-round-then-close-chain`
+    - `invalidate-invalidated-task-contracts`
+    - `abandon-invalidated-task-contracts`
     - `retire-invalidated-exception-contracts`
     - `invalidate-invalidated-exception-contracts`
     - `enter-execution-with-round-bootstrap`
@@ -868,9 +870,11 @@ Current implementation status:
 - currently supports structured execution for:
   - `close-objective`
   - `rewrite-open-round`
+  - `rewrite-open-task-contract`
   - `round-close-chain`
   - `refresh-round-scope`
   - `set-phase`
+  - `update-task-contract-status`
   - `update-round-status`
   - `retire-exception-contract`
   - `invalidate-exception-contract`
@@ -885,6 +889,13 @@ Current implementation status:
 - bounded exception-contract plan bundles can target active exception contracts
   through adjudication `Objects Invalidated` when the mapping stays
   deterministic and auditable
+- bounded task-contract plan bundles can target open task contracts through
+  adjudication `Objects Invalidated` when the mapping stays deterministic and
+  auditable
+- `rewrite-open-round-then-close-chain` can now resolve its round target from
+  explicit `round_id`, one invalidated still-open round, or one open round in
+  the adjudication objective context instead of requiring a hand-authored round
+  id every time
 - bounded phase-side-effect plans can compile `set-phase --auto-open-round`
   from the adjudication's existing round bootstrap fields instead of requiring
   one hand-authored low-level phase payload
@@ -899,7 +910,8 @@ Current implementation status:
     implementation status, required inputs, guard codes, guard rendering
     semantics, write-target semantics, write targets, side-effect codes,
     transition-command side-effect semantics, command mutable-field semantics,
-    command executor payload-field semantics, executor support,
+    command executor payload-field semantics, bundle executor payload-field
+    semantics, executor support,
     adjudication plan families, and bounded adjudication payload-template semantics
   - `audit-control-state` now warns if `TRANSITION_COMMANDS.md` documents command
     or plan names that the registry does not yet cover semantically

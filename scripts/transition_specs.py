@@ -120,6 +120,22 @@ class CommandExecutorFieldSpec:
 
 
 @dataclass(frozen=True)
+class BundleExecutorFieldSpec:
+    bundle_name: str
+    payload_key: str
+    value_kind: str
+    required: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "bundle_name": self.bundle_name,
+            "payload_key": self.payload_key,
+            "value_kind": self.value_kind,
+            "required": self.required,
+        }
+
+
+@dataclass(frozen=True)
 class BundleGovernanceSpec:
     name: str
     bundle_kind: str
@@ -512,6 +528,14 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("refresh-round-scope", "no_live_dirty_paths", "no-live-dirty-paths", "bool"),
     CommandExecutorFieldSpec("rewrite-open-round", "round_id", "round-id", "scalar"),
     CommandExecutorFieldSpec("rewrite-open-round", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("update-task-contract-status", "task_contract_id", "task-contract-id", "scalar", required=True),
+    CommandExecutorFieldSpec("update-task-contract-status", "status", "status", "scalar", required=True),
+    CommandExecutorFieldSpec("update-task-contract-status", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("update-task-contract-status", "resolution", "resolution", "list"),
+    CommandExecutorFieldSpec("update-task-contract-status", "risk", "risk", "list"),
+    CommandExecutorFieldSpec("update-task-contract-status", "status_note", "status-note", "list"),
+    CommandExecutorFieldSpec("rewrite-open-task-contract", "task_contract_id", "task-contract-id", "scalar"),
+    CommandExecutorFieldSpec("rewrite-open-task-contract", "reason", "reason", "scalar", required=True),
     CommandExecutorFieldSpec("set-phase", "objective_id", "objective-id", "scalar"),
     CommandExecutorFieldSpec("set-phase", "phase", "phase", "scalar", required=True),
     CommandExecutorFieldSpec("set-phase", "reason", "reason", "scalar", required=True),
@@ -534,6 +558,18 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("invalidate-exception-contract", "reason", "reason", "scalar", required=True),
     CommandExecutorFieldSpec("invalidate-exception-contract", "evidence", "evidence", "list"),
     CommandExecutorFieldSpec("invalidate-exception-contract", "pivot_id", "pivot-id", "scalar"),
+)
+
+
+BUNDLE_EXECUTOR_FIELD_SPECS: tuple[BundleExecutorFieldSpec, ...] = (
+    BundleExecutorFieldSpec("round-close-chain", "round_id", "scalar", required=True),
+    BundleExecutorFieldSpec("round-close-chain", "validation_pending_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain", "captured_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain", "closed_reason", "scalar"),
+    BundleExecutorFieldSpec("round-close-chain", "validated_by", "list"),
+    BundleExecutorFieldSpec("round-close-chain", "blocker", "list"),
+    BundleExecutorFieldSpec("round-close-chain", "risk", "list"),
+    BundleExecutorFieldSpec("round-close-chain", "clear_blockers", "bool"),
 )
 
 
@@ -930,6 +966,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "update-task-contract-status",
         "task-contract",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "task_contract_id", "status", "reason"),
         guard_codes=(
@@ -944,6 +981,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "rewrite-open-task-contract",
         "task-contract",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "task_contract_id", "reason", "mutable_fields"),
         mutable_field_codes=(
@@ -1047,14 +1085,14 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
     AdjudicationPlanSpec(
         plan_type="rewrite-open-round-then-close-chain",
         compiled_commands=("rewrite-open-round", "round-close-chain"),
-        requires_adjudication_fields=("round_id", "rewrite_reason", "validation_pending_reason", "captured_reason", "closed_reason"),
-        target_resolution="explicit_round_id",
+        requires_adjudication_fields=("rewrite_reason", "validation_pending_reason", "captured_reason", "closed_reason"),
+        target_resolution="explicit_round_id_or_invalidated_open_round_or_open_round_for_objective_context",
         side_effect_codes=("rewrite_round_contract", "advance_round_to_closed"),
         payload_templates=(
             AdjudicationPayloadTemplateSpec(
                 command_name="rewrite-open-round",
                 bindings=(
-                    AdjudicationPayloadBindingSpec("round_id", "contract_scalar", ("round_id",), required=True),
+                    AdjudicationPayloadBindingSpec("round_id", "round_target_id", ("round_id",), required=True),
                     AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("rewrite_reason",), required=True),
                     AdjudicationPayloadBindingSpec("title", "contract_scalar", ("title",)),
                     AdjudicationPayloadBindingSpec("summary", "contract_scalar", ("summary",)),
@@ -1074,7 +1112,7 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
             AdjudicationPayloadTemplateSpec(
                 command_name="round-close-chain",
                 bindings=(
-                    AdjudicationPayloadBindingSpec("round_id", "contract_scalar", ("round_id",), required=True),
+                    AdjudicationPayloadBindingSpec("round_id", "round_target_id", ("round_id",), required=True),
                     AdjudicationPayloadBindingSpec(
                         "validation_pending_reason",
                         "contract_scalar",
@@ -1087,6 +1125,56 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
                     AdjudicationPayloadBindingSpec("clear_blockers", "contract_bool", ("clear_blockers",)),
                     AdjudicationPayloadBindingSpec("blocker", "contract_list", ("close_chain_blocker",)),
                     AdjudicationPayloadBindingSpec("risk", "contract_list", ("close_chain_risk",)),
+                ),
+            ),
+        ),
+    ),
+    AdjudicationPlanSpec(
+        plan_type="invalidate-invalidated-task-contracts",
+        compiled_commands=("update-task-contract-status",),
+        requires_adjudication_fields=("Objects Invalidated", "reason"),
+        target_resolution="resolve_open_task_contracts_from_invalidated_objects",
+        side_effect_codes=("invalidate_open_task_contracts",),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="update-task-contract-status",
+                static_scalar_fields=(("status", "invalidated"),),
+                bindings=(
+                    AdjudicationPayloadBindingSpec(
+                        "task_contract_id",
+                        "task_contract_target_ids",
+                        ("task_contract_id", "task_contract_ids"),
+                        required=True,
+                        fanout=True,
+                    ),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("reason",), required=True),
+                    AdjudicationPayloadBindingSpec("risk", "contract_list", ("risk",)),
+                    AdjudicationPayloadBindingSpec("status_note", "contract_list", ("status_note",)),
+                ),
+            ),
+        ),
+    ),
+    AdjudicationPlanSpec(
+        plan_type="abandon-invalidated-task-contracts",
+        compiled_commands=("update-task-contract-status",),
+        requires_adjudication_fields=("Objects Invalidated", "reason"),
+        target_resolution="resolve_open_task_contracts_from_invalidated_objects",
+        side_effect_codes=("abandon_open_task_contracts",),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="update-task-contract-status",
+                static_scalar_fields=(("status", "abandoned"),),
+                bindings=(
+                    AdjudicationPayloadBindingSpec(
+                        "task_contract_id",
+                        "task_contract_target_ids",
+                        ("task_contract_id", "task_contract_ids"),
+                        required=True,
+                        fanout=True,
+                    ),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("reason",), required=True),
+                    AdjudicationPayloadBindingSpec("risk", "contract_list", ("risk",)),
+                    AdjudicationPayloadBindingSpec("status_note", "contract_list", ("status_note",)),
                 ),
             ),
         ),
@@ -1227,6 +1315,13 @@ for _executor_field_spec in COMMAND_EXECUTOR_FIELD_SPECS:
         *COMMAND_EXECUTOR_FIELDS_BY_COMMAND[_executor_field_spec.command_name],
         _executor_field_spec,
     )
+BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE: dict[str, tuple[BundleExecutorFieldSpec, ...]] = {}
+for _bundle_field_spec in BUNDLE_EXECUTOR_FIELD_SPECS:
+    BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.setdefault(_bundle_field_spec.bundle_name, tuple())
+    BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE[_bundle_field_spec.bundle_name] = (
+        *BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE[_bundle_field_spec.bundle_name],
+        _bundle_field_spec,
+    )
 BUNDLE_GOVERNANCE_SPEC_BY_NAME = {spec.name: spec for spec in BUNDLE_GOVERNANCE_SPECS}
 
 
@@ -1341,6 +1436,8 @@ def validate_transition_specs() -> None:
         raise SystemExit("duplicate adjudication plan types found in transition registry")
     if len(COMMAND_MUTABLE_FIELD_SPEC_BY_COMMAND_AND_CODE) != len(COMMAND_MUTABLE_FIELD_SPECS):
         raise SystemExit("duplicate command mutable-field codes found in transition registry")
+    if sum(len(specs) for specs in BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.values()) != len(BUNDLE_EXECUTOR_FIELD_SPECS):
+        raise SystemExit("duplicate bundle executor payload-field semantics found in transition registry")
     if len(BUNDLE_GOVERNANCE_SPEC_BY_NAME) != len(BUNDLE_GOVERNANCE_SPECS):
         raise SystemExit("duplicate bundle governance names found in transition registry")
 
@@ -1455,6 +1552,23 @@ def validate_transition_specs() -> None:
                 )
             cli_flags.add(field_spec.cli_flag)
 
+    for bundle_name, specs in BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.items():
+        if bundle_name not in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
+            raise SystemExit(
+                f"bundle executor payload-field semantics reference unknown governed bundle `{bundle_name}`"
+            )
+        payload_keys: set[str] = set()
+        for field_spec in specs:
+            if field_spec.value_kind not in valid_executor_value_kinds:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` payload field `{field_spec.payload_key}` uses unsupported value kind `{field_spec.value_kind}`"
+                )
+            if field_spec.payload_key in payload_keys:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` reuses payload key `{field_spec.payload_key}`"
+                )
+            payload_keys.add(field_spec.payload_key)
+
     for bundle_spec in BUNDLE_GOVERNANCE_SPECS:
         if bundle_spec.name in known_commands:
             raise SystemExit(
@@ -1563,10 +1677,13 @@ def validate_transition_specs() -> None:
                 raise SystemExit(
                     f"adjudication plan `{plan_spec.plan_type}` declares payload template for undeclared command `{template.command_name}`"
                 )
-            command_spec = COMMAND_SPEC_BY_NAME.get(template.command_name)
-            if command_spec is None or not command_spec.executor_supported:
-                continue
-            allowed_payload_targets = command_allowed_executor_payload_keys(template.command_name)
+            if template.command_name in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
+                allowed_payload_targets = bundle_allowed_payload_keys(template.command_name)
+            else:
+                command_spec = COMMAND_SPEC_BY_NAME.get(template.command_name)
+                if command_spec is None or not command_spec.executor_supported:
+                    continue
+                allowed_payload_targets = command_allowed_executor_payload_keys(template.command_name)
             template_targets = {
                 key for key, _value in template.static_scalar_fields
             } | {
@@ -1577,7 +1694,7 @@ def validate_transition_specs() -> None:
             unknown_template_targets = sorted(template_targets - allowed_payload_targets)
             if unknown_template_targets:
                 raise SystemExit(
-                    f"adjudication plan `{plan_spec.plan_type}` targets undeclared executor payload keys for `{template.command_name}`: {', '.join(unknown_template_targets)}"
+                    f"adjudication plan `{plan_spec.plan_type}` targets undeclared payload keys for `{template.command_name}`: {', '.join(unknown_template_targets)}"
                 )
 
 
@@ -1628,6 +1745,11 @@ def executor_field_specs_for_command(command_name: str) -> list[CommandExecutorF
     return list(COMMAND_EXECUTOR_FIELDS_BY_COMMAND.get(command_name.strip(), ()))
 
 
+def bundle_field_specs(bundle_name: str) -> list[BundleExecutorFieldSpec]:
+    validate_transition_specs()
+    return list(BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.get(bundle_name.strip(), ()))
+
+
 def command_allowed_mutation_payload_keys(command_name: str) -> set[str]:
     normalized_name = command_name.strip()
     spec = COMMAND_SPEC_BY_NAME.get(normalized_name)
@@ -1656,6 +1778,16 @@ def command_allowed_executor_payload_keys(command_name: str) -> set[str]:
     if "mutable_fields" in spec.required_inputs:
         allowed.update(command_allowed_mutation_payload_keys(normalized_name))
     return allowed
+
+
+def bundle_allowed_payload_keys(bundle_name: str) -> set[str]:
+    normalized_name = bundle_name.strip()
+    if normalized_name not in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
+        raise SystemExit(f"unknown governed bundle `{bundle_name}`")
+    return {
+        field_spec.payload_key
+        for field_spec in BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.get(normalized_name, ())
+    }
 
 
 def semantic_transition_command_names() -> list[str]:
@@ -1711,6 +1843,7 @@ def export_transition_registry() -> dict[str, object]:
         "transition_side_effect_semantics": [spec.to_dict() for spec in TRANSITION_SIDE_EFFECT_SPECS],
         "command_mutable_field_semantics": [spec.to_dict() for spec in COMMAND_MUTABLE_FIELD_SPECS],
         "command_executor_field_semantics": [spec.to_dict() for spec in COMMAND_EXECUTOR_FIELD_SPECS],
+        "bundle_executor_field_semantics": [spec.to_dict() for spec in BUNDLE_EXECUTOR_FIELD_SPECS],
         "bundle_governance": [spec.to_dict() for spec in BUNDLE_GOVERNANCE_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
