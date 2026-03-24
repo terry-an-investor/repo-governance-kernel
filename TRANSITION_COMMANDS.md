@@ -74,6 +74,8 @@ The kernel should stay centered on a small set of first-class commands.
 
 - `refresh-anchor`
 - `render-live-workspace`
+- `draft-external-target-shadow-scope`
+- `assess-host-adoption`
 - `capture-snapshot`
 - `audit-control-state`
 - `enforce-worktree`
@@ -150,6 +152,35 @@ Refresh the durable orientation bullets in `current/current-task.md`.
 ### `render-live-workspace`
 
 Render a non-durable view of live git/worktree state.
+
+### `draft-external-target-shadow-scope`
+
+Draft the smallest honest round/task boundary for one external target repo
+before running `assess-host-adoption`.
+
+This command is an owner-layer drafting surface:
+
+- it requires one active objective, one open round, and one active task contract
+- it inspects one explicit external workspace root live, without mutating that repo
+- it suggests round and task-contract `paths` directly from the currently observed dirty paths
+- it writes one readable draft artifact and suggested command sequence, not durable control truth
+- it exists to reduce hand-authored ambiguity in `external-target-shadow` setup before the real assessment command runs
+
+### `assess-host-adoption`
+
+Assess one governed host in shadow mode and write a readable adoption report.
+
+This command is an owner-layer observation surface:
+
+- it requires one active objective, one open round, and one active task contract
+- it inspects the current live workspace through the governed anchor
+- it resolves one explicit assessment mode:
+  - `governed-host-shadow`
+  - `external-target-shadow`
+- it interprets active round and task-contract `paths` against dirty paths relative to the assessed workspace root
+- it always writes one assessment artifact rather than durable control truth
+- it may write the report into the governed host repo or to an explicit external output path
+- it does not authorize arbitrary live-host mutation or general autonomous rewrite
 
 ### `capture-snapshot`
 

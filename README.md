@@ -10,3 +10,11 @@ not part of the package contract.
 Preview release notes are in [`RELEASE.md`](./RELEASE.md).
 Package-facing usage and support-boundary notes are in
 [`kernel/README.md`](./kernel/README.md).
+
+The current preview now includes a kernel-owned shadow host adoption assessment
+surface for governed external repos. It is still an alpha observation/reporting
+path, not a general live-host rewrite promise.
+
+For `external-target-shadow`, the preview now also includes a draft surface that
+turns the external repo's observed dirty paths into suggested round/task scope
+before the real assessment runs.

@@ -9,11 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from evaluation_bundle import (
-    classify_host_adoption_blockers,
-    copy_repo_snapshot,
-    resolve_snapshot_exclusions,
-)
+from evaluation_bundle import copy_repo_snapshot, resolve_snapshot_exclusions
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -311,92 +307,19 @@ def main() -> int:
             )
         )
 
-    remaining_blocked_paths: list[str] = []
-    for issue in final_enforce.get("issues", []):
-        if str(issue.get("code") or "").strip() not in {
-            "dirty_paths_outside_scope_round",
-            "dirty_paths_outside_active_task_contracts",
-        }:
-            continue
-        for path in issue.get("evidence", []):
-            normalized = str(path).replace("\\", "/").strip()
-            while normalized.startswith("./"):
-                normalized = normalized[2:]
-            if normalized and normalized not in remaining_blocked_paths:
-                remaining_blocked_paths.append(normalized)
-    blocker_classification = classify_host_adoption_blockers(PROJECT_ID, remaining_blocked_paths)
-
-    report_lines = [
-        "# Frozen Wind-Agent Adopted Shadow-Mode Report",
-        "",
-        f"- Source repo: `{SOURCE_REPO}`",
-        f"- Snapshot fixture: `{FIXTURE_ROOT}`",
-        f"- Project id: `{PROJECT_ID}`",
-        f"- Objective id: `{objective_payload.get('objective_id', '')}`",
-        f"- Round id: `{round_id}`",
-        f"- Task contract id: `{task_payload.get('task_contract_id', '')}`",
-        f"- Initial enforcement: `{initial_enforce.get('status', '')}`",
-        f"- Final enforcement: `{final_enforce.get('status', '')}`",
-        "",
-        "## Current Meaning",
-        "",
-        "- The frozen wind-agent snapshot now has one explicit adopted objective, round, and task contract.",
-        "- Enforcement no longer fails for missing round authority; any remaining blocked state is now about real scope or guarded-path law instead of missing adoption objects.",
-        "- This is the correct handoff point for a future live-host shadow mode.",
-        "",
-        "## Enforcement Issues",
-        "",
-    ]
-    final_issues = final_enforce.get("issues", [])
-    if final_issues:
-        for issue in final_issues:
-            report_lines.append(f"- `{issue.get('code', '')}`: {issue.get('message', '')}")
-    else:
-        report_lines.append("- No remaining enforcement blockers on the frozen host.")
-    report_lines.extend(
-        [
-            "",
-            "## Blocker Classification",
-            "",
-            f"- Hook installation paths: `{blocker_classification['counts']['hook_installation_paths']}`",
-            f"- Host governance paths: `{blocker_classification['counts']['host_governance_paths']}`",
-            f"- Host support paths: `{blocker_classification['counts']['host_support_paths']}`",
-            f"- Repo scope paths: `{blocker_classification['counts']['repo_scope_paths']}`",
-            "",
-            "These buckets separate bootstrap/control-plane noise from real source-repo scope gaps.",
-            "",
-        ]
+    assessment_payload = kernel_json(
+        FIXTURE_ROOT,
+        "assess-host-adoption",
+        "--project-id",
+        PROJECT_ID,
+        "--workspace-root",
+        str(FIXTURE_ROOT).replace("\\", "/"),
+        "--source-repo",
+        str(SOURCE_REPO).replace("\\", "/"),
+        "--write-report",
     )
-    for bucket in (
-        "hook_installation_paths",
-        "host_governance_paths",
-        "host_support_paths",
-        "repo_scope_paths",
-    ):
-        report_lines.append(f"### `{bucket}`")
-        report_lines.append("")
-        report_lines.append(f"- Meaning: {blocker_classification['meanings'][bucket]}")
-        bucket_paths = blocker_classification["buckets"][bucket]
-        if bucket_paths:
-            for path in bucket_paths:
-                report_lines.append(f"- `{path}`")
-        else:
-            report_lines.append("- none")
-        report_lines.append("")
-    report_lines.extend(
-        [
-            "## Next Steps",
-            "",
-            "- Convert host bootstrap/support path treatment into one explicit adoption policy before live shadow mode, instead of leaving them as incidental dirty-path noise.",
-            "- Compare the adopted frozen-host scope with the original wind-agent round wording and trim any obviously over-broad repo scope paths before live shadow mode.",
-            "- Keep live-host rollout in shadow mode first: observe verdicts, do not block developer flow yet.",
-            "- Promote only the host-side trigger surfaces that now have a clear frozen-host precedent.",
-            "",
-        ]
-    )
-    report_path = FIXTURE_ROOT / "projects" / PROJECT_ID / "current" / "shadow-adoption-report.md"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text("\n".join(report_lines), encoding="utf-8", newline="\n")
+    blocker_classification = assessment_payload["blocker_classification"]
+    report_path = Path(str(assessment_payload["report_path"]))
 
     print(
         json.dumps(
@@ -414,6 +337,7 @@ def main() -> int:
                 "initial_enforce": initial_enforce,
                 "final_audit": final_audit,
                 "final_enforce": final_enforce,
+                "assessment": assessment_payload,
                 "blocker_classification": blocker_classification,
                 "report_path": str(report_path),
             },

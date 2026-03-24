@@ -16,8 +16,8 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: ``
-- Phase: `paused`
+- Active round id: `round-2026-03-24-1928-land-live-host-shadow-assessment-and-adoption-report-owner-layer`
+- Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Phase-1 baseline already exists:

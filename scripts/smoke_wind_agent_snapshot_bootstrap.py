@@ -157,44 +157,45 @@ def main() -> int:
             )
         )
 
-    report_lines = [
-        "# Frozen Wind-Agent Host Adoption Report",
-        "",
-        f"- Source repo: `{SOURCE_REPO}`",
-        f"- Snapshot fixture: `{FIXTURE_ROOT}`",
-        f"- Bootstrap project id: `{PROJECT_ID}`",
-        f"- Bootstrap status: `{bootstrap_payload.get('status', '')}`",
-        f"- Host control audit: `{audit_payload.get('status', '')}`",
-        f"- Host worktree enforcement: `{enforce_payload.get('status', '')}`",
-        "",
-        "## Current Meaning",
-        "",
-        "- The copied working-tree snapshot can host the kernel control surface without touching the live wind-agent repo.",
-        "- The host-side control audit is already honest enough to pass immediately after bootstrap.",
-        "- Worktree enforcement correctly remains blocked because the copied wind-agent worktree is dirty and no active round has been adopted yet.",
-        "",
-        "## Blocked Reasons",
-        "",
-    ]
-    for issue in enforce_payload.get("issues", []):
-        code = str(issue.get("code") or "").strip()
-        message = str(issue.get("message") or "").strip()
-        if code:
-            report_lines.append(f"- `{code}`: {message}")
-    report_lines.extend(
-        [
-            "",
-            "## Next Steps",
-            "",
-            "- Adopt one explicit active objective and one explicit active round for the frozen host snapshot.",
-            "- Rewrite the round scope so it honestly covers the dirty wind-agent paths that should be governed in shadow mode.",
-            "- Re-run host enforcement after round adoption before attempting any live-host shadow integration.",
-            "",
-        ]
-    )
     report_path = FIXTURE_ROOT / "projects" / PROJECT_ID / "current" / "adoption-report.md"
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text("\n".join(report_lines), encoding="utf-8", newline="\n")
+    report_path.write_text(
+        "\n".join(
+            [
+                "# Frozen Wind-Agent Host Adoption Report",
+                "",
+                f"- Source repo: `{SOURCE_REPO}`",
+                f"- Snapshot fixture: `{FIXTURE_ROOT}`",
+                f"- Bootstrap project id: `{PROJECT_ID}`",
+                f"- Bootstrap status: `{bootstrap_payload.get('status', '')}`",
+                f"- Host control audit: `{audit_payload.get('status', '')}`",
+                f"- Host worktree enforcement: `{enforce_payload.get('status', '')}`",
+                "",
+                "## Current Meaning",
+                "",
+                "- The copied working-tree snapshot can host the kernel control surface without touching the live wind-agent repo.",
+                "- The host-side control audit is already honest enough to pass immediately after bootstrap.",
+                "- Worktree enforcement correctly remains blocked because the copied wind-agent worktree is dirty and no active round has been adopted yet.",
+                "",
+                "## Blocked Reasons",
+                "",
+                *[
+                    f"- `{str(issue.get('code') or '').strip()}`: {str(issue.get('message') or '').strip()}"
+                    for issue in enforce_payload.get("issues", [])
+                    if str(issue.get("code") or "").strip()
+                ],
+                "",
+                "## Next Steps",
+                "",
+                "- Adopt one explicit active objective and one explicit active round for the frozen host snapshot.",
+                "- Rewrite the round scope so it honestly covers the dirty wind-agent paths that should be governed in shadow mode.",
+                "- Re-run host enforcement after round adoption before attempting any live-host shadow integration.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
 
     hooks_path = run(
         ["C:\\Program Files\\Git\\cmd\\git.exe", "config", "--get", "core.hooksPath"],

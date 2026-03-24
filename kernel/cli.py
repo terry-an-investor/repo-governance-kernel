@@ -12,6 +12,7 @@ ROOT = resolve_repo_root()
 
 COMMAND_MODULES = {
     "activate-exception-contract": "kernel.commands.activate_exception_contract",
+    "assess-host-adoption": "kernel.commands.assess_host_adoption",
     "adjudicate-control-state": "kernel.commands.adjudicate_control_state",
     "audit-control-state": "kernel.audit_control_state",
     "audit-product-docs": "kernel.commands.audit_product_docs",
@@ -23,6 +24,7 @@ COMMAND_MODULES = {
     "compile-adjudication-executor-plan": "kernel.commands.compile_adjudication_executor_plan",
     "compile-role-context": "kernel.commands.compile_role_context",
     "create-snapshot": "kernel.commands.create_snapshot",
+    "draft-external-target-shadow-scope": "kernel.commands.draft_external_target_shadow_scope",
     "enforce-worktree": "kernel.commands.enforce_worktree",
     "execute-adjudication-followups": "kernel.commands.execute_adjudication_followups",
     "invalidate-exception-contract": "kernel.commands.invalidate_exception_contract",

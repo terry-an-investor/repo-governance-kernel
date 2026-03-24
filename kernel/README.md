@@ -81,6 +81,32 @@ The frozen `wind-agent` path also proves the next adoption truth:
   as `dirty_paths_outside_scope_round` and
   `dirty_paths_outside_active_task_contracts`
 
+Assess a governed host for shadow adoption:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/governed/host/repo assess-host-adoption --project-id my-repo
+```
+
+This assessment surface is for shadow mode:
+
+- it requires an already-governed host with one active objective, one open round, and one active task contract
+- it resolves either `governed-host-shadow` or `external-target-shadow`
+- it interprets active round/task paths relative to the assessed workspace root, not relative to arbitrary host-doc locations
+- it always produces a readable adoption report instead of claiming general live-host rewrite authority
+- it can keep the report inside the governed host repo or write to an explicit external path
+
+Draft one external-target shadow boundary before assessment:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/governed/host/repo draft-external-target-shadow-scope --project-id my-repo --workspace-root C:/path/to/external/repo
+```
+
+This draft surface is for external-target setup:
+
+- it inspects the external repo live and turns the observed dirty paths into suggested round/task scope
+- it writes a readable draft artifact and suggested command sequence instead of mutating durable control truth automatically
+- it exists to reduce hand-authored ambiguity before `assess-host-adoption` interprets the external target boundary
+
 Install or refresh repo-local hooks:
 
 ```powershell

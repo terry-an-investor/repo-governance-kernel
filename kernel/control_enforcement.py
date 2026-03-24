@@ -150,14 +150,17 @@ def resolve_scope_record(
     return open_round_record, round_issues, resolved_round_id
 
 
-def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "") -> dict[str, object]:
+def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "", workspace_root: str = "") -> dict[str, object]:
     project_path = project_dir(project_id)
     if not project_path.exists():
         raise SystemExit(f"project directory not found: {project_path}")
 
     issues: list[dict[str, object]] = []
     checks: list[str] = []
-    live_workspace = inspect_live_workspace(resolve_anchor(project_id))
+    anchor = resolve_anchor(project_id)
+    if workspace_root.strip():
+        anchor["workspace_root"] = workspace_root.strip()
+    live_workspace = inspect_live_workspace(anchor)
     changed_paths: list[str] = []
 
     if live_workspace.get("status") != "available":
@@ -326,8 +329,14 @@ def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "") -> dic
     }
 
 
-def assert_worktree_enforcement(project_id: str, *, transition_target: str = "", round_id: str = "") -> dict[str, object]:
-    result = evaluate_worktree_enforcement(project_id, round_id=round_id)
+def assert_worktree_enforcement(
+    project_id: str,
+    *,
+    transition_target: str = "",
+    round_id: str = "",
+    workspace_root: str = "",
+) -> dict[str, object]:
+    result = evaluate_worktree_enforcement(project_id, round_id=round_id, workspace_root=workspace_root)
     if result["status"] == "blocked":
         transition_note = f" before `{transition_target}`" if transition_target.strip() else ""
         raise SystemExit(
