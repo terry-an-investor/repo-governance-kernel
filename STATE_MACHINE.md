@@ -477,6 +477,9 @@ Current implementation already does these things:
     bundle-local CLI assembly path
   - now routes governed bundle step-selection through registry-owned route
     states and step templates instead of one private handler branch per bundle
+  - now routes bounded resolver logic through one shared resolver runtime so
+    bundle `state_resolver` names and adjudication `target_resolution` names
+    are runtime-consumed owner-layer semantics rather than doc-only labels
   - now normalizes command-facing runtime-input aliases consistently across
     contract assertions and executor coverage checks, so command consumers do
     not drift on singular/plural payload names

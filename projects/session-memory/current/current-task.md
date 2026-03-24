@@ -92,6 +92,10 @@ The immediate objective is:
   - binding resolvers are now explicit registry-owned semantics
   - plan target-resolution names are now explicit registry-owned semantics
   - plan side-effect names are now explicit registry-owned semantics instead of unchecked free strings
+- compile and execute now also share one resolver runtime layer:
+  - `scripts/resolver_runtime.py` now owns the bounded round / task-contract / exception-contract target resolution helpers
+  - bundle `state_resolver` names are now declared in `scripts/transition_specs.py` and consumed at runtime
+  - adjudication `plan_spec.target_resolution` is now an explicit runtime gate instead of a doc-only registry field
 - round-domain commands now consume one shared registry-backed owner-layer helper for:
   - guard coverage
   - guard rendering semantics
@@ -443,12 +447,10 @@ The immediate objective is:
    docs to the same product positioning.
 2. Add an explicit audit path so product docs and machine-semantic docs stop
    drifting silently.
-3. Continue removing executor-local command semantics by replacing remaining
-   repo-owned state resolvers with registry-backed dispatch where the command
-   surface is already frozen.
-4. Decide which remaining bundle state-resolution rules should also be lifted
-   into explicit machine semantics instead of staying as narrow runtime
-   inspectors.
+3. Continue broadening bounded plan and bundle families only where the
+   underlying command semantics are already registry-owned and auditable.
+4. Decide which additional resolver families deserve first-class machine
+   semantics before expanding beyond the current bounded automatic subset.
 5. Broaden bounded adjudication plan families only where underlying command
    semantics are already registry-owned and auditable.
 6. Validate the product on more non-self-hosted repositories after the product

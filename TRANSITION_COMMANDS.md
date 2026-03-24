@@ -927,6 +927,10 @@ Current implementation status:
   - bundle step templates are declared in the transition registry
   - the executor now runs one generic governed-bundle engine instead of one
     private handler per bundle
+- compile and execute now also share one resolver runtime:
+  - bounded bundle `state_resolver` names are declared in the transition registry
+  - bounded adjudication `target_resolution` names are now consumed as explicit runtime gates
+  - shared round / task-contract / exception-contract target resolution lives in `scripts/resolver_runtime.py`
 - additional already-implemented primitive commands now also declare
   executor-supported payload semantics:
   - `open-objective`

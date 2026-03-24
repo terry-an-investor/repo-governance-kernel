@@ -8,10 +8,9 @@ from pathlib import Path
 from compile_adjudication_executor_plan import compile_plan_contracts
 from executor_command_builder import string_list
 from executor_runtime import run_registry_command
+from resolver_runtime import resolve_round_status_from_round_id
 from round_control import (
     load_all_adjudications,
-    load_round_file,
-    locate_round_file,
     parse_bullet_list,
     project_dir,
     select_open_round_record,
@@ -20,9 +19,9 @@ from transition_specs import (
     bundle_governance_names,
     bundle_allowed_payload_keys,
     bundle_field_specs,
+    bundle_governance_spec,
     bundle_route_state_spec,
     bundle_step_template_spec,
-    bundle_step_template_specs,
     executor_supported_command_names,
 )
 
@@ -217,18 +216,17 @@ def supported_executor_commands() -> set[str]:
     return set(executor_supported_command_names()) | set(bundle_executor_handler_names())
 
 
+GOVERNED_BUNDLE_STATE_RESOLVERS = {
+    "round_status_from_round_id": resolve_round_status_from_round_id,
+}
+
+
 def _resolve_bundle_current_state(project_id: str, bundle_name: str, payload: dict[str, object]) -> str:
-    if bundle_name == "round-close-chain":
-        round_id = require_payload_text(payload, "round_id")
-        round_path = locate_round_file(project_id, round_id)
-        if round_path is None:
-            raise SystemExit(f"executor {bundle_name} could not find round `{round_id}`")
-        round_meta, _sections = load_round_file(round_path)
-        current_status = str(round_meta.get("status") or "").strip()
-        if not current_status:
-            raise SystemExit(f"executor {bundle_name} found round `{round_id}` without a status")
-        return current_status
-    raise SystemExit(f"unsupported bundle state resolver `{bundle_name}`")
+    resolver_name = bundle_governance_spec(bundle_name).state_resolver
+    resolver = GOVERNED_BUNDLE_STATE_RESOLVERS.get(resolver_name)
+    if resolver is None:
+        raise SystemExit(f"unsupported bundle state resolver `{resolver_name}`")
+    return str(resolver(project_id, payload)).strip()
 
 
 def _materialize_bundle_step_payload(

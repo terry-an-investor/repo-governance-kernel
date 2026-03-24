@@ -133,6 +133,9 @@ autonomous rewrite engine after a verdict is recorded.
     bundle-local nested CLI path
   - now routes governed bundle step-selection through registry-owned route
     states and step templates instead of one private handler branch per bundle
+  - now routes bounded resolver logic through one shared resolver runtime so
+    bundle `state_resolver` names and adjudication `target_resolution` names
+    are runtime-consumed owner-layer semantics
   - now extends executor payload semantics to more already-implemented
     primitive commands instead of leaving that coverage concentrated only on
     rewrite/status paths

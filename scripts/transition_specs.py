@@ -141,6 +141,7 @@ class BundleGovernanceSpec:
     bundle_kind: str
     purpose: str
     composed_commands: tuple[str, ...]
+    state_resolver: str = ""
     direct_write_forbidden: bool = True
     private_semantics_forbidden: bool = True
     required_validations: tuple[str, ...] = ()
@@ -151,9 +152,22 @@ class BundleGovernanceSpec:
             "bundle_kind": self.bundle_kind,
             "purpose": self.purpose,
             "composed_commands": list(self.composed_commands),
+            "state_resolver": self.state_resolver,
             "direct_write_forbidden": self.direct_write_forbidden,
             "private_semantics_forbidden": self.private_semantics_forbidden,
             "required_validations": list(self.required_validations),
+        }
+
+
+@dataclass(frozen=True)
+class BundleStateResolverSpec:
+    name: str
+    description: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "description": self.description,
         }
 
 
@@ -758,7 +772,16 @@ BUNDLE_GOVERNANCE_SPECS: tuple[BundleGovernanceSpec, ...] = (
         bundle_kind="executor-wrapper",
         purpose="Advance one round through the legal close sequence by composing only existing round status transitions.",
         composed_commands=("update-round-status",),
+        state_resolver="round_status_from_round_id",
         required_validations=("scripts/smoke_adjudication_followups.py",),
+    ),
+)
+
+
+BUNDLE_STATE_RESOLVER_SPECS: tuple[BundleStateResolverSpec, ...] = (
+    BundleStateResolverSpec(
+        "round_status_from_round_id",
+        "Resolve the current bundle route state from the durable status of the target round referenced by `round_id`.",
     ),
 )
 
@@ -1787,6 +1810,7 @@ for _bundle_field_spec in BUNDLE_EXECUTOR_FIELD_SPECS:
         _bundle_field_spec,
     )
 BUNDLE_GOVERNANCE_SPEC_BY_NAME = {spec.name: spec for spec in BUNDLE_GOVERNANCE_SPECS}
+BUNDLE_STATE_RESOLVER_SPEC_BY_NAME = {spec.name: spec for spec in BUNDLE_STATE_RESOLVER_SPECS}
 BUNDLE_ROUTE_STATES_BY_BUNDLE: dict[str, tuple[BundleRouteStateSpec, ...]] = {}
 for _bundle_route_state_spec in BUNDLE_ROUTE_STATE_SPECS:
     BUNDLE_ROUTE_STATES_BY_BUNDLE.setdefault(_bundle_route_state_spec.bundle_name, tuple())
@@ -1939,6 +1963,8 @@ def validate_transition_specs() -> None:
         raise SystemExit("duplicate bundle executor payload-field semantics found in transition registry")
     if len(BUNDLE_GOVERNANCE_SPEC_BY_NAME) != len(BUNDLE_GOVERNANCE_SPECS):
         raise SystemExit("duplicate bundle governance names found in transition registry")
+    if len(BUNDLE_STATE_RESOLVER_SPEC_BY_NAME) != len(BUNDLE_STATE_RESOLVER_SPECS):
+        raise SystemExit("duplicate bundle state resolver names found in transition registry")
     if len(BUNDLE_ROUTE_STATE_BY_BUNDLE_AND_STATE) != len(BUNDLE_ROUTE_STATE_SPECS):
         raise SystemExit("duplicate bundle route states found in transition registry")
     if len(BUNDLE_STEP_TEMPLATE_BY_BUNDLE_AND_FROM_STATE) != len(BUNDLE_STEP_TEMPLATE_SPECS):
@@ -2147,6 +2173,12 @@ def validate_transition_specs() -> None:
             raise SystemExit(
                 f"bundle governance `{bundle_spec.name}` collides with a transition command name"
             )
+        if not bundle_spec.state_resolver:
+            raise SystemExit(f"bundle governance `{bundle_spec.name}` does not declare a state resolver")
+        if bundle_spec.state_resolver not in BUNDLE_STATE_RESOLVER_SPEC_BY_NAME:
+            raise SystemExit(
+                f"bundle governance `{bundle_spec.name}` declares unknown bundle state resolver `{bundle_spec.state_resolver}`"
+            )
         unknown_composed_commands = sorted(set(bundle_spec.composed_commands) - known_commands)
         if unknown_composed_commands:
             raise SystemExit(
@@ -2347,6 +2379,27 @@ def bundle_field_specs(bundle_name: str) -> list[BundleExecutorFieldSpec]:
     return list(BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.get(bundle_name.strip(), ()))
 
 
+def bundle_governance_spec(bundle_name: str) -> BundleGovernanceSpec:
+    validate_transition_specs()
+    spec = BUNDLE_GOVERNANCE_SPEC_BY_NAME.get(bundle_name.strip())
+    if spec is None:
+        raise SystemExit(f"unknown governed bundle `{bundle_name}`")
+    return spec
+
+
+def bundle_state_resolver_names() -> list[str]:
+    validate_transition_specs()
+    return [spec.name for spec in BUNDLE_STATE_RESOLVER_SPECS]
+
+
+def bundle_state_resolver_spec(name: str) -> BundleStateResolverSpec:
+    validate_transition_specs()
+    spec = BUNDLE_STATE_RESOLVER_SPEC_BY_NAME.get(name.strip())
+    if spec is None:
+        raise SystemExit(f"unknown bundle state resolver `{name}`")
+    return spec
+
+
 def bundle_route_state_specs(bundle_name: str) -> list[BundleRouteStateSpec]:
     validate_transition_specs()
     return list(BUNDLE_ROUTE_STATES_BY_BUNDLE.get(bundle_name.strip(), ()))
@@ -2528,6 +2581,7 @@ def export_transition_registry() -> dict[str, object]:
         "command_executor_field_semantics": [spec.to_dict() for spec in COMMAND_EXECUTOR_FIELD_SPECS],
         "bundle_executor_field_semantics": [spec.to_dict() for spec in BUNDLE_EXECUTOR_FIELD_SPECS],
         "bundle_governance": [spec.to_dict() for spec in BUNDLE_GOVERNANCE_SPECS],
+        "bundle_state_resolver_semantics": [spec.to_dict() for spec in BUNDLE_STATE_RESOLVER_SPECS],
         "bundle_route_state_semantics": [spec.to_dict() for spec in BUNDLE_ROUTE_STATE_SPECS],
         "bundle_step_template_semantics": [spec.to_dict() for spec in BUNDLE_STEP_TEMPLATE_SPECS],
         "adjudication_target_resolution_semantics": [spec.to_dict() for spec in ADJUDICATION_TARGET_RESOLUTION_SPECS],
