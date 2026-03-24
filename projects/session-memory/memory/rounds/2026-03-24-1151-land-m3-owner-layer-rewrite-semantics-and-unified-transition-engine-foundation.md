@@ -2,12 +2,12 @@
 id: round-2026-03-24-1151-land-m3-owner-layer-rewrite-semantics-and-unified-transition-engine-foundation
 type: round-contract
 title: "Land M3 owner-layer rewrite semantics and unified transition engine foundation"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: ac262a8fb3f5ede5a804b23066f901d16bce9e07
+git_sha: 207551be1ebb034ee505574879036a7d8c73db08
 paths:
   - scripts/
   - projects/session-memory/control/
@@ -25,6 +25,7 @@ paths:
   - .gitignore
   - RELEASE.md
   - uv.lock
+  - README.md
 thread_ids: []
 evidence_refs: []
 tags:
@@ -32,7 +33,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T11:51:07+08:00
-updated_at: 2026-03-24T15:21:01+08:00
+updated_at: 2026-03-24T18:47:45+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -58,6 +59,14 @@ A new M3 slice that broadens rewrite semantics honestly and lands the first unif
 ## Validation Plan
 
 Targeted py_compile, audit-control-state, enforce-worktree, and focused smoke coverage pass on the M3 path.
+uv run python scripts/smoke_kernel_bootstrap.py
+uv run python scripts/smoke_wind_agent_snapshot_adoption.py
+uv run python scripts/smoke_brooks_semantic_research_snapshot_adoption.py
+uv build
+artifacts/preview-install/.venv/Scripts/python.exe -m kernel.cli --help
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
+uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli enforce-worktree --project-id session-memory
 
 ## Active Risks
 
@@ -79,3 +88,23 @@ Round rewritten because the current milestone now includes physically separating
 Round rewritten because the milestone now includes kernel alpha release preparation and explicitly downgrading the host sample to dogfood/example status in canonical docs
 
 Round rewritten because alpha packaging preparation now also owns release metadata and derived package-build hygiene for uv package mode
+
+Round rewritten because Preview release packaging now owns the repository root README because setuptools readme metadata and package-facing preview framing must stay inside the governed release surface.
+
+Round rewritten because preview packaging now includes root README metadata and package-facing preview framing.
+
+active -> validation_pending: Preview release validation is complete across control audit, worktree enforcement, external frozen-host adoption smokes, package build, and installed CLI checks.
+
+validation_pending -> captured: Preview release evidence is recorded in release notes, built artifacts, and frozen-host reports, so the validated release-prep round can be captured.
+
+validated by:
+- uv run python scripts/smoke_kernel_bootstrap.py
+- uv run python scripts/smoke_wind_agent_snapshot_adoption.py
+- uv run python scripts/smoke_brooks_semantic_research_snapshot_adoption.py
+- uv build
+- artifacts/preview-install/.venv/Scripts/python.exe -m kernel.cli --help
+- artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
+- uv run python -m kernel.cli audit-control-state --project-id session-memory
+- uv run python -m kernel.cli enforce-worktree --project-id session-memory
+
+captured -> closed: Alpha preview release preparation is complete and the round can close on recorded evidence.

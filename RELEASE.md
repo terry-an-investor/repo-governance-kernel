@@ -52,3 +52,27 @@ Do not promote beyond alpha until:
 - public command contract is frozen
 - package-facing docs include quickstart and support boundary
 - host/sample adapters no longer look like canonical kernel ownership
+
+## Preview Evidence
+
+Preview validation completed on 2026-03-24.
+
+- `uv run python scripts/smoke_kernel_bootstrap.py`
+  - disposable bootstrap host passes `audit-control-state`
+- `uv run python scripts/smoke_wind_agent_snapshot_adoption.py`
+  - frozen `wind-agent` host adoption produces a readable shadow-adoption report and isolates remaining blocked verdicts to host bootstrap/support noise
+- `uv run python scripts/smoke_brooks_semantic_research_snapshot_adoption.py`
+  - frozen `brooks-semantic-research` host adoption produces a readable shadow-adoption report and isolates remaining blocked verdicts to host bootstrap/support noise
+- `uv build`
+  - produced:
+    - `dist/repo_governance_kernel-0.1.0a0.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0a0-py3-none-any.whl`
+- installed-package check
+  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a0-py3-none-any.whl`
+  - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
+  - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
+
+## Preview Residual Risks
+
+- frozen-host adoption proof is honest preview evidence, not yet live-host shadow-mode proof
+- host repo and package still share one source repository, so preview packaging hygiene can still regress if repo-local docs and package docs drift

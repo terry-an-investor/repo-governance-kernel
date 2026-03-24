@@ -1,29 +1,25 @@
 # Active Round
 
-- Round id: `round-2026-03-24-1151-land-m3-owner-layer-rewrite-semantics-and-unified-transition-engine-foundation`
+- Round id: `round-2026-03-24-1849-ratify-repo-governance-kernel-preview-release-into-git`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- Extend registry-owned adjudication rewrite semantics beyond the current bounded round/task/exception slice without inventing new private executor branches.
-- Extract shared execution-building primitives so owner-layer commands stop accumulating one-off if/else dispatch paths.
-- Kernelize canonical product and control docs so the repo is framed as a repo governance kernel instead of a broader memory/autonomy system.
-- Physically separate reusable governance runtime modules into kernel/ while keeping sample project data under projects/session-memory/.
-- Prepare kernel for alpha release with independent package metadata, release notes, and sample-downscoped host-repo positioning.
+- Commit the preview release packaging, package-data fixes, release notes, and external frozen-host adoption smoke under one honest finalization round.
+- Keep commit-time enforcement and control projections aligned while landing the preview release to git.
 
 ## Deliverable
 
-A new M3 slice that broadens rewrite semantics honestly and lands the first unified transition-engine foundation.
+Ratified git commit for the repo-governance-kernel internal preview release.
 
 ## Validation Plan
 
-Targeted py_compile, audit-control-state, enforce-worktree, and focused smoke coverage pass on the M3 path.
+Git commit passes local hooks, then audit-control-state, enforce-worktree, and git status all pass on the committed clean state.
 
 ## Active Risks
 
-- Expanding rewrite semantics too fast could reintroduce private owner-layer behavior under a cleaner name.
-- A premature unified engine abstraction could hide domain differences instead of making them explicit.
+- Preview packaging and ratification control updates could drift if the landing round does not exactly cover the release-facing dirty paths.
 
 ## Blockers
 

@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 1713efaef14237b3d55919655eb89de1b4bec896
+git_sha: 207551be1ebb034ee505574879036a7d8c73db08
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,7 +29,7 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-24T11:34:35+08:00
+updated_at: 2026-03-24T18:49:36+08:00
 phase: execution
 supersedes:
   - obj-2026-03-23-0001
@@ -136,3 +136,7 @@ Phase changed from `paused` to `execution` because A bounded docs slice is neede
 Phase changed from `execution` to `paused` because The bounded xurl adapter follow-up round is closed, so the active objective should return to paused.
 
 Phase changed from `paused` to `execution` because A bounded execution slice is needed to land M1 bundle-payload registration and M2 broader adjudication plan contracts for automatic rewrite.
+
+Phase changed from `execution` to `paused` because Preview release preparation round is closed, so the objective returns to paused until the next explicit kernel release or adoption milestone.
+
+Phase changed from `paused` to `execution` because Preview release artifacts are ready, but the working tree still carries unreleased package and doc changes that need one explicit ratification round before landing into git.

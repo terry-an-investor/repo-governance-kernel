@@ -47,6 +47,7 @@ KERNEL_COMMANDS = {
 REPO_COMMAND_MAP = {
     "smoke": SCRIPTS / "smoke_phase1.py",
     "smoke-kernel-bootstrap": SCRIPTS / "smoke_kernel_bootstrap.py",
+    "smoke-brooks-semantic-research-snapshot-adoption": SCRIPTS / "smoke_brooks_semantic_research_snapshot_adoption.py",
     "smoke-wind-agent-snapshot-bootstrap": SCRIPTS / "smoke_wind_agent_snapshot_bootstrap.py",
     "smoke-wind-agent-snapshot-adoption": SCRIPTS / "smoke_wind_agent_snapshot_adoption.py",
     "run-smoke-suite": SCRIPTS / "run_smoke_suite.py",
