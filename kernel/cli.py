@@ -23,6 +23,7 @@ COMMAND_MODULES = {
     "compile-adjudication-executor-plan": "kernel.commands.compile_adjudication_executor_plan",
     "compile-role-context": "kernel.commands.compile_role_context",
     "create-snapshot": "kernel.commands.create_snapshot",
+    "enforce-worktree": "kernel.commands.enforce_worktree",
     "execute-adjudication-followups": "kernel.commands.execute_adjudication_followups",
     "invalidate-exception-contract": "kernel.commands.invalidate_exception_contract",
     "install-hooks": "kernel.commands.install_hooks",

@@ -119,6 +119,9 @@ Needed outcomes:
   - disposable fixture repo
   - frozen host snapshot
     - first proof now exists through a copied `wind-agent` working-tree snapshot that bootstraps and passes host-side control audit without touching the live repo
+    - frozen-host enforcement now also returns the honest blocked verdict before adoption:
+      - dirty worktree plus no adopted round means the host is not yet allowed to proceed
+      - adoption should therefore continue through explicit objective/round capture before live shadow mode
   - shadow mode on a live host
   - hard-gated adoption on a lower-risk real repo
 

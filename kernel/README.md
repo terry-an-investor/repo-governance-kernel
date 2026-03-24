@@ -68,6 +68,13 @@ The current validation path now covers both:
 Both surfaces bootstrap and pass host-side `audit-control-state` without
 touching the live source repository.
 
+The frozen `wind-agent` path also proves the next adoption truth:
+
+- `enforce-worktree` is expected to remain `blocked` until one explicit adopted
+  round honestly covers the dirty host paths
+- the kernel now writes one host-side adoption report that explains this blocked
+  state and the next control actions instead of leaving only raw JSON
+
 Install or refresh repo-local hooks:
 
 ```powershell
