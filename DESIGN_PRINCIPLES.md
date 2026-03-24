@@ -1,16 +1,18 @@
 # Session Memory Design Principles
 
 Date: 2026-03-22
-Scope: Multi-project coding-agent memory and control
+Scope: Memory-driven repo governance control plane
 
 ## Goal
 
-Build a memory and control system that helps a fresh coding-agent session
-quickly recover the real engineering state of the current project and workspace
-without replaying entire chat transcripts.
+Build a memory-driven repo governance control plane that helps a fresh
+coding-agent session quickly recover the real engineering state of the current
+project and workspace without replaying entire chat transcripts.
 
-The system is not a generic personal memory product. It is a coding-work memory
-and control layer for implementation, debugging, architecture review, handoff,
+See [`PRODUCT.md`](./PRODUCT.md) for the canonical product definition.
+
+The system is not a generic personal memory product. It is a repo governance
+control plane for implementation, debugging, architecture review, handoff,
 project pivots, and multi-project continuity.
 
 ## Core Position

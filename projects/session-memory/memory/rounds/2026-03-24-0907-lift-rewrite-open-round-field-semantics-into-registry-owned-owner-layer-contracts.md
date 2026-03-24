@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-24-0907-lift-rewrite-open-round-field-semantics-into-registry-owned-owner-layer-contracts
 type: round-contract
-title: "Generalize bundle governance and institutionalize bundle exceptions"
+title: "Define product positioning and align governance docs to it"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 54b3538e95f0dc2a749ed553cb76760703e50b87
+git_sha: 3ccabebc4819d82e2fc5994e79dffd7c4a5d20e9
 paths:
   - scripts/transition_specs.py
   - scripts/execute_adjudication_followups.py
@@ -15,6 +15,15 @@ paths:
   - CONTROL_SYSTEM.md
   - TRANSITION_COMMANDS.md
   - projects/session-memory/current/current-task.md
+  - .githooks/pre-push
+  - .github/workflows/control-enforcement.yml
+  - ARCHITECTURE.md
+  - DESIGN_PRINCIPLES.md
+  - IMPLEMENTATION_PLAN.md
+  - STATE_MACHINE.md
+  - PRODUCT.md
+  - scripts/audit_product_docs.py
+  - scripts/product_semantics.py
 thread_ids: []
 evidence_refs: []
 tags:
@@ -22,7 +31,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T09:07:16+08:00
-updated_at: 2026-03-24T09:41:34+08:00
+updated_at: 2026-03-24T10:12:46+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -31,21 +40,21 @@ superseded_by: []
 
 ## Summary
 
-Stop broadening bundle-local semantics ad hoc and establish repo-owned rules for when a bundle wrapper may exist and how it must be constrained.
+Establish one canonical product document for session-memory as a memory-driven repo governance control plane, align major canonical docs to that positioning, and define how machine semantics should follow product docs without turning prose into hidden authority.
 
 ## Scope
 
-- Generalize the bundle problem beyond round-close-chain and define the repo law for bundle wrappers versus primitive transition commands.
-- Move bundle wrapper admission out of local literals into one explicit owner-layer governance surface that executor and plan validation both consume.
-- Update canonical docs and current-task so bundle governance is treated as a system rule, not an implementation afterthought.
+- Create one canonical product document that states target users, product promise, value proposition, boundaries, and roadmap for session-memory.
+- Align major canonical docs so architecture, control-system framing, and implementation plan describe the same product rather than drifting between memory tool, control system, and autonomous rewrite narratives.
+- Define and begin codifying the owner-layer path by which machine semantics should follow canonical product docs through explicit machine-readable contracts and audits instead of prose-only interpretation.
 
 ## Deliverable
 
-Bundle wrappers are governed by explicit repo-owned rules and one narrow machine-readable governance surface instead of private ad hoc exceptions.
+Session-memory has one canonical product definition, the main governance docs read consistently from that product stance, and the repo gains an explicit documented mechanism for turning canonical product intent into auditable machine semantics.
 
 ## Validation Plan
 
-Run py_compile, transition registry export, adjudication follow-up smoke, control audit, and worktree enforcement after bundle governance law lands.
+Read the aligned product/control docs, run targeted doc drift checks or audit additions if introduced, refresh current-task anchor, and run control audit plus worktree enforcement before commit.
 
 ## Active Risks
 
@@ -60,3 +69,7 @@ _none recorded_
 _none recorded_
 
 Round rewritten because Scope shifted from continuing bundle-semantic registration to bundle governance institutionalization.
+
+Round rewritten because Scope shifted from bundle-governance law to product-definition alignment and doc-driven semantics governance.
+
+Round rewritten because Product-definition alignment round expanded to additional canonical docs, product semantics audit scripts, and enforcement entrypoints that must be explicitly in round scope.

@@ -2,8 +2,8 @@
 
 ## Goal
 
-Turn `session-memory` into a stable phase-1 coding control system built on a
-file-first memory substrate.
+Turn `session-memory` into a stable phase-1 memory-driven repo governance
+control plane built on a file-first memory substrate.
 
 The immediate objective is:
 
@@ -29,15 +29,20 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - generalizing the bundle problem beyond `round-close-chain` so bundle wrappers are treated as a governed exception layer instead of accidental orchestration
-  - moving bundle wrapper admission out of local literals into one explicit owner-layer governance surface shared by plan validation and executor admission
-  - moving executor bundle dispatch out of private single-use branches into one explicit governed handler surface
-  - updating canonical docs and audit so bundle governance becomes repo law instead of a private implementation convention
+  - establishing one canonical product document so the repo is described consistently as a memory-driven repo governance control plane
+  - aligning major canonical docs to that product stance instead of drifting between memory substrate, control system, and autonomous rewrite narratives
+  - defining the owner-layer path by which machine semantics should follow canonical product docs through structured contracts and audits instead of prose-only interpretation
 
 ## Validated Facts
 
 - The latest committed baseline is:
-  - `06d9df9 Close transition side-effect semantics governance round`
+  - `3ccabeb Institutionalize bundle governance exceptions`
+- `PRODUCT.md` is now being introduced as the canonical product truth source
+  for:
+  - target users
+  - product promise
+  - capability boundaries
+  - the product-to-machine-semantics path
 - `uv run python scripts/session_memory.py smoke` passes on the current working tree after frontmatter `executor_followups` and the prose-only blocked boundary landed.
 - `uv run python scripts/smoke_adjudication_followups.py` now passes with the first bounded multi-step bundle:
   - `round-close-chain`
@@ -376,6 +381,9 @@ The immediate objective is:
   - the repo now governs wrapper admission explicitly
   - but bundle-local payload semantics should not expand casually while this
     governance layer is still settling
+- Product positioning can still drift if canonical docs slide back into
+  describing the repo as only a memory substrate, only a control system, or an
+  overclaimed autonomous rewrite product.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
   - round scope refresh and round rewrite now exist, but broader multi-round replacement or hard-pivot-driven rewrite bundles still are not automatic
@@ -384,16 +392,16 @@ The immediate objective is:
 
 ## Next Steps
 
-1. Finish the active bundle-governance round so bundle wrapper admission,
-   executor admission, executor handler dispatch, and canonical docs all
-   consume one explicit owner-layer governance surface.
-2. Decide whether `round-close-chain` stays a bounded wrapper with narrow local
-   payload semantics or also gets a fuller machine-readable payload contract.
+1. Land `PRODUCT.md` as the canonical product truth source and align the major
+   docs to the same product positioning.
+2. Add an explicit audit path so product docs and machine-semantic docs stop
+   drifting silently.
 3. Continue removing executor-local command semantics by replacing long private
    per-command payload branches with registry-backed dispatch where the command
    surface is already frozen.
-4. Broaden bounded adjudication plan families only where underlying command
+4. Decide whether `round-close-chain` stays a bounded wrapper with narrow local
+   payload semantics or also gets a fuller machine-readable payload contract.
+5. Broaden bounded adjudication plan families only where underlying command
    semantics are already registry-owned and auditable.
-5. Keep compressing assembled context so it acts like a handoff packet instead
-   of a file dump.
-6. Run the first serious external-target role-eval bundle for `wind-agent`.
+6. Validate the product on more non-self-hosted repositories after the product
+   positioning and owner-layer contracts stabilize.

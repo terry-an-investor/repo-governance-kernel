@@ -1,13 +1,17 @@
 # Session Memory Control System
 
 Date: 2026-03-23
-Scope: Multi-project coding control system
+Scope: Memory-driven repo governance control plane
 
 ## Goal
 
-Turn coding-agent memory into a control system that keeps real software work
-coherent while allowing exploration, interruption, parallel review, and
-project-level pivots.
+`session-memory` is a memory-driven repo governance control plane.
+
+See [`PRODUCT.md`](./PRODUCT.md) for the canonical product definition.
+
+This control layer turns coding-agent memory into a product surface that keeps
+real software work coherent while allowing exploration, interruption, parallel
+review, and project-level pivots.
 
 The problem is not only recall. The harder problem is control:
 
@@ -21,7 +25,26 @@ The problem is not only recall. The harder problem is control:
 
 The system should store control state, not only remembered facts.
 
+Its current automation scope is bounded automatic execution.
+Its current autonomy boundary is not a general autonomous rewrite engine.
+
 See [`STATE_MACHINE.md`](./STATE_MACHINE.md) for the explicit transition model.
+
+## Product Alignment
+
+`PRODUCT.md` is the canonical product truth source.
+
+Machine behavior should not follow free-form prose directly. The intended path
+is:
+
+- `PRODUCT.md` prose explains the product contract to humans
+- `PRODUCT.md` frontmatter carries the machine-readable product stance
+- machine-semantic docs such as `STATE_MACHINE.md` and `TRANSITION_COMMANDS.md`
+  consume that stance explicitly
+- owner-layer registries such as `scripts/transition_specs.py` remain the
+  executable authority
+- `scripts/audit_product_docs.py` fails when the canonical product contract and
+  the major docs drift apart
 
 A fresh agent or side-session reviewer does not merely need "context". It needs
 to know:

@@ -1,12 +1,16 @@
 # Session Memory Architecture
 
 Date: 2026-03-22
-Scope: Multi-project coding-agent memory and control
+Scope: Memory-driven repo governance control plane
 
 ## Goal
 
-Turn raw coding-agent activity into reusable memory and control state that
-supports:
+`session-memory` is a memory-driven repo governance control plane.
+
+See [`PRODUCT.md`](./PRODUCT.md) for the canonical product definition.
+
+The architecture turns raw coding-agent activity into reusable memory and
+control state that supports:
 
 - new-session recovery
 - side-session review

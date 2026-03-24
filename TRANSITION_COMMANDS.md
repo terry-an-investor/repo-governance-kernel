@@ -6,7 +6,11 @@ Scope: Canonical transition command surface for the coding control system
 ## Goal
 
 Freeze the command surface that should eventually drive the control state
-machine.
+machine for the memory-driven repo governance control plane defined in
+[`PRODUCT.md`](./PRODUCT.md).
+
+The current automation scope is bounded automatic execution.
+The current autonomy boundary is not a general autonomous rewrite engine.
 
 This document does not implement enforcement. It defines:
 

@@ -6,17 +6,17 @@
 
 ## Scope
 
-- Generalize the bundle problem beyond round-close-chain and define the repo law for bundle wrappers versus primitive transition commands.
-- Move bundle wrapper admission out of local literals into one explicit owner-layer governance surface that executor and plan validation both consume.
-- Update canonical docs and current-task so bundle governance is treated as a system rule, not an implementation afterthought.
+- Create one canonical product document that states target users, product promise, value proposition, boundaries, and roadmap for session-memory.
+- Align major canonical docs so architecture, control-system framing, and implementation plan describe the same product rather than drifting between memory tool, control system, and autonomous rewrite narratives.
+- Define and begin codifying the owner-layer path by which machine semantics should follow canonical product docs through explicit machine-readable contracts and audits instead of prose-only interpretation.
 
 ## Deliverable
 
-Bundle wrappers are governed by explicit repo-owned rules and one narrow machine-readable governance surface instead of private ad hoc exceptions.
+Session-memory has one canonical product definition, the main governance docs read consistently from that product stance, and the repo gains an explicit documented mechanism for turning canonical product intent into auditable machine semantics.
 
 ## Validation Plan
 
-Run py_compile, transition registry export, adjudication follow-up smoke, control audit, and worktree enforcement after bundle governance law lands.
+Read the aligned product/control docs, run targeted doc drift checks or audit additions if introduced, refresh current-task anchor, and run control audit plus worktree enforcement before commit.
 
 ## Active Risks
 

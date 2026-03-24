@@ -27,5 +27,8 @@ jobs:
       - name: Audit control state
         run: uv run python scripts/audit_control_state.py --project-id session-memory
 
+      - name: Audit product docs
+        run: uv run python scripts/audit_product_docs.py
+
       - name: Run phase-1 smoke
         run: uv run python scripts/smoke_phase1.py

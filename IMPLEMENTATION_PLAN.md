@@ -1,12 +1,12 @@
 # Session Memory Implementation Plan
 
 Date: 2026-03-22
-Scope: Phase 1 only
+Scope: Phase-1 implementation of the memory-driven repo governance control plane
 
 ## Goal
 
-Implement the smallest honest retrieval and control loop that matches the
-frozen design:
+Implement the smallest honest retrieval and control loop for the
+memory-driven repo governance control plane defined in [`PRODUCT.md`](./PRODUCT.md):
 
 - Markdown files remain the source of truth
 - SQLite is the local index store
@@ -14,7 +14,13 @@ frozen design:
 - retrieval stays structure-first, then FTS5
 - control state stays file-first before automation expands
 
+Product prose is not executable authority. Machine semantics should keep
+flowing through explicit registries, audits, and transition contracts.
+
 This phase is now partially state-machine enforced.
+
+Its automation target remains bounded automatic execution.
+It is not a general autonomous rewrite engine.
 
 Today that enforcement is intentionally narrow:
 

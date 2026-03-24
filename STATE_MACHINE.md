@@ -5,8 +5,10 @@ Scope: Control-state transitions for the coding control system
 
 ## Goal
 
-Make the control system's state model explicit enough that later enforcement
-logic can be implemented without inventing semantics ad hoc.
+Make the control system's state model explicit enough that the
+memory-driven repo governance control plane defined in
+[`PRODUCT.md`](./PRODUCT.md) can implement machine semantics without inventing
+them ad hoc.
 
 This document exists because the current system already has state-shaped
 concepts, but they are only partially enforced in code.
@@ -14,10 +16,12 @@ concepts, but they are only partially enforced in code.
 Today the system is:
 
 - state-machine oriented
+- bounded automatic execution
 
 Today it is only partially:
 
 - state-machine enforced
+- not a general autonomous rewrite engine
 
 ## Core Position
 
