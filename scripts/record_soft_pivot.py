@@ -4,9 +4,9 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-import sys
 from pathlib import Path
 
+from executor_command_builder import build_registry_executor_command
 from round_control import (
     OPEN_ROUND_STATUSES,
     active_objective_path,
@@ -90,42 +90,25 @@ def _clean_list(values: list[str]) -> list[str]:
 
 
 def _rewrite_open_round(args: argparse.Namespace, round_id: str, reason: str) -> dict[str, object]:
-    cmd = [
-        sys.executable,
-        str(SCRIPTS_DIR / "rewrite_open_round.py"),
-        "--project-id",
-        args.project_id,
-        "--round-id",
-        round_id,
-        "--reason",
-        reason,
-    ]
-    if args.round_title.strip():
-        cmd.extend(["--title", args.round_title.strip()])
-    if args.round_summary.strip():
-        cmd.extend(["--summary", args.round_summary.strip()])
-    if args.round_deliverable.strip():
-        cmd.extend(["--deliverable", args.round_deliverable.strip()])
-    if args.round_validation_plan.strip():
-        cmd.extend(["--validation-plan", args.round_validation_plan.strip()])
-    for item in _clean_list(args.round_scope_item):
-        cmd.extend(["--scope-item", item])
-    for item in _clean_list(args.round_scope_path):
-        cmd.extend(["--scope-path", item])
-    for item in _clean_list(args.round_risk):
-        cmd.extend(["--risk", item])
-    for item in _clean_list(args.round_blocker):
-        cmd.extend(["--blocker", item])
-    for item in _clean_list(args.round_status_note):
-        cmd.extend(["--status-note", item])
-    if args.replace_round_scope_items:
-        cmd.append("--replace-scope-items")
-    if args.replace_round_scope_paths:
-        cmd.append("--replace-scope-paths")
-    if args.replace_round_risks:
-        cmd.append("--replace-risks")
-    if args.replace_round_blockers:
-        cmd.append("--replace-blockers")
+    payload = {
+        "command": "rewrite-open-round",
+        "round_id": round_id,
+        "reason": reason,
+        "title": args.round_title.strip(),
+        "summary": args.round_summary.strip(),
+        "deliverable": args.round_deliverable.strip(),
+        "validation_plan": args.round_validation_plan.strip(),
+        "scope_item": _clean_list(args.round_scope_item),
+        "scope_path": _clean_list(args.round_scope_path),
+        "risk": _clean_list(args.round_risk),
+        "blocker": _clean_list(args.round_blocker),
+        "status_note": _clean_list(args.round_status_note),
+        "replace_scope_items": bool(args.replace_round_scope_items),
+        "replace_scope_paths": bool(args.replace_round_scope_paths),
+        "replace_risks": bool(args.replace_round_risks),
+        "replace_blockers": bool(args.replace_round_blockers),
+    }
+    cmd = build_registry_executor_command(args.project_id, payload, "rewrite-open-round")
     completed = subprocess.run(
         cmd,
         cwd=str(SCRIPTS_DIR.parent),

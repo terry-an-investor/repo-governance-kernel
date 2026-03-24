@@ -80,8 +80,15 @@ The immediate objective is:
   - bounded command mutable-field semantics for governed rewrite primitives
   - executor-supported commands
   - bounded adjudication plan family names
+  - adjudication target-resolution semantics
+  - adjudication binding-resolver semantics
+  - adjudication plan side-effect semantics
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry name coverage and semantic coverage against `TRANSITION_COMMANDS.md`
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now also checks round-domain registry consumer coverage against the shared owner-layer helper
+- adjudication plan compilation no longer resolves plan payload bindings through one local `if/elif` ladder:
+  - binding resolvers are now explicit registry-owned semantics
+  - plan target-resolution names are now explicit registry-owned semantics
+  - plan side-effect names are now explicit registry-owned semantics instead of unchecked free strings
 - round-domain commands now consume one shared registry-backed owner-layer helper for:
   - guard coverage
   - guard rendering semantics
@@ -101,6 +108,9 @@ The immediate objective is:
   - `rewrite-open-round`
   - `rewrite-open-task-contract`
   - `record-soft-pivot` executor payloads now ride the same owner-layer surface
+- `open-round` is now also on the executor-supported shared payload surface:
+  - registry-owned executor payload fields now cover bounded round bootstrap inputs too
+  - nested phase/bootstrap and soft-pivot follow-up consumers no longer need one private round-open CLI builder branch
 - bundle wrapper admission is now being pulled into one explicit governance
   surface so executor and plan validation stop carrying hidden bundle exception
   literals

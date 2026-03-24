@@ -123,7 +123,7 @@ def main() -> int:
     next_state = f"round `{round_id}` is now active for objective `{objective_id}`"
     assert_round_command_contract(
         "open-round",
-        provided_inputs={"project_id", "objective_id", "title", "scope", "deliverable", "validation_plan"},
+        provided_inputs={"project_id", "title", "scope_item", "deliverable", "validation_plan"},
     )
     guards = render_round_guard_lines("open-round", context={"objective_id": objective_id})
     evidence = [args.validation_plan]

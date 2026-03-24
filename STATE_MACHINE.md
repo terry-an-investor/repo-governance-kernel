@@ -439,6 +439,9 @@ Current implementation already does these things:
   - scaffolds missing control surfaces
   - compiles bounded `executor_plan_contracts` into explicit command payloads
     before executing them
+  - now treats adjudication binding resolvers, target-resolution names, and
+    plan side-effect names as registry-owned machine semantics instead of
+    compiler-local free strings
   - can resolve bounded task-contract plan targets from adjudication durable
     `Objects Invalidated` when the selected object set maps deterministically
     to still-open task contracts
@@ -464,6 +467,9 @@ Current implementation already does these things:
     structured enough
   - builds mutable rewrite command CLIs through one shared registry-backed
     executor path instead of duplicating one rewrite builder per command
+  - now routes bounded round bootstrap/open-round executor payloads through the
+    same shared registry-backed executor path instead of one private phase-side
+    builder branch
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
   - leaves underspecified round follow-ups blocked until explicit inputs exist
 - now enforces explicit phase changes through:

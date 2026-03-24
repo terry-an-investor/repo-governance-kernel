@@ -119,9 +119,13 @@ autonomous rewrite engine after a verdict is recorded.
   - can compile bounded objective rewrite, task-contract rewrite/status,
     round-close, exception-contract, and phase-bootstrap plan families from
     adjudication durable truth
+  - now treats plan target-resolution names, binding resolvers, and plan
+    side-effect names as explicit registry-owned machine semantics
   - now routes mutable rewrite executor commands through one shared
     registry-backed builder foundation instead of keeping one private rewrite
     builder branch per command
+  - now routes bounded round bootstrap/open-round executor payloads through the
+    same shared registry-backed builder instead of phase-local CLI assembly
   - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
   - broader multi-round and multi-object adjudication replacement semantics

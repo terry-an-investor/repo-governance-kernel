@@ -247,6 +247,138 @@ def _resolve_round_validated_by(
     return [existing_plan] if existing_plan else ["Adjudication executor plan validation"]
 
 
+def _resolve_contract_scalar(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _first_scalar(contract, binding.source_keys)
+
+
+def _resolve_contract_list(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _first_list(contract, binding.source_keys)
+
+
+def _resolve_contract_bool(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return any(bool(contract.get(key)) for key in binding.source_keys)
+
+
+def _resolve_contract_or_meta_scalar(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _first_scalar(contract, binding.source_keys) or _first_scalar(adjudication_meta, binding.source_keys)
+
+
+def _resolve_contract_or_meta_list(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _first_list(contract, binding.source_keys) or _first_list(adjudication_meta, binding.source_keys)
+
+
+def _resolve_exception_contract_target_ids(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _resolve_target_exception_contract_ids(project_id, contract, binding.source_keys, adjudication_sections)
+
+
+def _resolve_task_contract_target_ids(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _resolve_target_task_contract_ids(project_id, contract, binding.source_keys, adjudication_sections)
+
+
+def _resolve_round_target_id(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _resolve_target_round_id(
+        project_id,
+        contract,
+        binding.source_keys,
+        adjudication_meta,
+        adjudication_sections,
+    )
+
+
+def _resolve_round_validated_by_list(
+    project_id: str,
+    *,
+    binding,
+    contract: dict[str, object],
+    adjudication_meta: dict[str, object],
+    adjudication_sections: dict[str, str],
+    resolved_payload: dict[str, object],
+) -> object:
+    return _resolve_round_validated_by(
+        project_id,
+        contract=contract,
+        source_keys=binding.source_keys,
+        resolved_payload=resolved_payload,
+    )
+
+
+ADJUDICATION_BINDING_RESOLVERS = {
+    "contract_scalar": _resolve_contract_scalar,
+    "contract_list": _resolve_contract_list,
+    "contract_bool": _resolve_contract_bool,
+    "contract_or_meta_scalar": _resolve_contract_or_meta_scalar,
+    "contract_or_meta_list": _resolve_contract_or_meta_list,
+    "exception_contract_target_ids": _resolve_exception_contract_target_ids,
+    "task_contract_target_ids": _resolve_task_contract_target_ids,
+    "round_target_id": _resolve_round_target_id,
+    "round_validated_by_list": _resolve_round_validated_by_list,
+}
+
+
 def _resolve_binding_value(
     project_id: str,
     *,
@@ -256,37 +388,17 @@ def _resolve_binding_value(
     adjudication_sections: dict[str, str],
     resolved_payload: dict[str, object],
 ) -> object:
-    source_keys = binding.source_keys
-    if binding.resolver == "contract_scalar":
-        return _first_scalar(contract, source_keys)
-    if binding.resolver == "contract_list":
-        return _first_list(contract, source_keys)
-    if binding.resolver == "contract_bool":
-        return any(bool(contract.get(key)) for key in source_keys)
-    if binding.resolver == "contract_or_meta_scalar":
-        return _first_scalar(contract, source_keys) or _first_scalar(adjudication_meta, source_keys)
-    if binding.resolver == "contract_or_meta_list":
-        return _first_list(contract, source_keys) or _first_list(adjudication_meta, source_keys)
-    if binding.resolver == "exception_contract_target_ids":
-        return _resolve_target_exception_contract_ids(project_id, contract, source_keys, adjudication_sections)
-    if binding.resolver == "task_contract_target_ids":
-        return _resolve_target_task_contract_ids(project_id, contract, source_keys, adjudication_sections)
-    if binding.resolver == "round_target_id":
-        return _resolve_target_round_id(
-            project_id,
-            contract,
-            source_keys,
-            adjudication_meta,
-            adjudication_sections,
-        )
-    if binding.resolver == "round_validated_by_list":
-        return _resolve_round_validated_by(
-            project_id,
-            contract=contract,
-            source_keys=source_keys,
-            resolved_payload=resolved_payload,
-        )
-    raise SystemExit(f"unsupported adjudication payload binding resolver `{binding.resolver}`")
+    resolver = ADJUDICATION_BINDING_RESOLVERS.get(binding.resolver)
+    if resolver is None:
+        raise SystemExit(f"unsupported adjudication payload binding resolver `{binding.resolver}`")
+    return resolver(
+        project_id,
+        binding=binding,
+        contract=contract,
+        adjudication_meta=adjudication_meta,
+        adjudication_sections=adjudication_sections,
+        resolved_payload=resolved_payload,
+    )
 
 
 def _materialize_payload_templates(

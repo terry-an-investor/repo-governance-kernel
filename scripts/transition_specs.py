@@ -158,6 +158,42 @@ class BundleGovernanceSpec:
 
 
 @dataclass(frozen=True)
+class AdjudicationTargetResolutionSpec:
+    name: str
+    description: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "description": self.description,
+        }
+
+
+@dataclass(frozen=True)
+class AdjudicationBindingResolverSpec:
+    name: str
+    description: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "description": self.description,
+        }
+
+
+@dataclass(frozen=True)
+class AdjudicationPlanSideEffectSpec:
+    code: str
+    description: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "code": self.code,
+            "description": self.description,
+        }
+
+
+@dataclass(frozen=True)
 class TransitionCommandSpec:
     name: str
     domain: str
@@ -513,6 +549,15 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("close-objective", "reason", "reason", "scalar", required=True),
     CommandExecutorFieldSpec("close-objective", "evidence", "evidence", "list"),
     CommandExecutorFieldSpec("close-objective", "supersession_note", "supersession-note", "scalar"),
+    CommandExecutorFieldSpec("open-round", "objective_id", "objective-id", "scalar"),
+    CommandExecutorFieldSpec("open-round", "title", "title", "scalar", required=True),
+    CommandExecutorFieldSpec("open-round", "scope_item", "scope-item", "list", required=True),
+    CommandExecutorFieldSpec("open-round", "scope_path", "scope-path", "list"),
+    CommandExecutorFieldSpec("open-round", "deliverable", "deliverable", "scalar", required=True),
+    CommandExecutorFieldSpec("open-round", "validation_plan", "validation-plan", "scalar", required=True),
+    CommandExecutorFieldSpec("open-round", "risk", "risk", "list"),
+    CommandExecutorFieldSpec("open-round", "blocker", "blocker", "list"),
+    CommandExecutorFieldSpec("open-round", "status_note", "status-note", "scalar"),
     CommandExecutorFieldSpec("record-soft-pivot", "objective_id", "objective-id", "scalar"),
     CommandExecutorFieldSpec("record-soft-pivot", "trigger", "trigger", "scalar", required=True),
     CommandExecutorFieldSpec("record-soft-pivot", "change_summary", "change-summary", "scalar", required=True),
@@ -613,6 +658,109 @@ BUNDLE_GOVERNANCE_SPECS: tuple[BundleGovernanceSpec, ...] = (
         purpose="Advance one round through the legal close sequence by composing only existing round status transitions.",
         composed_commands=("update-round-status",),
         required_validations=("scripts/smoke_adjudication_followups.py",),
+    ),
+)
+
+
+ADJUDICATION_TARGET_RESOLUTION_SPECS: tuple[AdjudicationTargetResolutionSpec, ...] = (
+    AdjudicationTargetResolutionSpec(
+        "explicit_or_adjudication_objective",
+        "Resolve the objective target from explicit contract input first, then fall back to the adjudication objective context.",
+    ),
+    AdjudicationTargetResolutionSpec(
+        "explicit_round_id_or_invalidated_open_round_or_open_round_for_objective_context",
+        "Resolve one open round from explicit round id, one invalidated open round, or the adjudication objective context.",
+    ),
+    AdjudicationTargetResolutionSpec(
+        "resolve_open_task_contracts_from_explicit_ids_or_invalidated_objects",
+        "Resolve open task contracts from explicit ids first, then from adjudication invalidated objects.",
+    ),
+    AdjudicationTargetResolutionSpec(
+        "resolve_open_task_contracts_from_invalidated_objects",
+        "Resolve open task contracts only from adjudication invalidated objects.",
+    ),
+    AdjudicationTargetResolutionSpec(
+        "resolve_active_exception_contracts_from_invalidated_objects",
+        "Resolve active exception contracts from adjudication invalidated objects.",
+    ),
+)
+
+
+ADJUDICATION_BINDING_RESOLVER_SPECS: tuple[AdjudicationBindingResolverSpec, ...] = (
+    AdjudicationBindingResolverSpec("contract_scalar", "Read one scalar value from the plan contract."),
+    AdjudicationBindingResolverSpec("contract_list", "Read one list value from the plan contract."),
+    AdjudicationBindingResolverSpec("contract_bool", "Read one boolean flag from the plan contract."),
+    AdjudicationBindingResolverSpec(
+        "contract_or_meta_scalar",
+        "Read one scalar value from the plan contract, then fall back to adjudication metadata.",
+    ),
+    AdjudicationBindingResolverSpec(
+        "contract_or_meta_list",
+        "Read one list value from the plan contract, then fall back to adjudication metadata.",
+    ),
+    AdjudicationBindingResolverSpec(
+        "exception_contract_target_ids",
+        "Resolve active exception-contract ids from explicit ids or adjudication invalidated objects.",
+    ),
+    AdjudicationBindingResolverSpec(
+        "task_contract_target_ids",
+        "Resolve open task-contract ids from explicit ids or adjudication invalidated objects.",
+    ),
+    AdjudicationBindingResolverSpec(
+        "round_target_id",
+        "Resolve one open round id from explicit input, adjudication invalidated objects, or objective context.",
+    ),
+    AdjudicationBindingResolverSpec(
+        "round_validated_by_list",
+        "Resolve round validation evidence from explicit plan input or the current round validation plan.",
+    ),
+)
+
+
+ADJUDICATION_PLAN_SIDE_EFFECT_SPECS: tuple[AdjudicationPlanSideEffectSpec, ...] = (
+    AdjudicationPlanSideEffectSpec(
+        "rewrite_active_objective_via_soft_pivot",
+        "Rewrite one active objective line in place through the governed soft-pivot primitive.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "optionally_rewrite_open_rounds_for_objective_alignment",
+        "Optionally rewrite the still-open round through the same governed objective-alignment path.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "rewrite_round_contract",
+        "Rewrite one still-open round contract through the bounded round rewrite primitive.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "advance_round_to_closed",
+        "Advance one round to closed by composing only legal round lifecycle transitions.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "rewrite_task_contracts",
+        "Rewrite one or more still-open task contracts through the bounded task rewrite primitive.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "invalidate_open_task_contracts",
+        "Invalidate one or more still-open task contracts from adjudication invalidation context.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "abandon_open_task_contracts",
+        "Abandon one or more still-open task contracts from adjudication invalidation context.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "retire_active_exception_contracts",
+        "Retire one or more active exception contracts from adjudication invalidation context.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "invalidate_active_exception_contracts",
+        "Invalidate one or more active exception contracts from adjudication invalidation context.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "enter_execution_phase",
+        "Enter execution through the governed phase transition surface.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "bootstrap_bounded_round",
+        "Bootstrap one bounded execution round through governed round-open semantics.",
     ),
 )
 
@@ -892,8 +1040,9 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "open-round",
         "round",
+        executor_supported=True,
         implementation_status="implemented",
-        required_inputs=("project_id", "objective_id", "title", "scope", "deliverable", "validation_plan"),
+        required_inputs=("project_id", "title", "scope_item", "deliverable", "validation_plan"),
         guard_codes=(
             "linked_objective_is_active",
             "linked_objective_is_execution",
@@ -1121,7 +1270,7 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
         compiled_commands=("record-soft-pivot",),
         requires_adjudication_fields=("trigger", "change_summary", "identity_rationale"),
         target_resolution="explicit_or_adjudication_objective",
-        side_effect_codes=("rewrite_active_objective_in_place", "optionally_rewrite_open_rounds"),
+        side_effect_codes=("rewrite_active_objective_via_soft_pivot", "optionally_rewrite_open_rounds_for_objective_alignment"),
         payload_templates=(
             AdjudicationPayloadTemplateSpec(
                 command_name="record-soft-pivot",
@@ -1481,6 +1630,15 @@ for _bundle_field_spec in BUNDLE_EXECUTOR_FIELD_SPECS:
         _bundle_field_spec,
     )
 BUNDLE_GOVERNANCE_SPEC_BY_NAME = {spec.name: spec for spec in BUNDLE_GOVERNANCE_SPECS}
+ADJUDICATION_TARGET_RESOLUTION_SPEC_BY_NAME = {
+    spec.name: spec for spec in ADJUDICATION_TARGET_RESOLUTION_SPECS
+}
+ADJUDICATION_BINDING_RESOLVER_SPEC_BY_NAME = {
+    spec.name: spec for spec in ADJUDICATION_BINDING_RESOLVER_SPECS
+}
+ADJUDICATION_PLAN_SIDE_EFFECT_SPEC_BY_CODE = {
+    spec.code: spec for spec in ADJUDICATION_PLAN_SIDE_EFFECT_SPECS
+}
 
 
 def _owner_labels_for_command(spec: TransitionCommandSpec, owner_bucket: str) -> set[str]:
@@ -1592,6 +1750,12 @@ def validate_transition_specs() -> None:
         raise SystemExit("duplicate transition command names found in transition registry")
     if len(PLAN_SPEC_BY_TYPE) != len(ADJUDICATION_PLAN_SPECS):
         raise SystemExit("duplicate adjudication plan types found in transition registry")
+    if len(ADJUDICATION_TARGET_RESOLUTION_SPEC_BY_NAME) != len(ADJUDICATION_TARGET_RESOLUTION_SPECS):
+        raise SystemExit("duplicate adjudication target-resolution names found in transition registry")
+    if len(ADJUDICATION_BINDING_RESOLVER_SPEC_BY_NAME) != len(ADJUDICATION_BINDING_RESOLVER_SPECS):
+        raise SystemExit("duplicate adjudication binding resolver names found in transition registry")
+    if len(ADJUDICATION_PLAN_SIDE_EFFECT_SPEC_BY_CODE) != len(ADJUDICATION_PLAN_SIDE_EFFECT_SPECS):
+        raise SystemExit("duplicate adjudication plan side-effect codes found in transition registry")
     if len(COMMAND_MUTABLE_FIELD_SPEC_BY_COMMAND_AND_CODE) != len(COMMAND_MUTABLE_FIELD_SPECS):
         raise SystemExit("duplicate command mutable-field codes found in transition registry")
     if sum(len(specs) for specs in BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.values()) != len(BUNDLE_EXECUTOR_FIELD_SPECS):
@@ -1824,6 +1988,18 @@ def validate_transition_specs() -> None:
             raise SystemExit(
                 f"adjudication plan `{plan_spec.plan_type}` is {plan_spec.implementation_status} but lacks semantic registry coverage"
             )
+        if plan_spec.target_resolution not in ADJUDICATION_TARGET_RESOLUTION_SPEC_BY_NAME:
+            raise SystemExit(
+                f"adjudication plan `{plan_spec.plan_type}` declares unknown target-resolution contract `{plan_spec.target_resolution}`"
+            )
+        unknown_plan_side_effect_codes = sorted(
+            set(plan_spec.side_effect_codes) - set(ADJUDICATION_PLAN_SIDE_EFFECT_SPEC_BY_CODE)
+        )
+        if unknown_plan_side_effect_codes:
+            raise SystemExit(
+                f"adjudication plan `{plan_spec.plan_type}` declares unknown adjudication plan side-effect codes: "
+                + ", ".join(unknown_plan_side_effect_codes)
+            )
         for command_name in plan_spec.compiled_commands:
             if command_name not in known_commands and command_name not in allowed_bundle_commands:
                 raise SystemExit(
@@ -1849,6 +2025,18 @@ def validate_transition_specs() -> None:
             } | {
                 binding.target_key for binding in template.bindings
             }
+            unknown_resolvers = sorted(
+                {
+                    binding.resolver
+                    for binding in template.bindings
+                    if binding.resolver not in ADJUDICATION_BINDING_RESOLVER_SPEC_BY_NAME
+                }
+            )
+            if unknown_resolvers:
+                raise SystemExit(
+                    f"adjudication plan `{plan_spec.plan_type}` declares unknown binding resolvers for `{template.command_name}`: "
+                    + ", ".join(unknown_resolvers)
+                )
             unknown_template_targets = sorted(template_targets - allowed_payload_targets)
             if unknown_template_targets:
                 raise SystemExit(
@@ -1963,6 +2151,21 @@ def bundle_governance_names() -> list[str]:
     return [spec.name for spec in BUNDLE_GOVERNANCE_SPECS]
 
 
+def adjudication_target_resolution_names() -> list[str]:
+    validate_transition_specs()
+    return [spec.name for spec in ADJUDICATION_TARGET_RESOLUTION_SPECS]
+
+
+def adjudication_binding_resolver_names() -> list[str]:
+    validate_transition_specs()
+    return [spec.name for spec in ADJUDICATION_BINDING_RESOLVER_SPECS]
+
+
+def adjudication_plan_side_effect_codes() -> list[str]:
+    validate_transition_specs()
+    return [spec.code for spec in ADJUDICATION_PLAN_SIDE_EFFECT_SPECS]
+
+
 def adjudication_plan_types() -> list[str]:
     validate_transition_specs()
     return [spec.plan_type for spec in ADJUDICATION_PLAN_SPECS]
@@ -2003,6 +2206,9 @@ def export_transition_registry() -> dict[str, object]:
         "command_executor_field_semantics": [spec.to_dict() for spec in COMMAND_EXECUTOR_FIELD_SPECS],
         "bundle_executor_field_semantics": [spec.to_dict() for spec in BUNDLE_EXECUTOR_FIELD_SPECS],
         "bundle_governance": [spec.to_dict() for spec in BUNDLE_GOVERNANCE_SPECS],
+        "adjudication_target_resolution_semantics": [spec.to_dict() for spec in ADJUDICATION_TARGET_RESOLUTION_SPECS],
+        "adjudication_binding_resolver_semantics": [spec.to_dict() for spec in ADJUDICATION_BINDING_RESOLVER_SPECS],
+        "adjudication_plan_side_effect_semantics": [spec.to_dict() for spec in ADJUDICATION_PLAN_SIDE_EFFECT_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
     }

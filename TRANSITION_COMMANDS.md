@@ -48,6 +48,10 @@ The registry still does not encode every full rewrite semantics, but it now owns
 - bounded adjudication plan family names
 - adjudication plan target-resolution contracts
 - adjudication payload templates and binding resolvers for supported bounded plan families
+- adjudication binding-resolver semantics and target-resolution semantics are now
+  registry-owned names instead of compiler-local free strings
+- adjudication plan side-effect names are now also registry-owned instead of
+  unchecked per-plan literals
 
 The current milestone also adds one first enforcement owner layer:
 
@@ -908,6 +912,8 @@ Current implementation status:
 - executor command-building for mutable rewrite commands now flows through one
   shared registry-backed builder path instead of separate per-command rewrite
   branches
+- `open-round` is now also executor-supported through the same registry-backed
+  payload builder surface used by other bounded executor commands
 - bounded phase-side-effect plans can compile `set-phase --auto-open-round`
   from the adjudication's existing round bootstrap fields instead of requiring
   one hand-authored low-level phase payload
