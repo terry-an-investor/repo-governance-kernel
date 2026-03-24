@@ -9,16 +9,16 @@ workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
 git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
 paths:
-  - CONTROL_SYSTEM.md
-  - DESIGN_PRINCIPLES.md
-  - ARCHITECTURE.md
-  - SCHEMA.md
-  - IMPLEMENTATION_PLAN.md
+  - docs/canonical/CONTROL_SYSTEM.md
+  - docs/canonical/DESIGN_PRINCIPLES.md
+  - docs/canonical/ARCHITECTURE.md
+  - docs/canonical/SCHEMA.md
+  - docs/canonical/IMPLEMENTATION_PLAN.md
   - projects/session-memory/control/
 thread_ids: []
 evidence_refs:
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/CONTROL_SYSTEM.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/CONTROL_SYSTEM.md
   - type: note
     ref: C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/current/current-task.md
 tags:

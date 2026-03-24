@@ -9,17 +9,17 @@ workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
 git_sha: cb2047abe10b8520e6a0b26d4ddc13250d5344e2
 paths:
-  - STATE_MACHINE.md
-  - TRANSITION_COMMANDS.md
-  - SCHEMA.md
-  - ARCHITECTURE.md
+  - docs/canonical/STATE_MACHINE.md
+  - docs/canonical/TRANSITION_COMMANDS.md
+  - docs/canonical/SCHEMA.md
+  - docs/canonical/ARCHITECTURE.md
   - projects/session-memory/control/active-round.md
 thread_ids: []
 evidence_refs:
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/STATE_MACHINE.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/STATE_MACHINE.md
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/CONTROL_SYSTEM.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/CONTROL_SYSTEM.md
 tags:
   - round
   - control-plane

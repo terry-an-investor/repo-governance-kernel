@@ -9,14 +9,15 @@ from kernel.build_index import parse_frontmatter, split_frontmatter
 from kernel.runtime_paths import resolve_package_root
 
 ROOT = resolve_package_root()
-PRODUCT_DOC_PATH = ROOT / "PRODUCT.md"
+CANONICAL_DOCS_DIR = ROOT / "docs" / "canonical"
+PRODUCT_DOC_PATH = CANONICAL_DOCS_DIR / "PRODUCT.md"
 CANONICAL_PRODUCT_DOCS = (
-    ROOT / "ARCHITECTURE.md",
-    ROOT / "CONTROL_SYSTEM.md",
-    ROOT / "DESIGN_PRINCIPLES.md",
-    ROOT / "IMPLEMENTATION_PLAN.md",
-    ROOT / "STATE_MACHINE.md",
-    ROOT / "TRANSITION_COMMANDS.md",
+    CANONICAL_DOCS_DIR / "ARCHITECTURE.md",
+    CANONICAL_DOCS_DIR / "CONTROL_SYSTEM.md",
+    CANONICAL_DOCS_DIR / "DESIGN_PRINCIPLES.md",
+    CANONICAL_DOCS_DIR / "IMPLEMENTATION_PLAN.md",
+    CANONICAL_DOCS_DIR / "STATE_MACHINE.md",
+    CANONICAL_DOCS_DIR / "TRANSITION_COMMANDS.md",
 )
 REQUIRED_PRODUCT_META_KEYS = (
     "product_name",

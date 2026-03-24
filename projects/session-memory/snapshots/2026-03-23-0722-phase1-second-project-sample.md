@@ -8,10 +8,10 @@ workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
 git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
 paths:
-  - DESIGN_PRINCIPLES.md
-  - ARCHITECTURE.md
-  - SCHEMA.md
-  - IMPLEMENTATION_PLAN.md
+  - docs/canonical/DESIGN_PRINCIPLES.md
+  - docs/canonical/ARCHITECTURE.md
+  - docs/canonical/SCHEMA.md
+  - docs/canonical/IMPLEMENTATION_PLAN.md
   - scripts/
   - projects/session-memory/
 thread_ids: []

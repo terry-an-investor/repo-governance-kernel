@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 4255edef2b2f30d39ac720c7f4004f8e320ef32c
+git_sha: e7ebe4ebf8fff703ae06f6c12f627f7502db0300
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
@@ -15,24 +15,33 @@ paths:
   - scripts/smoke_manifest.py
   - scripts/run_smoke_suite.py
   - scripts/enforce_worktree.py
-  - README.md
-  - RELEASE.md
-  - TRANSITION_COMMANDS.md
-  - ARCHITECTURE.md
-  - docs
-  - projects/session-memory/current/current-task.md
-  - projects/session-memory/memory/objectives
-  - projects/session-memory/memory/decisions
-  - projects/session-memory/snapshots
-  - kernel/README.md
-  - kernel/docs/TRANSITION_COMMANDS.md
-  - .github/workflows
   - scripts/smoke_fixture_lib.py
   - scripts/smoke_assess_host_adoption.py
   - scripts/smoke_brooks_semantic_research_snapshot_adoption.py
   - scripts/smoke_wind_agent_snapshot_bootstrap.py
   - scripts/smoke_wind_agent_snapshot_adoption.py
   - scripts/smoke_phase1.py
+  - scripts/audit_product_docs.py
+  - scripts/product_semantics.py
+  - README.md
+  - docs/canonical/PRODUCT.md
+  - docs/canonical/RELEASE.md
+  - docs/canonical/TRANSITION_COMMANDS.md
+  - docs/canonical/ARCHITECTURE.md
+  - docs/canonical/CONTROL_SYSTEM.md
+  - docs/canonical/STATE_MACHINE.md
+  - docs/canonical/SCHEMA.md
+  - docs/canonical/DESIGN_PRINCIPLES.md
+  - docs/canonical/IMPLEMENTATION_PLAN.md
+  - docs
+  - projects/session-memory/current/current-task.md
+  - projects/session-memory/memory/objectives
+  - projects/session-memory/memory/decisions
+  - projects/session-memory/memory/pivots
+  - projects/session-memory/snapshots
+  - kernel/README.md
+  - kernel/docs/TRANSITION_COMMANDS.md
+  - .github/workflows
 thread_ids: []
 evidence_refs: []
 tags:
@@ -40,7 +49,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:11:05+08:00
-updated_at: 2026-03-24T22:17:18+08:00
+updated_at: 2026-03-24T22:31:56+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface"
@@ -50,20 +59,17 @@ superseded_by: []
 
 ## Summary
 
-Separate alpha single-assessment artifacts and extend package smoke to installed-wheel external assessment.
+Separate alpha single-assessment artifacts, keep the install-first proof path honest, and collapse canonical host docs into docs/canonical.
 
 ## Intent
 
-Make the 0.1.0a2 alpha surface more product-like by keeping draft/report artifact semantics distinct, proving one installed wheel can bootstrap a disposable governed host and complete one governed external-target single assessment, and tightening the package-facing quickstart around that same path.
+Make the 0.1.0a2 alpha surface more product-like by keeping draft/report artifact semantics distinct, proving one installed wheel can bootstrap a disposable governed host and complete one governed external-target single assessment, and moving canonical host docs into one docs/canonical tree without leaving stale root references behind.
 
 ## Allowed Changes
 
 - Split draft and assessment artifact owner semantics in the registry, runtime, and docs without widening mutation authority.
-- Add one package-first smoke that builds or consumes the current wheel, installs it into an isolated environment, bootstraps a disposable host repo, and audits that host.
-- Move weakly-coupled auxiliary markdown docs out of the root into docs/ and update the small set of durable references that still need those paths.
-- Extend the package-first smoke so an installed wheel bootstraps a disposable governed host, runs one governed external-target single assessment against a disposable external repo, and proves the target repo remains unmutated.
-- Register that package-first smoke in the smoke manifest and suite and align package-facing quickstart and release evidence to the same installed-wheel proof path.
-- Keep canonical kernel docs at the root while moving weakly-coupled auxiliary markdown into docs/ and updating the small durable reference set.
+- Keep one package-first smoke that builds or consumes the current wheel, installs it into an isolated environment, bootstraps a disposable host repo, and proves one governed external-target single assessment without mutating the target repo.
+- Move the remaining canonical host product/control/release docs into docs/canonical and retarget repo-facing audit, navigation, and durable reference surfaces to that live tree.
 
 ## Forbidden Changes
 
@@ -73,11 +79,9 @@ Make the 0.1.0a2 alpha surface more product-like by keeping draft/report artifac
 ## Completion Criteria
 
 - Draft and assessment commands no longer share one overloaded artifact owner label.
-- One package-first smoke proves installed-wheel bootstrap and host-side audit from a disposable repo.
-- The repository root keeps canonical kernel docs while moved auxiliary docs remain reachable through updated references under docs/.
-- Repo audit and enforcement remain clean after the alpha-surface tightening and root-doc cleanup.
 - One package-first smoke proves an installed wheel can bootstrap a disposable governed host and complete one governed external-target single assessment without mutating the external target repo.
-- That package-first smoke is registered in the smoke manifest/suite and package-facing docs point at the same bounded proof path.
+- The repository root keeps only entrypoint docs while canonical host product/control/release docs live under docs/canonical and remain reachable through updated references.
+- Repo audit and enforcement remain clean after the alpha-surface tightening and canonical-doc migration.
 
 ## Resolution
 
@@ -106,3 +110,7 @@ Task contract rewritten because The root markdown migration now also repairs one
 Task contract rewritten because The active task has finished migrating the weakly-coupled root docs into docs/, so the task path set should drop the retired root doc names and keep only the live docs tree and real reference consumers.
 
 Task contract rewritten because The active task now also needs to make the smoke layer Python 3.11-compatible for GitHub Actions by fixing the shared fixture cleanup helper and the remaining snapshot/adoption smokes that still use shutil.rmtree onexc.
+
+Task contract rewritten because The active task now also finishes the root canonical-doc collapse by moving the remaining product/control/release specs into docs/canonical and retargeting the product-doc audit helpers to the new canonical location.
+
+Task contract rewritten because The canonical-doc migration is now removing the root spec files, so the active task must target docs/canonical as the live document surface instead of keeping the old root paths in its contract.

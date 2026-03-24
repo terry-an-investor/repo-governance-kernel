@@ -12,10 +12,10 @@ target_user_segments:
   - non-senior engineers
   - AI-native technical leads
 canonical_semantics_surfaces:
-  - PRODUCT.md frontmatter
-  - CONTROL_SYSTEM.md
-  - STATE_MACHINE.md
-  - TRANSITION_COMMANDS.md
+  - docs/canonical/PRODUCT.md frontmatter
+  - docs/canonical/CONTROL_SYSTEM.md
+  - docs/canonical/STATE_MACHINE.md
+  - docs/canonical/TRANSITION_COMMANDS.md
   - kernel/transition_specs.py
   - scripts/audit_product_docs.py
   - kernel/audit_control_state.py

@@ -172,13 +172,16 @@ The current repository still contains both kernel and sample surfaces:
 
 ```text
 session-memory/
-├── PRODUCT.md
-├── ARCHITECTURE.md
-├── CONTROL_SYSTEM.md
-├── STATE_MACHINE.md
-├── TRANSITION_COMMANDS.md
-├── IMPLEMENTATION_PLAN.md
+├── README.md
+├── AGENTS.md
 ├── docs/
+│   ├── canonical/
+│   │   ├── PRODUCT.md
+│   │   ├── ARCHITECTURE.md
+│   │   ├── CONTROL_SYSTEM.md
+│   │   ├── STATE_MACHINE.md
+│   │   ├── TRANSITION_COMMANDS.md
+│   │   └── ...
 │   ├── evaluation/
 │   ├── history/
 │   └── operations/

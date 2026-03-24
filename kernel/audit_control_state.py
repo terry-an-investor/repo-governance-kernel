@@ -722,7 +722,7 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             open_round_record=open_round_record,
         )
 
-    transition_commands_doc_path = ROOT / "TRANSITION_COMMANDS.md"
+    transition_commands_doc_path = ROOT / "docs" / "canonical" / "TRANSITION_COMMANDS.md"
     canonical_transition_commands_doc_path = resolve_package_root() / "kernel" / "docs" / "TRANSITION_COMMANDS.md"
     registry_bundles = set(bundle_governance_names())
     executor_bundle_handlers = {

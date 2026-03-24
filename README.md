@@ -22,7 +22,7 @@ The host sample is important evidence, but it is not the package contract.
 - automation scope: bounded registry-owned execution
 - autonomy boundary: not a general autonomous rewrite engine
 
-Release notes and packaging status live in [`RELEASE.md`](./RELEASE.md).
+Release notes and packaging status live in [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md).
 
 ## What The Kernel Already Does
 
@@ -117,22 +117,24 @@ This preview does not promise:
   control state and memory objects
 - [`scripts/`](./scripts/): repo-local smoke, bootstrap, and validation entry
   points
-- [`docs/`](./docs/README.md): auxiliary notes, operations docs, and evaluation
-  plans that do not need to stay at the repository root
+- [`docs/`](./docs/README.md): canonical kernel docs plus auxiliary notes,
+  operations docs, and evaluation plans
 
 ## Documentation Guide
 
-- [`PRODUCT.md`](./PRODUCT.md): canonical product definition and positioning
-- [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md): durable truth, projection, audit,
+- [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): canonical product
+  definition and positioning
+- [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md):
+  durable truth, projection, audit,
   and enforcement model
-- [`STATE_MACHINE.md`](./STATE_MACHINE.md): legal state domains and transition
-  lifecycle
-- [`TRANSITION_COMMANDS.md`](./TRANSITION_COMMANDS.md): canonical command,
-  bundle, and intent surface
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md): repository structure and ownership
-  boundaries
-- [`RELEASE.md`](./RELEASE.md): current preview evidence, caveats, and release
-  target
+- [`docs/canonical/STATE_MACHINE.md`](./docs/canonical/STATE_MACHINE.md):
+  legal state domains and transition lifecycle
+- [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md):
+  canonical command, bundle, and intent surface
+- [`docs/canonical/ARCHITECTURE.md`](./docs/canonical/ARCHITECTURE.md):
+  repository structure and ownership boundaries
+- [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): current preview
+  evidence, caveats, and release target
 - [`kernel/README.md`](./kernel/README.md): package-facing usage and support
   boundary
 - [`docs/README.md`](./docs/README.md): index for auxiliary repository
@@ -143,8 +145,9 @@ This preview does not promise:
 For a first pass through the repo:
 
 1. Read [`README.md`](./README.md) for orientation.
-2. Read [`PRODUCT.md`](./PRODUCT.md) and [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md)
+2. Read [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md) and
+   [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md)
    for the product and control model.
-3. Read [`TRANSITION_COMMANDS.md`](./TRANSITION_COMMANDS.md) for the bounded
-   execution surface.
+3. Read [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md)
+   for the bounded execution surface.
 4. Read [`kernel/README.md`](./kernel/README.md) for package-facing usage.

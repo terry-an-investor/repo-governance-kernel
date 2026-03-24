@@ -9,18 +9,18 @@ workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
 git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
 paths:
-  - DESIGN_PRINCIPLES.md
-  - ARCHITECTURE.md
-  - SCHEMA.md
+  - docs/canonical/DESIGN_PRINCIPLES.md
+  - docs/canonical/ARCHITECTURE.md
+  - docs/canonical/SCHEMA.md
   - docs/evaluation/EVALUATION.md
 thread_ids: []
 evidence_refs:
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/DESIGN_PRINCIPLES.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/DESIGN_PRINCIPLES.md
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/ARCHITECTURE.md
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/SCHEMA.md
 tags:
   - objective
   - handoff

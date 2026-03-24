@@ -371,13 +371,13 @@ The immediate objective is:
 
 ## Important Files
 
-- `C:/Users/terryzzb/Desktop/session-memory/DESIGN_PRINCIPLES.md`
-- `C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md`
-- `C:/Users/terryzzb/Desktop/session-memory/CONTROL_SYSTEM.md`
-- `C:/Users/terryzzb/Desktop/session-memory/STATE_MACHINE.md`
-- `C:/Users/terryzzb/Desktop/session-memory/TRANSITION_COMMANDS.md`
-- `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
-- `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/DESIGN_PRINCIPLES.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/ARCHITECTURE.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/CONTROL_SYSTEM.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/STATE_MACHINE.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/TRANSITION_COMMANDS.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/SCHEMA.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/canonical/IMPLEMENTATION_PLAN.md`
 - `C:/Users/terryzzb/Desktop/session-memory/docs/evaluation/EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/docs/evaluation/ROLE_CONTEXT_EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-objective.md`

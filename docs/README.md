@@ -1,27 +1,25 @@
 # Docs Map
 
-This directory holds non-canonical or auxiliary repository docs that do not
-need to live at the repository root.
+This directory now owns the repository documentation tree.
 
-The root keeps the canonical kernel and release surfaces:
+Canonical docs live under `docs/canonical/`:
 
-- `README.md`
-- `RELEASE.md`
-- `PRODUCT.md`
-- `ARCHITECTURE.md`
-- `CONTROL_SYSTEM.md`
-- `STATE_MACHINE.md`
-- `TRANSITION_COMMANDS.md`
-- `SCHEMA.md`
-- `DESIGN_PRINCIPLES.md`
-- `IMPLEMENTATION_PLAN.md`
+- `docs/canonical/PRODUCT.md`
+- `docs/canonical/ARCHITECTURE.md`
+- `docs/canonical/CONTROL_SYSTEM.md`
+- `docs/canonical/STATE_MACHINE.md`
+- `docs/canonical/TRANSITION_COMMANDS.md`
+- `docs/canonical/SCHEMA.md`
+- `docs/canonical/DESIGN_PRINCIPLES.md`
+- `docs/canonical/IMPLEMENTATION_PLAN.md`
+- `docs/canonical/RELEASE.md`
 
-Auxiliary docs now live here:
+Auxiliary docs live in sibling subtrees:
 
 - `docs/history/`
   - historical design notes and one-off background material
 - `docs/operations/`
-  - harness and operational law docs that support the repo but are not package-facing root contracts
+  - harness and operational law docs that support the repo but are not package-facing canonical contracts
 - `docs/evaluation/`
   - evaluation plans and supporting experiment docs
   - `docs/evaluation/EVALUATION.md`

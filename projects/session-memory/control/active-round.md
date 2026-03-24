@@ -7,20 +7,16 @@
 ## Scope
 
 - Split external-target scope drafting and shadow assessment reporting into distinct artifact owner semantics.
-- Add one package-first validation path that proves an installed wheel can bootstrap and audit a disposable governed host repo.
-- Clean up root markdown topology by keeping canonical kernel docs at the root and moving weakly-coupled auxiliary docs into docs/.
-- Split external-target drafting and shadow assessment reporting into distinct artifact owner semantics.
-- Extend the package-first validation path so an installed wheel can bootstrap a disposable governed host and complete one governed external-target single assessment against a disposable external repo.
-- Register the package-first smoke in the suite and tighten package-facing quickstart and release evidence around that same proof path.
-- Keep canonical root docs in place while moving weakly-coupled auxiliary markdown into docs/.
+- Keep the package-first validation path proving installed-wheel bootstrap and bounded external-target single assessment.
+- Collapse host canonical product/control/release docs into docs/canonical and retarget repo-facing audit and navigation surfaces to that tree.
 
 ## Deliverable
 
-A cleaner alpha single-assessment surface with distinct artifact semantics, one install-first bootstrap-and-assess proof, one registered package smoke path, and aligned package-facing docs.
+A cleaner alpha single-assessment surface with distinct artifact semantics, one install-first bootstrap-and-assess proof, one registered package smoke path, and a root markdown layout reduced to entrypoint-only docs.
 
 ## Validation Plan
 
-Run smoke_kernel_bootstrap, run_smoke_suite --smoke kernel_bootstrap, audit_product_docs, audit-control-state, and enforce-worktree after the package-facing proof path lands.
+Run smoke_phase1, smoke_kernel_bootstrap, run_smoke_suite --smoke kernel_bootstrap, audit_product_docs, audit-control-state, and enforce-worktree after the canonical-doc migration lands.
 
 ## Active Risks
 

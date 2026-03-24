@@ -10,8 +10,8 @@ branch: master
 git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
 paths:
   - docs/history/2026-03-22-notes.md
-  - DESIGN_PRINCIPLES.md
-  - ARCHITECTURE.md
+  - docs/canonical/DESIGN_PRINCIPLES.md
+  - docs/canonical/ARCHITECTURE.md
 thread_ids: []
 evidence_refs:
   - type: note

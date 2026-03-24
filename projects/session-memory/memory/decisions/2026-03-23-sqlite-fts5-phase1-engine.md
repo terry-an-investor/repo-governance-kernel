@@ -9,20 +9,20 @@ workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
 git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
 paths:
-  - DESIGN_PRINCIPLES.md
-  - ARCHITECTURE.md
-  - SCHEMA.md
-  - IMPLEMENTATION_PLAN.md
+  - docs/canonical/DESIGN_PRINCIPLES.md
+  - docs/canonical/ARCHITECTURE.md
+  - docs/canonical/SCHEMA.md
+  - docs/canonical/IMPLEMENTATION_PLAN.md
   - scripts/build_index.py
   - scripts/query_index.py
 thread_ids: []
 evidence_refs:
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/DESIGN_PRINCIPLES.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/DESIGN_PRINCIPLES.md
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/ARCHITECTURE.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/ARCHITECTURE.md
   - type: doc
-    ref: C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/canonical/SCHEMA.md
   - type: commit
     ref: 0d603f3e2ed77feed60c71812169593f982cbaad
 tags:
