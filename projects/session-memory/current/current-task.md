@@ -35,8 +35,8 @@ The immediate objective is:
 
 ## Validated Facts
 
-- The latest committed baseline is:
-  - `a43b816 Introduce first task-contract owner layer`
+- This round started from committed baseline:
+  - `9740ecd Start M3 rewrite semantics unification`
 - `PRODUCT.md` is now being introduced as the canonical product truth source
   for:
   - target users
@@ -54,6 +54,10 @@ The immediate objective is:
 - `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded phase-side-effect compilation:
   - enter `execution` for one exploration objective through an adjudication plan contract
   - auto-open one bounded round from adjudication durable `round_*` bootstrap fields
+- `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded objective rewrite compilation:
+  - compile one adjudication objective rewrite plan into `record-soft-pivot`
+  - preserve objective identity while rewriting the active objective line
+  - rewrite one still-open round through the same soft-pivot command so round and objective truth stay aligned
 - `uv run python scripts/run_smoke_suite.py --list` now prints the canonical disposable smoke manifest:
   - registered smoke names
   - owned fixture project ids
@@ -92,6 +96,11 @@ The immediate objective is:
   - payload key admission
   - CLI flag binding
   - required runtime executor fields
+- mutable rewrite executor command-building now also flows through one shared
+  repo-owned builder:
+  - `rewrite-open-round`
+  - `rewrite-open-task-contract`
+  - `record-soft-pivot` executor payloads now ride the same owner-layer surface
 - bundle wrapper admission is now being pulled into one explicit governance
   surface so executor and plan validation stop carrying hidden bundle exception
   literals

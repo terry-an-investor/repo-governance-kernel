@@ -444,6 +444,8 @@ Current implementation already does these things:
     to still-open task contracts
   - can compile one bounded task-contract rewrite plan family into explicit
     `rewrite-open-task-contract` payloads for one or more target task contracts
+  - can compile one bounded objective rewrite plan family into explicit
+    `record-soft-pivot` payloads while preserving objective identity
   - can resolve bounded exception-contract plan targets from adjudication
     durable `Objects Invalidated` when the selected object set maps
     deterministically to active exception contracts
@@ -455,10 +457,11 @@ Current implementation already does these things:
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states
-  - can rewrite one open round, rewrite one open task contract, update one
-    task-contract status, retire or invalidate one exception contract, refresh
-    one round scope, change phase explicitly, and then open one successor round
-    when the adjudication record is structured enough
+  - can rewrite one active objective line, rewrite one open round, rewrite one
+    open task contract, update one task-contract status, retire or invalidate
+    one exception contract, refresh one round scope, change phase explicitly,
+    and then open one successor round when the adjudication record is
+    structured enough
   - builds mutable rewrite command CLIs through one shared registry-backed
     executor path instead of duplicating one rewrite builder per command
   - blocks prose-only follow-up requests instead of guessing durable rewrites from verdict text
@@ -479,7 +482,7 @@ Current implementation does not yet do these things:
 - reject illegal transitions outside the implemented round slice
 - apply adjudication verdicts as a fully general automatic rewrite engine
 - infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
-- infer task-contract or round rewrite targets from ambiguous multi-object verdicts
+- infer objective, task-contract, or round rewrite targets from ambiguous multi-object verdicts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate or automatically replace stale round contracts after hard pivots
   or broader verdict bundles without an explicit rewrite contract

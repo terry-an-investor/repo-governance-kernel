@@ -116,15 +116,14 @@ autonomous rewrite engine after a verdict is recorded.
 - first adjudication follow-up executor now exists:
   - `execute-adjudication-followups`
   - can scaffold safe missing control surfaces
-  - can compile bounded task-contract rewrite/status, round-close,
-    exception-contract, and phase-bootstrap plan families from adjudication
-    durable truth
+  - can compile bounded objective rewrite, task-contract rewrite/status,
+    round-close, exception-contract, and phase-bootstrap plan families from
+    adjudication durable truth
   - now routes mutable rewrite executor commands through one shared
     registry-backed builder foundation instead of keeping one private rewrite
     builder branch per command
   - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
-  - deeper owner-layer rewrite semantics for objectives
   - broader multi-round and multi-object adjudication replacement semantics
   - a shared transition engine that consumes the same registry-backed machine
     semantics end to end

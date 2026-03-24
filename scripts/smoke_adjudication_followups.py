@@ -5,17 +5,20 @@ import json
 from pathlib import Path
 
 from round_control import (
+    active_objective_path,
     active_round_path,
     exception_ledger_path,
     load_active_round,
     load_exception_contract_file,
     load_objective_file,
+    load_pivot_file,
     load_round_file,
     load_task_contract_file,
     find_rounds,
     locate_exception_contract_file,
     locate_round_file,
     locate_task_contract_file,
+    pivot_log_path,
     parse_bullet_list,
 )
 from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_json
@@ -850,6 +853,153 @@ def main() -> None:
         if not execution_bootstrap_round_id:
             raise SystemExit("phase-side-effect plan opened a round without an id")
 
+        reset_fixture_repo(FIXTURE_PROJECT_DIR)
+        write_fixture_files()
+        init_fixture_repo(FIXTURE_PROJECT_DIR, commit_message="Initialize adjudication objective-rewrite fixture")
+
+        objective_rewrite_objective_result = run_json(
+            "open_objective.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable adjudication objective rewrite smoke objective",
+            "--problem",
+            "Validate that adjudication can rewrite the active objective line through the bounded soft-pivot plan path.",
+            "--success-criterion",
+            "Adjudication can compile a bounded objective rewrite plan into record-soft-pivot.",
+            "--success-criterion",
+            "The same plan can rewrite the active round to stay aligned with the rewritten objective.",
+            "--non-goal",
+            "Branch to a new objective id.",
+            "--why-now",
+            "Objective rewrite semantics should be consumable through the same owner-layer adjudication path as round and task rewrites.",
+            "--phase",
+            "execution",
+            "--path",
+            "current/current-task.md",
+        )
+        objective_rewrite_objective_id = str(objective_rewrite_objective_result["objective_id"])
+        patch_current_task(objective_id=objective_rewrite_objective_id)
+
+        objective_rewrite_round_result = run_json(
+            "open_round.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable objective rewrite predecessor round",
+            "--scope-item",
+            "Prove that objective rewrite adjudication can keep the open round aligned through governed rewrite semantics.",
+            "--deliverable",
+            "A disposable round that will be rewritten by objective adjudication.",
+            "--validation-plan",
+            "Compile and execute the objective rewrite adjudication plan, then inspect durable objective and round truth.",
+            "--scope-path",
+            "current/",
+            "--scope-path",
+            "control/",
+            "--scope-path",
+            "memory/",
+        )
+        objective_rewrite_round_id = str(objective_rewrite_round_result["round_id"])
+        patch_current_task(objective_id=objective_rewrite_objective_id, round_id=objective_rewrite_round_id)
+
+        objective_rewrite_plan = json.dumps(
+            {
+                "plan_type": "rewrite-active-objective-via-soft-pivot",
+                "trigger": "The active objective needs a tighter execution framing without changing objective identity.",
+                "change_summary": "Refine the active objective around adjudication-driven rewrite semantics while preserving the same objective line.",
+                "identity_rationale": "The user problem and owner line remain the same; only the execution framing and rewrite discipline are being tightened.",
+                "title": "Disposable adjudication objective rewrite smoke objective in execution",
+                "summary": "Keep the same objective id while rewriting the active objective through adjudication.",
+                "why_now": "The fixture now proves bounded objective rewrite semantics through the same adjudication path as other governed rewrites.",
+                "risk": [
+                    "If objective rewrite still bypasses the registry-owned executor path, M3 remains incomplete.",
+                ],
+                "next_control_change": [
+                    "Keep the existing open round aligned by rewriting it in the same soft-pivot command.",
+                ],
+                "rewrite_open_round": True,
+                "round_deliverable": "A disposable round rewritten through objective adjudication so round and objective truth stay aligned.",
+                "round_validation_plan": "Execute adjudication followups and inspect durable objective plus round rewrite results.",
+                "round_status_note": [
+                    "Rewritten during objective adjudication so round and objective framing stay aligned.",
+                ],
+                "evidence": [
+                    "The same objective id still owns the work after the rewrite.",
+                ],
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+        objective_rewrite_adjudication_result = run_json(
+            "adjudicate_control_state.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--allow-clean",
+            "--title",
+            "Disposable objective rewrite adjudication follow-up execution smoke",
+            "--question",
+            "Can adjudication rewrite the active objective line through the bounded soft-pivot plan path?",
+            "--verdict",
+            "Rewrite the active objective through a bounded soft pivot and rewrite the still-open round in the same owner-layer transition.",
+            "--retain-id",
+            objective_rewrite_objective_id,
+            "--executor-plan-json",
+            objective_rewrite_plan,
+            "--follow-up",
+            "rerun audit-control-state",
+        )
+        objective_rewrite_compile_result = run_json(
+            "compile_adjudication_executor_plan.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(objective_rewrite_adjudication_result["adjudication_id"]),
+        )
+        if int(objective_rewrite_compile_result["compiled_followup_count"]) != 1:
+            raise SystemExit("objective rewrite adjudication plan compiler did not emit the expected bounded followup")
+
+        objective_rewrite_execute_result = run_json(
+            "execute_adjudication_followups.py",
+            "--project-id",
+            FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(objective_rewrite_adjudication_result["adjudication_id"]),
+        )
+        if objective_rewrite_execute_result["blocked"]:
+            raise SystemExit(
+                f"objective rewrite adjudication execution reported blocked steps: {objective_rewrite_execute_result['blocked']}"
+            )
+
+        rewritten_objective_path = None
+        for candidate in (FIXTURE_PROJECT_DIR / "memory" / "objectives").glob("*.md"):
+            candidate_meta, candidate_sections = load_objective_file(candidate)
+            if str(candidate_meta.get("id") or "").strip() == objective_rewrite_objective_id:
+                rewritten_objective_path = candidate
+                if "bounded objective rewrite semantics" not in str(candidate_sections.get("Why Now", "")):
+                    raise SystemExit("objective rewrite adjudication did not rewrite durable objective why-now")
+                break
+        if rewritten_objective_path is None:
+            raise SystemExit("objective rewrite adjudication lost the durable objective file")
+
+        rewritten_round_path = locate_round_file(FIXTURE_PROJECT_ID, objective_rewrite_round_id)
+        if rewritten_round_path is None:
+            raise SystemExit("objective rewrite adjudication lost the open round")
+        _rewritten_round_meta, rewritten_round_sections = load_round_file(rewritten_round_path)
+        if "rewritten through objective adjudication" not in str(rewritten_round_sections.get("Deliverable", "")):
+            raise SystemExit("objective rewrite adjudication did not rewrite the open round deliverable")
+
+        rewritten_pivots = list((FIXTURE_PROJECT_DIR / "memory" / "pivots").glob("*.md"))
+        if len(rewritten_pivots) != 1:
+            raise SystemExit("objective rewrite adjudication did not leave exactly one pivot record")
+        rewritten_pivot_meta, _rewritten_pivot_sections = load_pivot_file(rewritten_pivots[0])
+        if str(rewritten_pivot_meta.get("objective_id") or "").strip() != objective_rewrite_objective_id:
+            raise SystemExit("objective rewrite adjudication pivot does not point at the preserved objective id")
+        if not active_objective_path(FIXTURE_PROJECT_ID).exists():
+            raise SystemExit("objective rewrite adjudication removed the active objective projection")
+        if objective_rewrite_objective_id not in pivot_log_path(FIXTURE_PROJECT_ID).read_text(encoding="utf-8"):
+            raise SystemExit("objective rewrite adjudication did not refresh pivot log projection")
+
         print(
             json.dumps(
                 {
@@ -864,11 +1014,14 @@ def main() -> None:
                     "invalidated_exception_contract_id": invalidated_exception_id,
                     "execution_bootstrap_objective_id": execution_bootstrap_objective_id,
                     "execution_bootstrap_round_id": execution_bootstrap_round_id,
+                    "objective_rewrite_objective_id": objective_rewrite_objective_id,
+                    "objective_rewrite_round_id": objective_rewrite_round_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
                     "compiled_followup_count": int(compile_result["compiled_followup_count"]),
                     "applied": execute_result["applied"],
                     "invalidated_applied": invalidating_execute_result["applied"],
                     "execution_bootstrap_applied": execution_bootstrap_execute_result["applied"],
+                    "objective_rewrite_applied": objective_rewrite_execute_result["applied"],
                     "blocked": blocked_execute_result["blocked"],
                     "fixture_audit": final_boundary_audit["status"],
                 },

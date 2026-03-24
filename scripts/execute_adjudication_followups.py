@@ -9,6 +9,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from compile_adjudication_executor_plan import compile_plan_contracts
+from executor_command_builder import build_registry_executor_command as build_shared_registry_executor_command, string_list
 from round_control import (
     load_all_adjudications,
     load_round_file,
@@ -21,10 +22,7 @@ from transition_specs import (
     bundle_governance_names,
     bundle_allowed_payload_keys,
     bundle_field_specs,
-    command_allowed_executor_payload_keys,
-    executor_field_specs_for_command,
     executor_supported_command_names,
-    mutable_field_specs_for_command,
 )
 
 
@@ -160,11 +158,7 @@ def parse_executor_followup_payload(payload_text: str, *, source_label: str) -> 
 
 
 def _string_list(value: object) -> list[str]:
-    if isinstance(value, list):
-        return [str(item).strip() for item in value if str(item).strip()]
-    if isinstance(value, str) and value.strip():
-        return [value.strip()]
-    return []
+    return string_list(value)
 
 
 def require_payload_text(payload: dict[str, object], field_name: str) -> str:
@@ -172,14 +166,6 @@ def require_payload_text(payload: dict[str, object], field_name: str) -> str:
     if not value:
         raise SystemExit(f"executor {payload.get('command')} requires `{field_name}`")
     return value
-
-
-def _reject_unknown_payload_keys(command_name: str, payload: dict[str, object], allowed_keys: set[str]) -> None:
-    unknown_keys = sorted(set(payload) - {"command"} - allowed_keys)
-    if unknown_keys:
-        raise SystemExit(
-            f"executor {command_name} payload carries undeclared private keys: {', '.join(unknown_keys)}"
-        )
 
 
 def _field_value_present(value_kind: str, value: object) -> bool:
@@ -192,59 +178,12 @@ def _field_value_present(value_kind: str, value: object) -> bool:
     raise SystemExit(f"unsupported executor value kind `{value_kind}`")
 
 
-def _append_executor_field_specs(cmd: list[str], payload: dict[str, object], command_name: str) -> None:
-    _reject_unknown_payload_keys(
-        command_name,
-        payload,
-        command_allowed_executor_payload_keys(command_name),
-    )
-    for field_spec in executor_field_specs_for_command(command_name):
-        cli_flag = f"--{field_spec.cli_flag}"
-        if field_spec.value_kind == "scalar":
-            value = str(payload.get(field_spec.payload_key) or "").strip()
-            if field_spec.required and not value:
-                raise SystemExit(f"executor {command_name} requires `{field_spec.payload_key}`")
-            if value:
-                cmd.extend([cli_flag, value])
-            continue
-        if field_spec.value_kind == "list":
-            values = _string_list(payload.get(field_spec.payload_key))
-            if field_spec.required and not values:
-                raise SystemExit(f"executor {command_name} requires `{field_spec.payload_key}`")
-            for item in values:
-                cmd.extend([cli_flag, item])
-            continue
-        if field_spec.value_kind == "bool":
-            if field_spec.required and not bool(payload.get(field_spec.payload_key)):
-                raise SystemExit(f"executor {command_name} requires `{field_spec.payload_key}`")
-            if bool(payload.get(field_spec.payload_key)):
-                cmd.append(cli_flag)
-            continue
-        raise SystemExit(
-            f"executor {command_name} encountered unsupported executor value kind `{field_spec.value_kind}`"
-        )
-
-
-def _append_mutable_field_specs(cmd: list[str], payload: dict[str, object], command_name: str) -> None:
-    for field_spec in mutable_field_specs_for_command(command_name):
-        cli_flag = f"--{field_spec.cli_flag}"
-        if field_spec.value_kind == "scalar":
-            value = str(payload.get(field_spec.payload_key) or "").strip()
-            if value:
-                cmd.extend([cli_flag, value])
-        else:
-            for item in _string_list(payload.get(field_spec.payload_key)):
-                cmd.extend([cli_flag, item])
-        if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
-            cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
-
-
 def _validate_bundle_payload(payload: dict[str, object], bundle_name: str) -> None:
-    _reject_unknown_payload_keys(
-        bundle_name,
-        payload,
-        bundle_allowed_payload_keys(bundle_name),
-    )
+    unknown_keys = sorted(set(payload) - {"command"} - bundle_allowed_payload_keys(bundle_name))
+    if unknown_keys:
+        raise SystemExit(
+            f"executor {bundle_name} payload carries undeclared private keys: {', '.join(unknown_keys)}"
+        )
     for field_spec in bundle_field_specs(bundle_name):
         if field_spec.required and not _field_value_present(field_spec.value_kind, payload.get(field_spec.payload_key)):
             raise SystemExit(f"executor {bundle_name} requires `{field_spec.payload_key}`")
@@ -400,10 +339,7 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
 
 
 def build_registry_executor_command(project_id: str, payload: dict[str, object], command_name: str) -> list[str]:
-    cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
-    _append_executor_field_specs(cmd, payload, command_name)
-    _append_mutable_field_specs(cmd, payload, command_name)
-    return cmd
+    return build_shared_registry_executor_command(project_id, payload, command_name)
 
 
 def build_executor_command(project_id: str, payload: dict[str, object]) -> list[str]:

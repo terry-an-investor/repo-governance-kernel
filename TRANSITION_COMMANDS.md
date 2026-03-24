@@ -859,6 +859,7 @@ Current implementation status:
   through registry-owned payload templates instead of one private compiler branch per
   plan family
   - current supported plan-contract families include:
+    - `rewrite-active-objective-via-soft-pivot`
     - `rewrite-open-round-then-close-chain`
     - `rewrite-open-task-contracts`
     - `invalidate-invalidated-task-contracts`
@@ -870,6 +871,7 @@ Current implementation status:
   `executor_followups`
 - currently supports structured execution for:
   - `close-objective`
+  - `record-soft-pivot`
   - `rewrite-open-round`
   - `rewrite-open-task-contract`
   - `round-close-chain`
@@ -896,6 +898,9 @@ Current implementation status:
 - bounded task-contract rewrite plans can fan out across explicit
   `task_contract_ids` through the same registry-owned payload-template surface
   used by round rewrite plans
+- bounded objective rewrite plans can compile one `record-soft-pivot` command
+  from adjudication durable truth and preserve objective identity while
+  optionally rewriting the still-open round in the same owner-layer command
 - `rewrite-open-round-then-close-chain` can now resolve its round target from
   explicit `round_id`, one invalidated still-open round, or one open round in
   the adjudication objective context instead of requiring a hand-authored round
