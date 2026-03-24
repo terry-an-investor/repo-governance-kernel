@@ -63,6 +63,7 @@ an honest first audit:
 The current validation path now covers both:
 
 - a brand-new disposable git repo
+- the same bootstrap path from an installed wheel in an isolated environment
 - a frozen copied `wind-agent` host snapshot
 
 Both surfaces bootstrap and pass host-side `audit-control-state` without
@@ -105,6 +106,7 @@ This draft surface is for external-target setup:
 
 - it inspects the external repo live and turns the observed dirty paths into suggested round/task scope
 - it writes a readable draft artifact and suggested command sequence instead of mutating durable control truth automatically
+- it keeps that draft artifact distinct from the later shadow-adoption report so authoring output and assessment output do not collapse into one owner label
 - it exists to reduce hand-authored ambiguity before `assess-host-adoption` interprets the external target boundary
 
 Run the bounded single-pass external-target workflow:

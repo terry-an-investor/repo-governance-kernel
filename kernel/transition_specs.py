@@ -329,6 +329,7 @@ SUPPORTED_PROJECTION_OWNER_LABELS = {
 
 SUPPORTED_ARTIFACT_OWNER_LABELS = {
     "artifact:live-workspace-projection",
+    "artifact:external-target-shadow-scope-draft",
     "artifact:shadow-adoption-report",
     "snapshot:historical",
 }
@@ -350,6 +351,12 @@ WRITE_TARGET_SPECS: tuple[WriteTargetSpec, ...] = (
     WriteTargetSpec("control:exception-ledger", "projection", "projection", ("control:exception-ledger",)),
     WriteTargetSpec("current:current-task", "current", "durable", ("current:current-task",)),
     WriteTargetSpec("artifact:live-workspace-projection", "artifact", "artifact", ("artifact:live-workspace-projection",)),
+    WriteTargetSpec(
+        "artifact:external-target-shadow-scope-draft",
+        "artifact",
+        "artifact",
+        ("artifact:external-target-shadow-scope-draft",),
+    ),
     WriteTargetSpec("artifact:shadow-adoption-report", "artifact", "artifact", ("artifact:shadow-adoption-report",)),
     WriteTargetSpec("snapshot:historical", "snapshot", "artifact", ("snapshot:historical",)),
     WriteTargetSpec("memory:transition-event", "event"),
@@ -406,8 +413,8 @@ TRANSITION_SIDE_EFFECT_SPECS: tuple[TransitionSideEffectSpec, ...] = (
     ),
     TransitionSideEffectSpec(
         "render_external_target_shadow_scope_draft",
-        ("artifact:shadow-adoption-report",),
-        artifact_owners=("artifact:shadow-adoption-report",),
+        ("artifact:external-target-shadow-scope-draft",),
+        artifact_owners=("artifact:external-target-shadow-scope-draft",),
         live_inspection_owners=("workspace:git-status",),
     ),
     TransitionSideEffectSpec(
@@ -1767,9 +1774,9 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         implementation_status="implemented",
         required_inputs=("project_id", "workspace_root"),
         guard_codes=("workspace_locator_available", "live_workspace_available", "active_objective_available"),
-        write_targets=("artifact:shadow-adoption-report",),
+        write_targets=("artifact:external-target-shadow-scope-draft",),
         side_effect_codes=("render_external_target_shadow_scope_draft",),
-        artifact_owners=("artifact:shadow-adoption-report",),
+        artifact_owners=("artifact:external-target-shadow-scope-draft",),
         live_inspection_owners=("workspace:git-status",),
         emits_transition_event=False,
     ),

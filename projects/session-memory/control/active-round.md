@@ -1,26 +1,26 @@
 # Active Round
 
-- Round id: `round-2026-03-24-1928-land-live-host-shadow-assessment-and-adoption-report-owner-layer`
+- Round id: `round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- Promote host adoption assessment and external-target single-assessment workflow into the kernel owner layer.
-- Keep live-host rollout in shadow mode by producing honest assessment output before any broader automation claim.
-- Refresh canonical docs and alpha preview package metadata so public release claims match the implemented owner-layer surface.
+- Split external-target scope drafting and shadow assessment reporting into distinct artifact owner semantics.
+- Add one package-first validation path that proves an installed wheel can bootstrap and audit a disposable governed host repo.
+- Refresh package-facing docs and release notes so the a2 single-assessment validation story matches the implemented surface.
 
 ## Deliverable
 
-A kernel-owned host adoption assessment surface plus a bundle-backed external-target single-assessment flow, one bounded intent entry, and aligned alpha preview docs/version metadata.
+A cleaner alpha single-assessment surface with distinct draft/report artifact semantics plus one install-first wheel smoke for bootstrap and audit.
 
 ## Validation Plan
 
-Run focused host-adoption smokes, product-doc audit, uv build, isolated install help check, audit-control-state, and enforce-worktree after the doc/version refresh lands.
+Run the focused package-first smoke, audit-control-state, and enforce-worktree on the real repo after the artifact split and smoke path land.
 
 ## Active Risks
 
-- The first command surface could stay too frozen-host-specific and fail to generalize to live-host shadow assessment.
+- The first package-first smoke could stay too bootstrap-only and fail to prove the most important package-facing surface.
 
 ## Blockers
 

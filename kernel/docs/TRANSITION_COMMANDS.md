@@ -101,6 +101,7 @@ This command is an owner-layer drafting surface:
 - it inspects one explicit external workspace root live, without mutating that repo
 - it suggests round and task-contract `paths` directly from the currently observed dirty paths
 - it writes one readable draft artifact and suggested command sequence, not durable control truth
+- its artifact contract is separate from the later shadow assessment report so drafting and assessment stay distinguishable in the owner layer
 - it exists to reduce hand-authored ambiguity in `external-target-shadow` setup before the real assessment command runs
 
 ### `assess-host-adoption`
@@ -116,6 +117,7 @@ This command is an owner-layer observation surface:
   - `external-target-shadow`
 - it interprets active round and task-contract `paths` against dirty paths relative to the assessed workspace root
 - it always writes one assessment artifact rather than durable control truth
+- it does not reuse the external-target drafting artifact contract; the draft and final report are separate owner-layer artifacts
 - it may write the report into the governed host repo or to an explicit external output path
 - it does not authorize arbitrary live-host mutation or general autonomous rewrite
 

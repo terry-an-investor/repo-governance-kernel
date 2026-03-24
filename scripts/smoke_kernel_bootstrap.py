@@ -5,12 +5,17 @@ import json
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-host"
-PROJECT_ID = "bootstrap-host"
+SOURCE_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-host"
+INSTALLED_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-host-installed"
+INSTALL_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-package-install"
+SOURCE_PROJECT_ID = "bootstrap-host"
+INSTALLED_PROJECT_ID = "bootstrap-host-installed"
+GIT_EXE = "C:\\Program Files\\Git\\cmd\\git.exe"
 
 
 def run(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -34,68 +39,90 @@ def run(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
                 ensure_ascii=True,
                 indent=2,
             )
-        )
+    )
     return completed
 
 
-def main() -> int:
-    if FIXTURE_ROOT.exists():
-        shutil.rmtree(FIXTURE_ROOT)
-    FIXTURE_ROOT.mkdir(parents=True, exist_ok=True)
+def project_version() -> str:
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    return str(pyproject["project"]["version"]).strip()
 
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "init"], cwd=FIXTURE_ROOT)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.email", "fixture@example.com"], cwd=FIXTURE_ROOT)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.name", "Fixture Smoke"], cwd=FIXTURE_ROOT)
 
-    bootstrap = run(
-        [
-            sys.executable,
-            "-m",
-            "kernel.cli",
-            "--repo-root",
-            str(FIXTURE_ROOT),
-            "bootstrap-repo",
-            "--project-id",
-            PROJECT_ID,
-        ],
-        cwd=ROOT,
-    )
-    bootstrap_payload = json.loads(bootstrap.stdout)
+def ensure_clean_dir(path: Path) -> None:
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True, exist_ok=True)
 
+
+def init_git_repo(path: Path) -> None:
+    run([GIT_EXE, "init"], cwd=path)
+    run([GIT_EXE, "config", "user.email", "fixture@example.com"], cwd=path)
+    run([GIT_EXE, "config", "user.name", "Fixture Smoke"], cwd=path)
+
+
+def assert_bootstrap_host(fixture_root: Path, project_id: str, *, bootstrap_payload: dict[str, object]) -> dict[str, object]:
     expected_paths = [
-        FIXTURE_ROOT / ".githooks" / "pre-commit",
-        FIXTURE_ROOT / ".githooks" / "pre-push",
-        FIXTURE_ROOT / "projects" / PROJECT_ID / "control" / "constitution.md",
-        FIXTURE_ROOT / "projects" / PROJECT_ID / "current" / "current-task.md",
-        FIXTURE_ROOT / "projects" / PROJECT_ID / "control" / "pivot-log.md",
-        FIXTURE_ROOT / "projects" / PROJECT_ID / "control" / "exception-ledger.md",
+        fixture_root / ".githooks" / "pre-commit",
+        fixture_root / ".githooks" / "pre-push",
+        fixture_root / "projects" / project_id / "control" / "constitution.md",
+        fixture_root / "projects" / project_id / "current" / "current-task.md",
+        fixture_root / "projects" / project_id / "control" / "pivot-log.md",
+        fixture_root / "projects" / project_id / "control" / "exception-ledger.md",
     ]
     missing = [str(path) for path in expected_paths if not path.exists()]
     if missing:
         raise SystemExit(f"bootstrap did not create expected paths: {', '.join(missing)}")
 
     hooks_path = run(
-        ["C:\\Program Files\\Git\\cmd\\git.exe", "config", "--get", "core.hooksPath"],
-        cwd=FIXTURE_ROOT,
+        [GIT_EXE, "config", "--get", "core.hooksPath"],
+        cwd=fixture_root,
     ).stdout.strip().replace("\\", "/")
-    expected_hooks_path = str(FIXTURE_ROOT / ".githooks").replace("\\", "/")
+    expected_hooks_path = str(fixture_root / ".githooks").replace("\\", "/")
     if hooks_path != expected_hooks_path:
         raise SystemExit(f"unexpected hooksPath `{hooks_path}`; expected `{expected_hooks_path}`")
 
-    constitution_text = (FIXTURE_ROOT / "projects" / PROJECT_ID / "control" / "constitution.md").read_text(encoding="utf-8")
+    constitution_text = (fixture_root / "projects" / project_id / "control" / "constitution.md").read_text(
+        encoding="utf-8"
+    )
     if "Audit Hooks" not in constitution_text:
         raise SystemExit("bootstrap constitution is missing audit hooks")
 
-    audit = run(
+    return {
+        "bootstrap": bootstrap_payload,
+        "hooks_path": hooks_path,
+    }
+
+
+def bootstrap_and_audit(*, fixture_root: Path, project_id: str, python_executable: str) -> dict[str, object]:
+    ensure_clean_dir(fixture_root)
+    init_git_repo(fixture_root)
+
+    bootstrap = run(
         [
-            sys.executable,
+            python_executable,
             "-m",
             "kernel.cli",
             "--repo-root",
-            str(FIXTURE_ROOT),
+            str(fixture_root),
+            "bootstrap-repo",
+            "--project-id",
+            project_id,
+        ],
+        cwd=ROOT,
+    )
+    bootstrap_payload = json.loads(bootstrap.stdout)
+    bootstrap_checks = assert_bootstrap_host(fixture_root, project_id, bootstrap_payload=bootstrap_payload)
+
+    audit = run(
+        [
+            python_executable,
+            "-m",
+            "kernel.cli",
+            "--repo-root",
+            str(fixture_root),
             "audit-control-state",
             "--project-id",
-            PROJECT_ID,
+            project_id,
         ],
         cwd=ROOT,
     )
@@ -112,15 +139,66 @@ def main() -> int:
             )
         )
 
+    return {
+        "project_id": project_id,
+        "fixture_root": str(fixture_root),
+        "bootstrap": bootstrap_checks["bootstrap"],
+        "audit": audit_payload,
+        "hooks_path": bootstrap_checks["hooks_path"],
+    }
+
+
+def prepare_installed_python() -> tuple[str, str]:
+    ensure_clean_dir(INSTALL_ROOT)
+    venv_root = INSTALL_ROOT / ".venv"
+    run(["uv", "venv", str(venv_root)], cwd=ROOT)
+    installed_python = venv_root / "Scripts" / "python.exe"
+    if not installed_python.exists():
+        raise SystemExit(f"expected installed python not found: {installed_python}")
+
+    run(["uv", "build"], cwd=ROOT)
+    version = project_version()
+    wheel_path = ROOT / "dist" / f"repo_governance_kernel-{version}-py3-none-any.whl"
+    if not wheel_path.exists():
+        raise SystemExit(f"expected built wheel not found: {wheel_path}")
+
+    run(
+        [
+            "uv",
+            "pip",
+            "install",
+            "--python",
+            str(installed_python),
+            "--force-reinstall",
+            str(wheel_path),
+        ],
+        cwd=ROOT,
+    )
+    help_output = run([str(installed_python), "-m", "kernel.cli", "--help"], cwd=ROOT)
+    return str(installed_python), help_output.stdout
+
+
+def main() -> int:
+    source_host = bootstrap_and_audit(
+        fixture_root=SOURCE_FIXTURE_ROOT,
+        project_id=SOURCE_PROJECT_ID,
+        python_executable=sys.executable,
+    )
+    installed_python, installed_help = prepare_installed_python()
+    installed_host = bootstrap_and_audit(
+        fixture_root=INSTALLED_FIXTURE_ROOT,
+        project_id=INSTALLED_PROJECT_ID,
+        python_executable=installed_python,
+    )
+
     print(
         json.dumps(
             {
                 "status": "ok",
-                "project_id": PROJECT_ID,
-                "fixture_root": str(FIXTURE_ROOT),
-                "bootstrap": bootstrap_payload,
-                "audit": audit_payload,
-                "hooks_path": hooks_path,
+                "version": project_version(),
+                "source_bootstrap": source_host,
+                "installed_bootstrap": installed_host,
+                "installed_help_contains_bootstrap_repo": "bootstrap-repo" in installed_help,
             },
             ensure_ascii=True,
             indent=2,

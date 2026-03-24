@@ -58,7 +58,7 @@ Do not promote beyond alpha until:
 Preview validation completed on 2026-03-24.
 
 - `uv run python scripts/smoke_kernel_bootstrap.py`
-  - disposable bootstrap host passes `audit-control-state`
+  - source-tree bootstrap still passes `audit-control-state`, and an installed wheel can bootstrap and audit a second disposable host from an isolated environment
 - `uv run python scripts/smoke_wind_agent_snapshot_adoption.py`
   - frozen `wind-agent` host adoption produces a readable shadow-adoption report and isolates remaining blocked verdicts to host bootstrap/support noise
 - `uv run python scripts/smoke_brooks_semantic_research_snapshot_adoption.py`
@@ -66,7 +66,7 @@ Preview validation completed on 2026-03-24.
 - `uv run python -m kernel.cli --repo-root <governed-host> assess-host-adoption --project-id <project>`
   - owner-layer shadow adoption assessment writes a readable report from governed host control state plus live workspace inspection
 - `uv run python -m kernel.cli --repo-root <governed-host> draft-external-target-shadow-scope --project-id <project> --workspace-root <external-repo>`
-  - owner-layer external-target drafting writes a readable scope draft from the observed dirty paths before the real assessment command runs
+  - owner-layer external-target drafting writes a readable scope draft from the observed dirty paths before the real assessment command runs, and that draft artifact is now distinct from the later shadow-adoption report
 - `uv run python -m kernel.cli --repo-root <governed-host> assess-external-target-once --project-id <project> --workspace-root <external-repo>`
   - bounded workflow wrapper now compiles into one governed bundle-backed external-target assessment flow
 - `uv run python -m kernel.cli --repo-root <governed-host> assess-external-target-from-intent --project-id <project> --request \"Assess C:/path/to/external/repo current changes, set scope first, then give me the verdict.\"`

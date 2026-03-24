@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-24-1928-land-live-host-shadow-assessment-and-adoption-report-owner-layer`
+- Active round id: `round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
