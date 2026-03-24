@@ -31,8 +31,18 @@ def run_registry_command(
     *,
     failure_message: str,
 ) -> tuple[bool, str]:
-    cmd = build_registry_executor_command(project_id, payload, command_name)
-    return run_command(cmd, failure_message=failure_message)
+    cmd, env = build_registry_executor_command(project_id, payload, command_name)
+    completed = subprocess.run(
+        cmd,
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    if completed.returncode != 0:
+        return False, completed.stderr.strip() or completed.stdout.strip() or failure_message
+    return True, completed.stdout.strip()
 
 
 def run_registry_command_json(

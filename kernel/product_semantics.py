@@ -6,9 +6,9 @@ from pathlib import Path
 
 from kernel.assemble_context import clean_section_text, parse_h2_sections
 from kernel.build_index import parse_frontmatter, split_frontmatter
-from kernel.runtime_paths import resolve_repo_root
+from kernel.runtime_paths import resolve_package_root
 
-ROOT = resolve_repo_root()
+ROOT = resolve_package_root()
 PRODUCT_DOC_PATH = ROOT / "PRODUCT.md"
 CANONICAL_PRODUCT_DOCS = (
     ROOT / "ARCHITECTURE.md",

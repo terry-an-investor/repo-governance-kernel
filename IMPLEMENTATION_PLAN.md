@@ -114,7 +114,7 @@ Needed outcomes:
 
 - one brand-new git repo can bootstrap the minimal governance surface through the kernel CLI
 - bootstrap installs repo-local hooks that call the shared kernel entrypoint instead of repo-private policy code
-- fixture validation proves the install path before higher-risk host rollout
+- fixture validation proves the install path and host-side control audit before higher-risk host rollout
 - real-host rollout proceeds in this order:
   - disposable fixture repo
   - frozen host snapshot

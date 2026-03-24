@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
 import sys
 
 from kernel.transition_specs import command_allowed_executor_payload_keys, executor_field_specs_for_command, mutable_field_specs_for_command
-from kernel.runtime_paths import resolve_repo_root
+from kernel.runtime_paths import REPO_ROOT_ENV_VAR, resolve_repo_root
 
 
 ROOT = resolve_repo_root()
-SCRIPTS = ROOT / "scripts"
 
 
 def string_list(value: object) -> list[str]:
@@ -71,9 +71,21 @@ def append_mutable_field_specs(cmd: list[str], payload: dict[str, object], comma
             cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
 
 
-def build_registry_executor_command(project_id: str, payload: dict[str, object], command_name: str) -> list[str]:
-    cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
+def build_registry_executor_command(
+    project_id: str,
+    payload: dict[str, object],
+    command_name: str,
+) -> tuple[list[str], dict[str, str]]:
+    cmd = [
+        sys.executable,
+        "-m",
+        f"kernel.commands.{command_name.replace('-', '_')}",
+        "--project-id",
+        project_id,
+    ]
     append_executor_field_specs(cmd, payload, command_name)
     append_mutable_field_specs(cmd, payload, command_name)
-    return cmd
+    env = os.environ.copy()
+    env[REPO_ROOT_ENV_VAR] = str(ROOT)
+    return cmd, env
 

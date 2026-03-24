@@ -41,6 +41,7 @@ from kernel.transition_specs import (
     validate_transition_specs,
     transition_command_names,
 )
+from kernel.runtime_paths import resolve_package_root
 
 
 def parse_args() -> argparse.Namespace:
@@ -722,80 +723,98 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
         )
 
     transition_commands_doc_path = ROOT / "TRANSITION_COMMANDS.md"
-    documented_commands = documented_transition_command_names(transition_commands_doc_path)
-    registry_commands = set(transition_command_names())
-    missing_registry_commands = sorted(documented_commands - registry_commands)
-    if missing_registry_commands:
-        add_issue(
-            issues,
-            severity="warning",
-            domain="transition-registry",
-            code="documented_transition_commands_missing_from_registry",
-            message="TRANSITION_COMMANDS.md documents commands that are not present in the machine-readable transition registry",
-            evidence=missing_registry_commands,
-        )
-    semantic_registry_commands = set(semantic_transition_command_names())
-    missing_semantic_commands = sorted(documented_commands - semantic_registry_commands)
-    if missing_semantic_commands:
-        add_issue(
-            issues,
-            severity="warning",
-            domain="transition-registry",
-            code="documented_transition_commands_missing_semantic_registry_contract",
-            message="TRANSITION_COMMANDS.md documents commands that do not yet have semantic machine-readable coverage in the transition registry",
-            evidence=missing_semantic_commands,
-        )
-
-    documented_plans = documented_plan_family_names(transition_commands_doc_path)
-    registry_plans = set(adjudication_plan_types())
-    missing_registry_plans = sorted(documented_plans - registry_plans)
-    if missing_registry_plans:
-        add_issue(
-            issues,
-            severity="warning",
-            domain="transition-registry",
-            code="documented_adjudication_plans_missing_from_registry",
-            message="TRANSITION_COMMANDS.md documents adjudication plan families that are not present in the machine-readable transition registry",
-            evidence=missing_registry_plans,
-        )
-    semantic_registry_plans = set(semantic_adjudication_plan_types())
-    missing_semantic_plans = sorted(documented_plans - semantic_registry_plans)
-    if missing_semantic_plans:
-        add_issue(
-            issues,
-            severity="warning",
-            domain="transition-registry",
-            code="documented_adjudication_plans_missing_semantic_registry_contract",
-            message="TRANSITION_COMMANDS.md documents adjudication plan families that do not yet have semantic machine-readable coverage in the transition registry",
-            evidence=missing_semantic_plans,
-        )
-    documented_bundles = documented_bundle_wrapper_names(transition_commands_doc_path)
+    canonical_transition_commands_doc_path = resolve_package_root() / "TRANSITION_COMMANDS.md"
     registry_bundles = set(bundle_governance_names())
     executor_bundle_handlers = {
         bundle_name
         for bundle_name in bundle_governance_names()
         if bundle_route_state_specs(bundle_name) and bundle_step_template_specs(bundle_name)
     }
-    missing_registry_bundles = sorted(documented_bundles - registry_bundles)
-    if missing_registry_bundles:
+    transition_doc_paths = []
+    if transition_commands_doc_path.exists():
+        transition_doc_paths.append(transition_commands_doc_path)
+    elif canonical_transition_commands_doc_path.exists():
+        transition_doc_paths.append(canonical_transition_commands_doc_path)
+
+    if transition_doc_paths:
+        documented_commands = documented_transition_command_names(transition_doc_paths[0])
+        registry_commands = set(transition_command_names())
+        missing_registry_commands = sorted(documented_commands - registry_commands)
+        if missing_registry_commands:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="transition-registry",
+                code="documented_transition_commands_missing_from_registry",
+                message="TRANSITION_COMMANDS.md documents commands that are not present in the machine-readable transition registry",
+                evidence=missing_registry_commands,
+            )
+        semantic_registry_commands = set(semantic_transition_command_names())
+        missing_semantic_commands = sorted(documented_commands - semantic_registry_commands)
+        if missing_semantic_commands:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="transition-registry",
+                code="documented_transition_commands_missing_semantic_registry_contract",
+                message="TRANSITION_COMMANDS.md documents commands that do not yet have semantic machine-readable coverage in the transition registry",
+                evidence=missing_semantic_commands,
+            )
+
+        documented_plans = documented_plan_family_names(transition_doc_paths[0])
+        registry_plans = set(adjudication_plan_types())
+        missing_registry_plans = sorted(documented_plans - registry_plans)
+        if missing_registry_plans:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="transition-registry",
+                code="documented_adjudication_plans_missing_from_registry",
+                message="TRANSITION_COMMANDS.md documents adjudication plan families that are not present in the machine-readable transition registry",
+                evidence=missing_registry_plans,
+            )
+        semantic_registry_plans = set(semantic_adjudication_plan_types())
+        missing_semantic_plans = sorted(documented_plans - semantic_registry_plans)
+        if missing_semantic_plans:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="transition-registry",
+                code="documented_adjudication_plans_missing_semantic_registry_contract",
+                message="TRANSITION_COMMANDS.md documents adjudication plan families that do not yet have semantic machine-readable coverage in the transition registry",
+                evidence=missing_semantic_plans,
+            )
+        documented_bundles = documented_bundle_wrapper_names(transition_doc_paths[0])
+        missing_registry_bundles = sorted(documented_bundles - registry_bundles)
+        if missing_registry_bundles:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="transition-registry",
+                code="documented_bundle_wrappers_missing_from_registry",
+                message="TRANSITION_COMMANDS.md documents bundle wrappers that are not present in the machine-readable bundle governance surface",
+                evidence=missing_registry_bundles,
+            )
+        undocumented_registry_bundles = sorted(registry_bundles - documented_bundles)
+        if undocumented_registry_bundles:
+            add_issue(
+                issues,
+                severity="warning",
+                domain="transition-registry",
+                code="registry_bundle_wrappers_missing_from_docs",
+                message="the machine-readable bundle governance surface includes bundle wrappers that TRANSITION_COMMANDS.md does not document",
+                evidence=undocumented_registry_bundles,
+            )
+    else:
         add_issue(
             issues,
             severity="warning",
             domain="transition-registry",
-            code="documented_bundle_wrappers_missing_from_registry",
-            message="TRANSITION_COMMANDS.md documents bundle wrappers that are not present in the machine-readable bundle governance surface",
-            evidence=missing_registry_bundles,
+            code="missing_transition_commands_doc",
+            message="no TRANSITION_COMMANDS.md was found in the host repo or kernel package, so documented surface coverage could not be audited",
+            evidence=[str(transition_commands_doc_path), str(canonical_transition_commands_doc_path)],
         )
-    undocumented_registry_bundles = sorted(registry_bundles - documented_bundles)
-    if undocumented_registry_bundles:
-        add_issue(
-            issues,
-            severity="warning",
-            domain="transition-registry",
-            code="registry_bundle_wrappers_missing_from_docs",
-            message="the machine-readable bundle governance surface includes bundle wrappers that TRANSITION_COMMANDS.md does not document",
-            evidence=undocumented_registry_bundles,
-        )
+
     missing_executor_bundle_handlers = sorted(registry_bundles - executor_bundle_handlers)
     if missing_executor_bundle_handlers:
         add_issue(

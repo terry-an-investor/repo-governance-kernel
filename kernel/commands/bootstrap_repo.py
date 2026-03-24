@@ -6,6 +6,7 @@ import json
 import subprocess
 from pathlib import Path
 
+from kernel.round_control import render_exception_ledger_file, render_pivot_log_file
 from kernel.runtime_paths import resolve_repo_root
 
 
@@ -75,17 +76,6 @@ Bootstrap repo governance for this host repository.
 3. Refine constitution invariants and guarded paths as real project evidence appears.
 """
 
-PIVOT_LOG_TEXT = """# Pivot Log
-
-_none recorded_
-"""
-
-EXCEPTION_LEDGER_TEXT = """# Exception Ledger
-
-_none recorded_
-"""
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bootstrap the minimal repo-local governance surface for a host repository.")
     parser.add_argument("--project-id", required=True)
@@ -138,8 +128,8 @@ def main() -> int:
         project_root / "control" / "constitution.md",
         CONSTITUTION_TEXT.format(project_id=args.project_id),
     )
-    ensure_file(project_root / "control" / "pivot-log.md", PIVOT_LOG_TEXT)
-    ensure_file(project_root / "control" / "exception-ledger.md", EXCEPTION_LEDGER_TEXT)
+    ensure_file(project_root / "control" / "pivot-log.md", render_pivot_log_file(args.project_id))
+    ensure_file(project_root / "control" / "exception-ledger.md", render_exception_ledger_file(args.project_id))
     ensure_file(
         project_root / "current" / "current-task.md",
         CURRENT_TASK_TEXT.format(project_id=args.project_id, workspace_root=str(root).replace("\\", "/")),

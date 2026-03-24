@@ -50,6 +50,16 @@ Bootstrap a new host repo:
 repo-governance-kernel --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
 ```
 
+This bootstrap path now creates the minimum host-governance surface needed for
+an honest first audit:
+
+- `projects/<project_id>/control/constitution.md`
+- `projects/<project_id>/control/pivot-log.md`
+- `projects/<project_id>/control/exception-ledger.md`
+- `projects/<project_id>/current/current-task.md`
+- `.githooks/pre-commit`
+- `.githooks/pre-push`
+
 Install or refresh repo-local hooks:
 
 ```powershell

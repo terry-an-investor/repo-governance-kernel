@@ -8,6 +8,10 @@ REPO_ROOT_ENV_VAR = "REPO_GOVERNANCE_ROOT"
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
 
 
+def resolve_package_root() -> Path:
+    return PACKAGE_ROOT
+
+
 def resolve_repo_root() -> Path:
     override = os.environ.get(REPO_ROOT_ENV_VAR, "").strip()
     if override:

@@ -86,6 +86,32 @@ def main() -> int:
     if "Audit Hooks" not in constitution_text:
         raise SystemExit("bootstrap constitution is missing audit hooks")
 
+    audit = run(
+        [
+            sys.executable,
+            "-m",
+            "kernel.cli",
+            "--repo-root",
+            str(FIXTURE_ROOT),
+            "audit-control-state",
+            "--project-id",
+            PROJECT_ID,
+        ],
+        cwd=ROOT,
+    )
+    audit_payload = json.loads(audit.stdout)
+    if audit_payload.get("status") == "blocked":
+        raise SystemExit(
+            json.dumps(
+                {
+                    "message": "bootstrap host audit is still blocked after bootstrap",
+                    "audit": audit_payload,
+                },
+                ensure_ascii=True,
+                indent=2,
+            )
+        )
+
     print(
         json.dumps(
             {
@@ -93,6 +119,7 @@ def main() -> int:
                 "project_id": PROJECT_ID,
                 "fixture_root": str(FIXTURE_ROOT),
                 "bootstrap": bootstrap_payload,
+                "audit": audit_payload,
                 "hooks_path": hooks_path,
             },
             ensure_ascii=True,
