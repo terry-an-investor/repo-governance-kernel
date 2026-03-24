@@ -2,12 +2,12 @@
 id: round-2026-03-24-1106-codify-default-clone-root-and-inspect-xurl
 type: round-contract
 title: "Codify default clone root and inspect xurl"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: aa3e77f894c036932c9efb2e5603b4016c0058c1
+git_sha: f743c903fe79475fe3ea4fdee325aab6820b8c71
 paths:
   - AGENTS.md
 thread_ids: []
@@ -17,7 +17,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T11:06:20+08:00
-updated_at: 2026-03-24T11:06:20+08:00
+updated_at: 2026-03-24T11:10:29+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -40,6 +40,9 @@ Canonical clone-root rule landed and xurl reviewed from the canonical Desktop/gi
 ## Validation Plan
 
 Rule doc updated, xurl cloned under Desktop/git_repos, and repo worktree closes clean after review.
+git commit f743c90
+audit_control_state ok; enforce_worktree ok; xurl cloned under Desktop/git_repos
+git commit f743c90; validation passed
 
 ## Active Risks
 
@@ -51,4 +54,17 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> validation_pending: Clone-root rule landed and xurl inspection finished; round enters validation pending.
+
+validated by:
+- git commit f743c90
+
+validation_pending -> captured: Validation passed: rule landed, clone path used, xurl reviewed, and worktree remained honest.
+
+validated by:
+- audit_control_state ok; enforce_worktree ok; xurl cloned under Desktop/git_repos
+
+captured -> closed: Bounded clone-root rule and xurl inspection slice is complete.
+
+validated by:
+- git commit f743c90; validation passed
