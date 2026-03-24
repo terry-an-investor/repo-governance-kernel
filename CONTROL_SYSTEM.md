@@ -7,6 +7,9 @@ Host-repo note: this document explains the control model as used by the host
 repository and its dogfood sample. Reusable kernel implementation authority is
 owned by `kernel/`.
 
+That host sample is now a dogfood/example surface rather than the primary
+product owner of the kernel.
+
 ## Goal
 
 `session-memory` is a repo governance kernel.

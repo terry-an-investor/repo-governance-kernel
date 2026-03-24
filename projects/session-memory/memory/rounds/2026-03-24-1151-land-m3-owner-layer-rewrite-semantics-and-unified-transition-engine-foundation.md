@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: e6bb8b721fa56c9b5a66a3f22a1b729105d62b37
+git_sha: ac262a8fb3f5ede5a804b23066f901d16bce9e07
 paths:
   - scripts/
   - projects/session-memory/control/
@@ -21,6 +21,10 @@ paths:
   - ARCHITECTURE.md
   - DESIGN_PRINCIPLES.md
   - kernel/
+  - pyproject.toml
+  - .gitignore
+  - RELEASE.md
+  - uv.lock
 thread_ids: []
 evidence_refs: []
 tags:
@@ -28,7 +32,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T11:51:07+08:00
-updated_at: 2026-03-24T14:51:39+08:00
+updated_at: 2026-03-24T15:21:01+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -45,6 +49,7 @@ A new M3 slice that broadens rewrite semantics honestly and lands the first unif
 - Extract shared execution-building primitives so owner-layer commands stop accumulating one-off if/else dispatch paths.
 - Kernelize canonical product and control docs so the repo is framed as a repo governance kernel instead of a broader memory/autonomy system.
 - Physically separate reusable governance runtime modules into kernel/ while keeping sample project data under projects/session-memory/.
+- Prepare kernel for alpha release with independent package metadata, release notes, and sample-downscoped host-repo positioning.
 
 ## Deliverable
 
@@ -70,3 +75,7 @@ _none recorded_
 Round rewritten because canonical docs now need to be kernelized so product, architecture, control, and machine-semantic docs match the registry-first governance stance already implemented
 
 Round rewritten because the current milestone now includes physically separating reusable governance runtime modules into a kernel package while keeping scripts as CLI entrypoints and compatibility wrappers
+
+Round rewritten because the milestone now includes kernel alpha release preparation and explicitly downgrading the host sample to dogfood/example status in canonical docs
+
+Round rewritten because alpha packaging preparation now also owns release metadata and derived package-build hygiene for uv package mode

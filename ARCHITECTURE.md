@@ -28,7 +28,7 @@ The architectural split should be:
 - kernel
   - reusable governance semantics and enforcement runtime
 - sample
-  - this repository's self-hosted control objects, docs, and dogfood history
+  - this repository's dogfood/example control objects, docs, and sample history
 
 The kernel itself has five layers:
 

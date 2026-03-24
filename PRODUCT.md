@@ -29,6 +29,9 @@ Host-repo note: this file defines the product and positioning of the
 `session-memory` repository as a host plus dogfood sample. Reusable kernel
 implementation and kernel-specific definition now live under `kernel/`.
 
+The host sample is now intentionally downgraded: it is dogfood and example
+evidence for the kernel, not the primary product center.
+
 ## Product Definition
 
 `session-memory` is a repo governance kernel.
@@ -98,6 +101,8 @@ Today the product already provides:
 - assembled and role-specific contexts that surface active control state
 - bounded adjudication follow-up execution for the explicit safe subset
 - multi-project operation with `session-memory` and `wind-agent`
+- a real dogfood/example sample that keeps the kernel pressure-tested on a live
+  repository
 
 ## Product Boundaries
 

@@ -95,10 +95,18 @@ Make the conceptual split increasingly real:
   - reusable governance semantics and runtime
 - sample
   - `projects/session-memory/...`
-  - self-hosted rounds, adjudications, and product history
+  - dogfood/example rounds, adjudications, and sample history
 
 This can begin as documentation and module-boundary cleanup before it becomes a
 physical repo split.
+
+### 6. Prepare the kernel for alpha release
+
+Needed outcomes:
+
+- package metadata and console entrypoint exist
+- kernel docs explain release boundary and support surface
+- host repo docs stop treating the sample as the product center
 
 ## Out Of Scope
 

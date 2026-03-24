@@ -1,9 +1,19 @@
 [project]
-name = "session-memory"
-version = "0.1.0"
-description = "Multi-project coding-agent session memory"
+name = "repo-governance-kernel"
+version = "0.1.0a0"
+description = "Registry-first repo governance kernel with bounded control execution"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.scripts]
+repo-governance-kernel = "kernel.cli:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["kernel", "kernel.commands"]
+
 [tool.uv]
-package = false
+package = true

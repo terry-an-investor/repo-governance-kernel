@@ -1,6 +1,7 @@
-# Session Memory Kernel
+# Repo Governance Kernel
 
-This directory is the reusable repo-governance kernel.
+This directory is the reusable repo-governance kernel prepared for alpha
+packaging.
 
 It owns:
 
@@ -36,6 +37,12 @@ Generic kernel commands can run through:
 
 ```powershell
 uv run python -m kernel.cli audit-control-state --project-id session-memory
+```
+
+Installed entrypoint target:
+
+```powershell
+repo-governance-kernel audit-control-state --project-id session-memory
 ```
 
 Repo-local compatibility entrypoints still exist under `scripts/`, but they are

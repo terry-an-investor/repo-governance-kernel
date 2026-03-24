@@ -10,6 +10,7 @@
 - Extract shared execution-building primitives so owner-layer commands stop accumulating one-off if/else dispatch paths.
 - Kernelize canonical product and control docs so the repo is framed as a repo governance kernel instead of a broader memory/autonomy system.
 - Physically separate reusable governance runtime modules into kernel/ while keeping sample project data under projects/session-memory/.
+- Prepare kernel for alpha release with independent package metadata, release notes, and sample-downscoped host-repo positioning.
 
 ## Deliverable
 

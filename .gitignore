@@ -9,3 +9,6 @@ artifacts/**
 __pycache__/
 *.pyc
 .venv/
+
+# Derived package metadata from local editable builds
+*.egg-info/

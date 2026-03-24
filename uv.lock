@@ -3,6 +3,6 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "session-memory"
-version = "0.1.0"
-source = { virtual = "." }
+name = "repo-governance-kernel"
+version = "0.1.0a0"
+source = { editable = "." }

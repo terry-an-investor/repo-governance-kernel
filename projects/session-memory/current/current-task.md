@@ -153,6 +153,10 @@ The immediate objective is:
 - the reusable unified CLI now exists at:
   - `uv run python -m kernel.cli ...`
   - `scripts/session_memory.py` now behaves as a host-repo adapter that forwards generic kernel commands and keeps repo-local smoke/eval commands local
+- kernel release preparation is now in progress:
+  - package target is `repo-governance-kernel`
+  - current intended release level is `0.1.0a0` alpha
+  - `projects/session-memory/` is now treated as dogfood/example evidence rather than the product center
 - more already-implemented primitive commands now also declare executor payload semantics:
   - `open-objective`
   - `record-hard-pivot`
