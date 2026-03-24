@@ -922,6 +922,11 @@ Current implementation status:
 - `round-close-chain` bundle execution now also composes registry payloads for
   `update-round-status` through the same shared runtime instead of hand-building
   nested script CLIs
+- governed bundle step-selection is now also registry-owned:
+  - bundle route states are declared in the transition registry
+  - bundle step templates are declared in the transition registry
+  - the executor now runs one generic governed-bundle engine instead of one
+    private handler per bundle
 - additional already-implemented primitive commands now also declare
   executor-supported payload semantics:
   - `open-objective`

@@ -131,6 +131,8 @@ autonomous rewrite engine after a verdict is recorded.
   - now routes `round-close-chain` bundle execution through registry-built
     `update-round-status` payloads on that same shared runtime instead of a
     bundle-local nested CLI path
+  - now routes governed bundle step-selection through registry-owned route
+    states and step templates instead of one private handler branch per bundle
   - now extends executor payload semantics to more already-implemented
     primitive commands instead of leaving that coverage concentrated only on
     rewrite/status paths

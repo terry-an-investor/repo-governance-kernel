@@ -475,6 +475,8 @@ Current implementation already does these things:
   - now routes `round-close-chain` bundle steps through registry-built
     `update-round-status` payloads on that same shared runtime instead of one
     bundle-local CLI assembly path
+  - now routes governed bundle step-selection through registry-owned route
+    states and step templates instead of one private handler branch per bundle
   - now normalizes command-facing runtime-input aliases consistently across
     contract assertions and executor coverage checks, so command consumers do
     not drift on singular/plural payload names

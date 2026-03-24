@@ -158,6 +158,60 @@ class BundleGovernanceSpec:
 
 
 @dataclass(frozen=True)
+class BundleRouteStateSpec:
+    bundle_name: str
+    state: str
+    terminal: bool = False
+    required_payload_keys: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "bundle_name": self.bundle_name,
+            "state": self.state,
+            "terminal": self.terminal,
+            "required_payload_keys": list(self.required_payload_keys),
+        }
+
+
+@dataclass(frozen=True)
+class BundleStepBindingSpec:
+    target_key: str
+    source_key: str
+    value_kind: str = "scalar"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "target_key": self.target_key,
+            "source_key": self.source_key,
+            "value_kind": self.value_kind,
+        }
+
+
+@dataclass(frozen=True)
+class BundleStepTemplateSpec:
+    bundle_name: str
+    from_state: str
+    to_state: str
+    command_name: str
+    label: str
+    static_scalar_fields: tuple[tuple[str, str], ...] = ()
+    static_bool_fields: tuple[tuple[str, bool], ...] = ()
+    bindings: tuple[BundleStepBindingSpec, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "bundle_name": self.bundle_name,
+            "from_state": self.from_state,
+            "to_state": self.to_state,
+            "command_name": self.command_name,
+            "label": self.label,
+            "static_scalar_fields": [{"key": key, "value": value} for key, value in self.static_scalar_fields],
+            "static_bool_fields": [{"key": key, "value": value} for key, value in self.static_bool_fields],
+            "bindings": [binding.to_dict() for binding in self.bindings],
+        }
+
+
+@dataclass(frozen=True)
 class AdjudicationTargetResolutionSpec:
     name: str
     description: str
@@ -705,6 +759,58 @@ BUNDLE_GOVERNANCE_SPECS: tuple[BundleGovernanceSpec, ...] = (
         purpose="Advance one round through the legal close sequence by composing only existing round status transitions.",
         composed_commands=("update-round-status",),
         required_validations=("scripts/smoke_adjudication_followups.py",),
+    ),
+)
+
+
+BUNDLE_ROUTE_STATE_SPECS: tuple[BundleRouteStateSpec, ...] = (
+    BundleRouteStateSpec("round-close-chain", "active", required_payload_keys=("validated_by", "validation_pending_reason", "captured_reason", "closed_reason")),
+    BundleRouteStateSpec("round-close-chain", "validation_pending", required_payload_keys=("validated_by", "captured_reason", "closed_reason")),
+    BundleRouteStateSpec("round-close-chain", "captured", required_payload_keys=("closed_reason",)),
+    BundleRouteStateSpec("round-close-chain", "closed", terminal=True),
+)
+
+
+BUNDLE_STEP_TEMPLATE_SPECS: tuple[BundleStepTemplateSpec, ...] = (
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain",
+        from_state="active",
+        to_state="validation_pending",
+        command_name="update-round-status",
+        label="active -> validation_pending",
+        static_scalar_fields=(("status", "validation_pending"),),
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("reason", "validation_pending_reason"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain",
+        from_state="validation_pending",
+        to_state="captured",
+        command_name="update-round-status",
+        label="validation_pending -> captured",
+        static_scalar_fields=(("status", "captured"),),
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("reason", "captured_reason"),
+            BundleStepBindingSpec("validated_by", "validated_by", "list"),
+            BundleStepBindingSpec("blocker", "blocker", "list"),
+            BundleStepBindingSpec("risk", "risk", "list"),
+            BundleStepBindingSpec("clear_blockers", "clear_blockers", "bool"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="round-close-chain",
+        from_state="captured",
+        to_state="closed",
+        command_name="update-round-status",
+        label="captured -> closed",
+        static_scalar_fields=(("status", "closed"),),
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("reason", "closed_reason"),
+        ),
     ),
 )
 
@@ -1681,6 +1787,26 @@ for _bundle_field_spec in BUNDLE_EXECUTOR_FIELD_SPECS:
         _bundle_field_spec,
     )
 BUNDLE_GOVERNANCE_SPEC_BY_NAME = {spec.name: spec for spec in BUNDLE_GOVERNANCE_SPECS}
+BUNDLE_ROUTE_STATES_BY_BUNDLE: dict[str, tuple[BundleRouteStateSpec, ...]] = {}
+for _bundle_route_state_spec in BUNDLE_ROUTE_STATE_SPECS:
+    BUNDLE_ROUTE_STATES_BY_BUNDLE.setdefault(_bundle_route_state_spec.bundle_name, tuple())
+    BUNDLE_ROUTE_STATES_BY_BUNDLE[_bundle_route_state_spec.bundle_name] = (
+        *BUNDLE_ROUTE_STATES_BY_BUNDLE[_bundle_route_state_spec.bundle_name],
+        _bundle_route_state_spec,
+    )
+BUNDLE_ROUTE_STATE_BY_BUNDLE_AND_STATE = {
+    (spec.bundle_name, spec.state): spec for spec in BUNDLE_ROUTE_STATE_SPECS
+}
+BUNDLE_STEP_TEMPLATES_BY_BUNDLE: dict[str, tuple[BundleStepTemplateSpec, ...]] = {}
+for _bundle_step_template_spec in BUNDLE_STEP_TEMPLATE_SPECS:
+    BUNDLE_STEP_TEMPLATES_BY_BUNDLE.setdefault(_bundle_step_template_spec.bundle_name, tuple())
+    BUNDLE_STEP_TEMPLATES_BY_BUNDLE[_bundle_step_template_spec.bundle_name] = (
+        *BUNDLE_STEP_TEMPLATES_BY_BUNDLE[_bundle_step_template_spec.bundle_name],
+        _bundle_step_template_spec,
+    )
+BUNDLE_STEP_TEMPLATE_BY_BUNDLE_AND_FROM_STATE = {
+    (spec.bundle_name, spec.from_state): spec for spec in BUNDLE_STEP_TEMPLATE_SPECS
+}
 ADJUDICATION_TARGET_RESOLUTION_SPEC_BY_NAME = {
     spec.name: spec for spec in ADJUDICATION_TARGET_RESOLUTION_SPECS
 }
@@ -1813,6 +1939,10 @@ def validate_transition_specs() -> None:
         raise SystemExit("duplicate bundle executor payload-field semantics found in transition registry")
     if len(BUNDLE_GOVERNANCE_SPEC_BY_NAME) != len(BUNDLE_GOVERNANCE_SPECS):
         raise SystemExit("duplicate bundle governance names found in transition registry")
+    if len(BUNDLE_ROUTE_STATE_BY_BUNDLE_AND_STATE) != len(BUNDLE_ROUTE_STATE_SPECS):
+        raise SystemExit("duplicate bundle route states found in transition registry")
+    if len(BUNDLE_STEP_TEMPLATE_BY_BUNDLE_AND_FROM_STATE) != len(BUNDLE_STEP_TEMPLATE_SPECS):
+        raise SystemExit("duplicate bundle step templates found in transition registry")
 
     for target_spec in WRITE_TARGET_SPECS:
         if target_spec.surface not in valid_write_target_surfaces:
@@ -1941,6 +2071,76 @@ def validate_transition_specs() -> None:
                     f"bundle `{bundle_name}` reuses payload key `{field_spec.payload_key}`"
                 )
             payload_keys.add(field_spec.payload_key)
+
+    valid_bundle_binding_value_kinds = {"scalar", "list", "bool"}
+    for bundle_name, route_states in BUNDLE_ROUTE_STATES_BY_BUNDLE.items():
+        if bundle_name not in BUNDLE_GOVERNANCE_SPEC_BY_NAME:
+            raise SystemExit(f"bundle route semantics reference unknown governed bundle `{bundle_name}`")
+        known_payload_keys = bundle_allowed_payload_keys(bundle_name)
+        states = {spec.state for spec in route_states}
+        terminal_states = {spec.state for spec in route_states if spec.terminal}
+        if not terminal_states:
+            raise SystemExit(f"bundle `{bundle_name}` declares no terminal route state")
+        for route_state_spec in route_states:
+            unknown_required_payload_keys = sorted(set(route_state_spec.required_payload_keys) - known_payload_keys)
+            if unknown_required_payload_keys:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` route state `{route_state_spec.state}` requires undeclared payload keys: "
+                    + ", ".join(unknown_required_payload_keys)
+                )
+
+        step_templates = BUNDLE_STEP_TEMPLATES_BY_BUNDLE.get(bundle_name, ())
+        if not step_templates:
+            raise SystemExit(f"bundle `{bundle_name}` declares no step templates")
+        stepped_from_states: set[str] = set()
+        for step_template in step_templates:
+            if step_template.bundle_name != bundle_name:
+                raise SystemExit(
+                    f"bundle step template `{step_template.label}` is indexed under the wrong bundle `{bundle_name}`"
+                )
+            if step_template.from_state not in states:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` step template `{step_template.label}` starts from unknown state `{step_template.from_state}`"
+                )
+            if step_template.to_state not in states:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` step template `{step_template.label}` ends at unknown state `{step_template.to_state}`"
+                )
+            if step_template.command_name not in known_commands:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` step template `{step_template.label}` references unknown command `{step_template.command_name}`"
+                )
+            stepped_from_states.add(step_template.from_state)
+            allowed_step_payload_keys = command_allowed_executor_payload_keys(step_template.command_name)
+            template_target_keys = {
+                key for key, _value in step_template.static_scalar_fields
+            } | {
+                key for key, _value in step_template.static_bool_fields
+            } | {
+                binding.target_key for binding in step_template.bindings
+            }
+            unknown_template_target_keys = sorted(template_target_keys - allowed_step_payload_keys)
+            if unknown_template_target_keys:
+                raise SystemExit(
+                    f"bundle `{bundle_name}` step template `{step_template.label}` targets undeclared payload keys for `{step_template.command_name}`: "
+                    + ", ".join(unknown_template_target_keys)
+                )
+            for binding in step_template.bindings:
+                if binding.value_kind not in valid_bundle_binding_value_kinds:
+                    raise SystemExit(
+                        f"bundle `{bundle_name}` step template `{step_template.label}` uses unsupported binding value kind `{binding.value_kind}`"
+                    )
+                if binding.source_key not in known_payload_keys:
+                    raise SystemExit(
+                        f"bundle `{bundle_name}` step template `{step_template.label}` reads undeclared bundle payload key `{binding.source_key}`"
+                    )
+        non_terminal_states = states - terminal_states
+        uncovered_non_terminal_states = sorted(non_terminal_states - stepped_from_states)
+        if uncovered_non_terminal_states:
+            raise SystemExit(
+                f"bundle `{bundle_name}` has non-terminal route states without step templates: "
+                + ", ".join(uncovered_non_terminal_states)
+            )
 
     for bundle_spec in BUNDLE_GOVERNANCE_SPECS:
         if bundle_spec.name in known_commands:
@@ -2147,6 +2347,32 @@ def bundle_field_specs(bundle_name: str) -> list[BundleExecutorFieldSpec]:
     return list(BUNDLE_EXECUTOR_FIELDS_BY_BUNDLE.get(bundle_name.strip(), ()))
 
 
+def bundle_route_state_specs(bundle_name: str) -> list[BundleRouteStateSpec]:
+    validate_transition_specs()
+    return list(BUNDLE_ROUTE_STATES_BY_BUNDLE.get(bundle_name.strip(), ()))
+
+
+def bundle_route_state_spec(bundle_name: str, state: str) -> BundleRouteStateSpec:
+    validate_transition_specs()
+    spec = BUNDLE_ROUTE_STATE_BY_BUNDLE_AND_STATE.get((bundle_name.strip(), state.strip()))
+    if spec is None:
+        raise SystemExit(f"unknown route state `{state}` for governed bundle `{bundle_name}`")
+    return spec
+
+
+def bundle_step_template_specs(bundle_name: str) -> list[BundleStepTemplateSpec]:
+    validate_transition_specs()
+    return list(BUNDLE_STEP_TEMPLATES_BY_BUNDLE.get(bundle_name.strip(), ()))
+
+
+def bundle_step_template_spec(bundle_name: str, from_state: str) -> BundleStepTemplateSpec:
+    validate_transition_specs()
+    spec = BUNDLE_STEP_TEMPLATE_BY_BUNDLE_AND_FROM_STATE.get((bundle_name.strip(), from_state.strip()))
+    if spec is None:
+        raise SystemExit(f"unknown route step from `{from_state}` for governed bundle `{bundle_name}`")
+    return spec
+
+
 def command_allowed_mutation_payload_keys(command_name: str) -> set[str]:
     normalized_name = command_name.strip()
     spec = COMMAND_SPEC_BY_NAME.get(normalized_name)
@@ -2302,6 +2528,8 @@ def export_transition_registry() -> dict[str, object]:
         "command_executor_field_semantics": [spec.to_dict() for spec in COMMAND_EXECUTOR_FIELD_SPECS],
         "bundle_executor_field_semantics": [spec.to_dict() for spec in BUNDLE_EXECUTOR_FIELD_SPECS],
         "bundle_governance": [spec.to_dict() for spec in BUNDLE_GOVERNANCE_SPECS],
+        "bundle_route_state_semantics": [spec.to_dict() for spec in BUNDLE_ROUTE_STATE_SPECS],
+        "bundle_step_template_semantics": [spec.to_dict() for spec in BUNDLE_STEP_TEMPLATE_SPECS],
         "adjudication_target_resolution_semantics": [spec.to_dict() for spec in ADJUDICATION_TARGET_RESOLUTION_SPECS],
         "adjudication_binding_resolver_semantics": [spec.to_dict() for spec in ADJUDICATION_BINDING_RESOLVER_SPECS],
         "adjudication_plan_side_effect_semantics": [spec.to_dict() for spec in ADJUDICATION_PLAN_SIDE_EFFECT_SPECS],

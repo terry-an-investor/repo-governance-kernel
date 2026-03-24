@@ -85,6 +85,9 @@ The immediate objective is:
   - adjudication plan side-effect semantics
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry name coverage and semantic coverage against `TRANSITION_COMMANDS.md`
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now also checks round-domain registry consumer coverage against the shared owner-layer helper
+- `uv run python scripts/audit_control_state.py --project-id session-memory` now also treats bundle-consumer coverage as a registry concern:
+  - bundle route states and step templates are audited from `transition_specs.py`
+  - audit no longer depends on bundle handler names exported from the executor implementation
 - adjudication plan compilation no longer resolves plan payload bindings through one local `if/elif` ladder:
   - binding resolvers are now explicit registry-owned semantics
   - plan target-resolution names are now explicit registry-owned semantics
@@ -129,6 +132,10 @@ The immediate objective is:
     of hand-building nested script CLIs
   - executor smoke now proves `update-round-status` through
     `scripts/executor_runtime.py` with explicit registry-owned payload fields
+- governed bundle step-selection semantics are now also registry-owned:
+  - bundle route states are declared in `scripts/transition_specs.py`
+  - bundle step templates are declared in `scripts/transition_specs.py`
+  - `scripts/execute_adjudication_followups.py` now runs one generic governed-bundle engine instead of one private handler per bundle
 - more already-implemented primitive commands now also declare executor payload semantics:
   - `open-objective`
   - `record-hard-pivot`
@@ -137,9 +144,9 @@ The immediate objective is:
 - bundle wrapper admission is now being pulled into one explicit governance
   surface so executor and plan validation stop carrying hidden bundle exception
   literals
-- executor bundle consumption is now being tightened toward one explicit
-  governed handler surface so adding a bundle requires touching the same
-  owner-layer contract instead of sneaking through a new private branch
+- executor bundle consumption now flows through one generic governed-bundle
+  engine so adding a bundle requires registry route/step semantics instead of a
+  new private handler branch
 - A deliberate protocol violation now fails honestly:
   - running one disposable adjudication smoke while `smoke_phase1.py` tries to start the suite causes `fixture_leak_before_run`
   - this is now a visible harness-protocol failure instead of a silent flaky test
@@ -419,7 +426,7 @@ The immediate objective is:
   keys, or execute the same payload twice.
 - broader bundle payload semantics are still intentionally narrow:
   - the repo now governs wrapper admission explicitly
-  - but bundle-local payload semantics should not expand casually while this
+  - but bundle route/state semantics should not expand casually while this
     governance layer is still settling
 - Product positioning can still drift if canonical docs slide back into
   describing the repo as only a memory substrate, only a control system, or an
@@ -436,11 +443,12 @@ The immediate objective is:
    docs to the same product positioning.
 2. Add an explicit audit path so product docs and machine-semantic docs stop
    drifting silently.
-3. Continue removing executor-local command semantics by replacing long private
-   per-command payload branches with registry-backed dispatch where the command
+3. Continue removing executor-local command semantics by replacing remaining
+   repo-owned state resolvers with registry-backed dispatch where the command
    surface is already frozen.
-4. Decide whether `round-close-chain` stays a bounded wrapper with narrow local
-   payload semantics or also gets a fuller machine-readable payload contract.
+4. Decide which remaining bundle state-resolution rules should also be lifted
+   into explicit machine semantics instead of staying as narrow runtime
+   inspectors.
 5. Broaden bounded adjudication plan families only where underlying command
    semantics are already registry-owned and auditable.
 6. Validate the product on more non-self-hosted repositories after the product

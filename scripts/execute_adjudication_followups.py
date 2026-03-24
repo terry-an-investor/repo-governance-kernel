@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections.abc import Callable
 from pathlib import Path
 
 from compile_adjudication_executor_plan import compile_plan_contracts
@@ -21,12 +20,14 @@ from transition_specs import (
     bundle_governance_names,
     bundle_allowed_payload_keys,
     bundle_field_specs,
+    bundle_route_state_spec,
+    bundle_step_template_spec,
+    bundle_step_template_specs,
     executor_supported_command_names,
 )
 
 
 ROOT = Path(__file__).resolve().parent.parent
-BundleExecutorHandler = Callable[[str, dict[str, object]], tuple[bool, str]]
 
 
 def parse_args() -> argparse.Namespace:
@@ -187,150 +188,8 @@ def _validate_bundle_payload(payload: dict[str, object], bundle_name: str) -> No
             raise SystemExit(f"executor {bundle_name} requires `{field_spec.payload_key}`")
 
 
-def build_update_round_status_payload(
-    *,
-    round_id: str,
-    status: str,
-    reason: str,
-    validated_by: list[str] | None = None,
-    blockers: list[str] | None = None,
-    risks: list[str] | None = None,
-    clear_blockers: bool = False,
-) -> dict[str, object]:
-    payload: dict[str, object] = {
-        "round_id": round_id,
-        "status": status,
-        "reason": reason,
-    }
-    if validated_by:
-        payload["validated_by"] = [item.strip() for item in validated_by if item.strip()]
-    if blockers:
-        payload["blocker"] = [item.strip() for item in blockers if item.strip()]
-    if risks:
-        payload["risk"] = [item.strip() for item in risks if item.strip()]
-    if clear_blockers:
-        payload["clear_blockers"] = True
-    return payload
-
-
-def build_round_close_chain_payloads(project_id: str, payload: dict[str, object]) -> tuple[str, list[tuple[str, dict[str, object]]]]:
-    _validate_bundle_payload(payload, "round-close-chain")
-    round_id = require_payload_text(payload, "round_id")
-    round_path = locate_round_file(project_id, round_id)
-    if round_path is None:
-        raise SystemExit(f"executor round-close-chain could not find round `{round_id}`")
-
-    round_meta, _sections = load_round_file(round_path)
-    current_status = str(round_meta.get("status") or "").strip()
-    if not current_status:
-        raise SystemExit(f"executor round-close-chain found round `{round_id}` without a status")
-
-    validated_by = _string_list(payload.get("validated_by"))
-    blockers = _string_list(payload.get("blocker"))
-    risks = _string_list(payload.get("risk"))
-    clear_blockers = bool(payload.get("clear_blockers"))
-
-    if current_status == "closed":
-        return round_id, []
-    if current_status == "captured":
-        return round_id, [
-            (
-                "captured -> closed",
-                build_update_round_status_payload(
-                    round_id=round_id,
-                    status="closed",
-                    reason=require_payload_text(payload, "closed_reason"),
-                ),
-            )
-        ]
-    if current_status == "validation_pending":
-        if not validated_by:
-            raise SystemExit("executor round-close-chain requires `validated_by` when round is not yet captured")
-        return round_id, [
-            (
-                "validation_pending -> captured",
-                build_update_round_status_payload(
-                    round_id=round_id,
-                    status="captured",
-                    reason=require_payload_text(payload, "captured_reason"),
-                    validated_by=validated_by,
-                    blockers=blockers,
-                    risks=risks,
-                    clear_blockers=clear_blockers,
-                ),
-            ),
-            (
-                "captured -> closed",
-                build_update_round_status_payload(
-                    round_id=round_id,
-                    status="closed",
-                    reason=require_payload_text(payload, "closed_reason"),
-                ),
-            ),
-        ]
-    if current_status == "active":
-        if not validated_by:
-            raise SystemExit("executor round-close-chain requires `validated_by` when round is not yet captured")
-        return round_id, [
-            (
-                "active -> validation_pending",
-                build_update_round_status_payload(
-                    round_id=round_id,
-                    status="validation_pending",
-                    reason=require_payload_text(payload, "validation_pending_reason"),
-                ),
-            ),
-            (
-                "validation_pending -> captured",
-                build_update_round_status_payload(
-                    round_id=round_id,
-                    status="captured",
-                    reason=require_payload_text(payload, "captured_reason"),
-                    validated_by=validated_by,
-                    blockers=blockers,
-                    risks=risks,
-                    clear_blockers=clear_blockers,
-                ),
-            ),
-            (
-                "captured -> closed",
-                build_update_round_status_payload(
-                    round_id=round_id,
-                    status="closed",
-                    reason=require_payload_text(payload, "closed_reason"),
-                ),
-            ),
-        ]
-    raise SystemExit(
-        f"executor round-close-chain only supports rounds currently in `active`, `validation_pending`, `captured`, or `closed`; found `{current_status}`"
-    )
-
-
-def execute_round_close_chain(project_id: str, payload: dict[str, object]) -> tuple[bool, str]:
-    round_id, step_payloads = build_round_close_chain_payloads(project_id, payload)
-    if not step_payloads:
-        return True, f"round `{round_id}` already closed"
-    executed_steps: list[str] = []
-    for step_label, step_payload in step_payloads:
-        success, detail = run_registry_command(
-            project_id,
-            step_payload,
-            "update-round-status",
-            failure_message="executor follow-up failed",
-        )
-        if not success:
-            return False, f"round `{round_id}` {step_label} failed: {detail}"
-        executed_steps.append(step_label)
-    return True, f"executed round-close-chain for `{round_id}` ({', '.join(executed_steps)})"
-
-
-BUNDLE_EXECUTOR_HANDLERS: dict[str, BundleExecutorHandler] = {
-    "round-close-chain": execute_round_close_chain,
-}
-
-
 def bundle_executor_handler_names() -> list[str]:
-    return sorted(BUNDLE_EXECUTOR_HANDLERS)
+    return sorted(bundle_governance_names())
 
 
 def validate_bundle_governance_executor_contracts() -> None:
@@ -358,12 +217,108 @@ def supported_executor_commands() -> set[str]:
     return set(executor_supported_command_names()) | set(bundle_executor_handler_names())
 
 
+def _resolve_bundle_current_state(project_id: str, bundle_name: str, payload: dict[str, object]) -> str:
+    if bundle_name == "round-close-chain":
+        round_id = require_payload_text(payload, "round_id")
+        round_path = locate_round_file(project_id, round_id)
+        if round_path is None:
+            raise SystemExit(f"executor {bundle_name} could not find round `{round_id}`")
+        round_meta, _sections = load_round_file(round_path)
+        current_status = str(round_meta.get("status") or "").strip()
+        if not current_status:
+            raise SystemExit(f"executor {bundle_name} found round `{round_id}` without a status")
+        return current_status
+    raise SystemExit(f"unsupported bundle state resolver `{bundle_name}`")
+
+
+def _materialize_bundle_step_payload(
+    bundle_name: str,
+    bundle_payload: dict[str, object],
+    *,
+    from_state: str,
+) -> tuple[str, str, str, dict[str, object]]:
+    step_template = bundle_step_template_spec(bundle_name, from_state)
+    command_name = step_template.command_name
+    payload: dict[str, object] = {}
+    for key, value in step_template.static_scalar_fields:
+        payload[key] = value
+    for key, value in step_template.static_bool_fields:
+        payload[key] = value
+    for binding in step_template.bindings:
+        raw_value = bundle_payload.get(binding.source_key)
+        if binding.value_kind == "scalar":
+            value = str(raw_value or "").strip()
+            if value:
+                payload[binding.target_key] = value
+            continue
+        if binding.value_kind == "list":
+            values = _string_list(raw_value)
+            if values:
+                payload[binding.target_key] = values
+            continue
+        if binding.value_kind == "bool":
+            if bool(raw_value):
+                payload[binding.target_key] = True
+            continue
+        raise SystemExit(
+            f"bundle `{bundle_name}` step template `{step_template.label}` uses unsupported value kind `{binding.value_kind}`"
+        )
+    return step_template.label, command_name, step_template.to_state, payload
+
+
+def execute_governed_bundle(project_id: str, payload: dict[str, object], bundle_name: str) -> tuple[bool, str]:
+    _validate_bundle_payload(payload, bundle_name)
+    current_state = _resolve_bundle_current_state(project_id, bundle_name, payload)
+    route_state_spec = bundle_route_state_spec(bundle_name, current_state)
+    round_id = str(payload.get("round_id") or "").strip()
+    if route_state_spec.terminal:
+        target_label = f"round `{round_id}`" if round_id else f"bundle `{bundle_name}` target"
+        return True, f"{target_label} already {current_state}"
+
+    missing_required_payloads = [
+        key
+        for key in route_state_spec.required_payload_keys
+        if not _field_value_present(
+            next(field.value_kind for field in bundle_field_specs(bundle_name) if field.payload_key == key),
+            payload.get(key),
+        )
+    ]
+    if missing_required_payloads:
+        raise SystemExit(
+            f"executor {bundle_name} requires {', '.join(f'`{key}`' for key in missing_required_payloads)} when target is `{current_state}`"
+        )
+
+    executed_steps: list[str] = []
+    while True:
+        route_state_spec = bundle_route_state_spec(bundle_name, current_state)
+        if route_state_spec.terminal:
+            break
+        step_label, command_name, next_state, step_payload = _materialize_bundle_step_payload(
+            bundle_name,
+            payload,
+            from_state=current_state,
+        )
+        success, detail = run_registry_command(
+            project_id,
+            step_payload,
+            command_name,
+            failure_message="executor follow-up failed",
+        )
+        if not success:
+            target_label = f"round `{round_id}`" if round_id else f"bundle `{bundle_name}` target"
+            return False, f"{target_label} {step_label} failed: {detail}"
+        executed_steps.append(step_label)
+        current_state = next_state
+
+    target_label = f"round `{round_id}`" if round_id else f"bundle `{bundle_name}` target"
+    return True, f"executed {bundle_name} for {target_label} ({', '.join(executed_steps)})"
+
+
 def maybe_execute_structured_payload(project_id: str, payload_text: str) -> tuple[bool, str]:
     payload = parse_executor_followup_payload(payload_text, source_label="from adjudication frontmatter `executor_followups`")
     command_name = str(payload.get("command") or "").strip()
-    bundle_handler = BUNDLE_EXECUTOR_HANDLERS.get(command_name)
-    if bundle_handler is not None:
-        return bundle_handler(project_id, payload)
+    if command_name in bundle_governance_names():
+        return execute_governed_bundle(project_id, payload, command_name)
 
     if command_name not in executor_supported_command_names():
         raise SystemExit(f"unsupported executor command `{command_name}`")

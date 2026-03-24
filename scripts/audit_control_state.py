@@ -8,10 +8,6 @@ from pathlib import Path
 
 from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections, parse_keyed_bullets
 from audit_task_contracts import audit_task_contracts
-from execute_adjudication_followups import (
-    bundle_executor_handler_names,
-    validate_bundle_governance_executor_contracts,
-)
 from round_control import (
     ROOT,
     active_exception_contract_records,
@@ -38,8 +34,11 @@ from round_control import (
 from transition_specs import (
     adjudication_plan_types,
     bundle_governance_names,
+    bundle_route_state_specs,
+    bundle_step_template_specs,
     semantic_adjudication_plan_types,
     semantic_transition_command_names,
+    validate_transition_specs,
     transition_command_names,
 )
 
@@ -772,7 +771,11 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
         )
     documented_bundles = documented_bundle_wrapper_names(transition_commands_doc_path)
     registry_bundles = set(bundle_governance_names())
-    executor_bundle_handlers = set(bundle_executor_handler_names())
+    executor_bundle_handlers = {
+        bundle_name
+        for bundle_name in bundle_governance_names()
+        if bundle_route_state_specs(bundle_name) and bundle_step_template_specs(bundle_name)
+    }
     missing_registry_bundles = sorted(documented_bundles - registry_bundles)
     if missing_registry_bundles:
         add_issue(
@@ -814,7 +817,7 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             evidence=undocumented_executor_bundle_handlers,
         )
     try:
-        validate_bundle_governance_executor_contracts()
+        validate_transition_specs()
     except SystemExit as exc:
         add_issue(
             issues,
@@ -822,7 +825,7 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             domain="transition-registry",
             code="bundle_governance_executor_consumer_drift",
             message=str(exc),
-            evidence=["scripts/execute_adjudication_followups.py", "scripts/transition_specs.py"],
+            evidence=["scripts/transition_specs.py"],
         )
     try:
         validate_objective_phase_domain_registry_contracts()
