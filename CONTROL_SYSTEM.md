@@ -170,6 +170,14 @@ Current hard gates should converge on:
 - guarded exception-zone edits require one active exception contract
 - blocked audit or enforcement must prevent promotion and closure
 
+The current external-host validation evidence now covers one honest sequence:
+
+- bootstrap a host repo into minimum governance state
+- pass host-side `audit-control-state`
+- adopt one explicit host-side objective, round, and task contract
+- re-run `enforce-worktree` and expect any remaining `blocked` verdict to be
+  about real scope law, not missing adoption authority
+
 ## Task-Contract Consequence
 
 Round scope is not the same thing as concrete implementation authority.

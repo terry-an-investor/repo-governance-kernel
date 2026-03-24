@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import argparse
 import re
-from pathlib import Path
 
 from kernel.assemble_context import extract_current_task_anchor, inspect_live_workspace, parse_h2_sections, read_text
 from kernel.round_control import assert_anchor_maintenance_command_contract, expected_current_task_control_values
+from kernel.runtime_paths import resolve_repo_root
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = resolve_repo_root()
 CURRENT_STATE_SECTION = "Current State"
 
 

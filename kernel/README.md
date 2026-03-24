@@ -74,6 +74,12 @@ The frozen `wind-agent` path also proves the next adoption truth:
   round honestly covers the dirty host paths
 - the kernel now writes one host-side adoption report that explains this blocked
   state and the next control actions instead of leaving only raw JSON
+- after opening one host-side objective, adopted round, and task contract,
+  host-side `audit-control-state` remains `ok`
+- after that adoption step, `enforce-worktree` no longer fails for missing
+  round authority; remaining `blocked` results now come from real scope law such
+  as `dirty_paths_outside_scope_round` and
+  `dirty_paths_outside_active_task_contracts`
 
 Install or refresh repo-local hooks:
 

@@ -101,6 +101,9 @@ Today the product already provides:
 - assembled and role-specific contexts that surface active control state
 - bounded adjudication follow-up execution for the explicit safe subset
 - multi-project operation with `session-memory` and `wind-agent`
+- host-repo bootstrap for disposable repos and frozen copied host snapshots
+- frozen-host adoption evidence that advances a host from "missing round
+  authority" blocking to real scope/task enforcement blocking
 - a real dogfood/example sample that keeps the kernel pressure-tested on a live
   repository
 
@@ -164,5 +167,7 @@ Near-term product milestones:
   runtime
 - separate reusable kernel surfaces from `session-memory` dogfood/sample
   surfaces
+- turn frozen-host adoption evidence into live-host shadow mode without
+  mutating the host repo
 - validate the kernel on more non-self-hosted repositories before broadening
   automation
