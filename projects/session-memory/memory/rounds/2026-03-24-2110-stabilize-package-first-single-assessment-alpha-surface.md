@@ -7,25 +7,25 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: e93c10d47b4be2445bb73d8deb0e65d8661959a1
+git_sha: 3d51dad2da24b25c9031d9ffff198bd994e0d007
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
   - scripts/session_memory.py
   - scripts/smoke_manifest.py
   - scripts/run_smoke_suite.py
+  - scripts/enforce_worktree.py
   - README.md
   - RELEASE.md
   - TRANSITION_COMMANDS.md
   - ARCHITECTURE.md
   - docs
-  - 2026-03-22-notes.md
-  - HARNESS.md
-  - WIND_AGENT_EVAL_PLAN.md
+  - projects/session-memory/current/current-task.md
+  - projects/session-memory/memory/objectives
   - projects/session-memory/memory/decisions
+  - projects/session-memory/snapshots
   - kernel/README.md
   - kernel/docs/TRANSITION_COMMANDS.md
-  - scripts/enforce_worktree.py
   - .github/workflows
 thread_ids: []
 evidence_refs: []
@@ -34,7 +34,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:10:50+08:00
-updated_at: 2026-03-24T21:57:28+08:00
+updated_at: 2026-03-24T22:10:12+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -84,3 +84,9 @@ Round rewritten because Root doc cleanup deletes the old auxiliary paths after m
 Round rewritten because The a2 package-first slice now extends from installed-wheel bootstrap and audit to installed-wheel external-target single assessment proof plus package-facing smoke registration, so the round contract must describe the real proof path.
 
 Round rewritten because CI now needs a cross-environment workspace-root override for owner-layer enforcement, so the round boundary must cover the workflow surface and the repo-local enforcement wrapper that consume that override.
+
+Round rewritten because The root-doc cleanup now fully migrates the remaining evaluation docs out of the repository root, so the round must cover their real references in current-task, docs navigation, and the durable objective that still names the old root path.
+
+Round rewritten because The remaining evaluation-doc migration also touches one historical snapshot that still points at the retiring root path, so the round boundary must cover snapshots before the old files are removed.
+
+Round rewritten because The root-doc migration is now complete enough to retire the old root evaluation and auxiliary doc paths from the active round, so the round path set should collapse to the live docs tree instead of keeping stale retired roots.

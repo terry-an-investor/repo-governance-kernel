@@ -61,7 +61,7 @@ Capture the state after proving the first real linked-memory path in
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/memory/decisions/2026-03-23-multi-project-workspace-aware-scope.md`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/build_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_phase1.py`
-- `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/evaluation/EVALUATION.md`
 
 ## Next Steps
 

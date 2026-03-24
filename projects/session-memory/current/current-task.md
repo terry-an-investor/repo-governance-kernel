@@ -378,8 +378,8 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/TRANSITION_COMMANDS.md`
 - `C:/Users/terryzzb/Desktop/session-memory/SCHEMA.md`
 - `C:/Users/terryzzb/Desktop/session-memory/IMPLEMENTATION_PLAN.md`
-- `C:/Users/terryzzb/Desktop/session-memory/EVALUATION.md`
-- `C:/Users/terryzzb/Desktop/session-memory/ROLE_CONTEXT_EVALUATION.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/evaluation/EVALUATION.md`
+- `C:/Users/terryzzb/Desktop/session-memory/docs/evaluation/ROLE_CONTEXT_EVALUATION.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-objective.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-round.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/pivot-log.md`

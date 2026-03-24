@@ -7,25 +7,25 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: e93c10d47b4be2445bb73d8deb0e65d8661959a1
+git_sha: 3d51dad2da24b25c9031d9ffff198bd994e0d007
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
   - scripts/session_memory.py
   - scripts/smoke_manifest.py
   - scripts/run_smoke_suite.py
+  - scripts/enforce_worktree.py
   - README.md
   - RELEASE.md
   - TRANSITION_COMMANDS.md
   - ARCHITECTURE.md
   - docs
-  - 2026-03-22-notes.md
-  - HARNESS.md
-  - WIND_AGENT_EVAL_PLAN.md
+  - projects/session-memory/current/current-task.md
+  - projects/session-memory/memory/objectives
   - projects/session-memory/memory/decisions
+  - projects/session-memory/snapshots
   - kernel/README.md
   - kernel/docs/TRANSITION_COMMANDS.md
-  - scripts/enforce_worktree.py
   - .github/workflows
 thread_ids: []
 evidence_refs: []
@@ -34,7 +34,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:11:05+08:00
-updated_at: 2026-03-24T21:57:28+08:00
+updated_at: 2026-03-24T22:09:54+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface"
@@ -92,3 +92,9 @@ Task contract rewritten because Root doc cleanup deletes the old auxiliary paths
 Task contract rewritten because The active task now needs to prove installed-wheel external-target single assessment and register that proof path in package-facing docs and smoke surfaces, so the task contract must describe that real execution boundary.
 
 Task contract rewritten because The active task now also needs to repair GitHub Actions enforcement by passing an explicit runner workspace root through the owner-layer command surface, so the task must cover the workflow file and enforcement wrapper path.
+
+Task contract rewritten because The active task now also needs to finish the root markdown migration by moving the remaining evaluation docs into docs/ and repairing the current-task and durable-objective references that still point at the old root paths.
+
+Task contract rewritten because The root markdown migration now also repairs one historical snapshot reference before deleting the old root evaluation docs, so the task must cover snapshots as part of the same cleanup.
+
+Task contract rewritten because The active task has finished migrating the weakly-coupled root docs into docs/, so the task path set should drop the retired root doc names and keep only the live docs tree and real reference consumers.

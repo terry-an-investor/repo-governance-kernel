@@ -16,14 +16,6 @@ The root keeps the canonical kernel and release surfaces:
 - `DESIGN_PRINCIPLES.md`
 - `IMPLEMENTATION_PLAN.md`
 
-The root currently also keeps:
-
-- `EVALUATION.md`
-- `ROLE_CONTEXT_EVALUATION.md`
-
-Those two remain at the root for now because active repo-facing evaluation
-material and durable references still point at them directly.
-
 Auxiliary docs now live here:
 
 - `docs/history/`
@@ -32,3 +24,5 @@ Auxiliary docs now live here:
   - harness and operational law docs that support the repo but are not package-facing root contracts
 - `docs/evaluation/`
   - evaluation plans and supporting experiment docs
+  - `docs/evaluation/EVALUATION.md`
+  - `docs/evaluation/ROLE_CONTEXT_EVALUATION.md`

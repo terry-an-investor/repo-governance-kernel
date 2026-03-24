@@ -12,7 +12,7 @@ paths:
   - DESIGN_PRINCIPLES.md
   - ARCHITECTURE.md
   - SCHEMA.md
-  - EVALUATION.md
+  - docs/evaluation/EVALUATION.md
 thread_ids: []
 evidence_refs:
   - type: doc
