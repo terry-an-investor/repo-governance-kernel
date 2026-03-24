@@ -21,3 +21,6 @@ before the real assessment runs.
 
 It also now includes one bounded workflow wrapper that can draft scope, rewrite
 the active round/task, refresh the anchor, and run the assessment in one pass.
+
+That workflow is now bundle-backed, and there is also one bounded natural-language
+entry for the same single-assessment path.

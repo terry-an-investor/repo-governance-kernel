@@ -4,7 +4,8 @@ from __future__ import annotations
 import argparse
 import json
 
-from kernel.executor_runtime import run_cli_command, run_cli_command_json
+from kernel.executor_runtime import run_cli_command_json
+from kernel.governed_bundle_runtime import execute_governed_bundle
 from kernel.round_control import project_dir
 
 
@@ -20,12 +21,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _append_optional_scalar(args: list[str], flag: str, value: str) -> None:
-    normalized = value.strip()
-    if normalized:
-        args.extend([flag, normalized])
-
-
 def main() -> int:
     args = parse_args()
     if not project_dir(args.project_id).exists():
@@ -34,18 +29,17 @@ def main() -> int:
     workspace_root = args.workspace_root.strip()
     source_repo = args.source_repo.strip() or workspace_root
 
-    draft_args = [
-        "--project-id",
-        args.project_id,
-        "--workspace-root",
-        workspace_root,
-        "--source-repo",
-        source_repo,
-    ]
-    _append_optional_scalar(draft_args, "--output", args.draft_output)
     draft = run_cli_command_json(
         "draft-external-target-shadow-scope",
-        draft_args,
+        [
+            "--project-id",
+            args.project_id,
+            "--workspace-root",
+            workspace_root,
+            "--source-repo",
+            source_repo,
+            *(["--output", args.draft_output.strip()] if args.draft_output.strip() else []),
+        ],
         failure_message="external-target shadow drafting failed",
     )
 
@@ -71,104 +65,47 @@ def main() -> int:
         if path and path not in interim_round_scope_paths:
             interim_round_scope_paths.append(path)
 
-    round_expand_args = [
-        "--project-id",
+    bundle_payload = {
+        "command": "assess-external-target-once",
+        "workspace_root": workspace_root,
+        "source_repo": source_repo,
+        "draft_output": args.draft_output.strip(),
+        "report_output": args.report_output.strip(),
+        "round_id": str(draft.get("round_id") or "").strip(),
+        "task_contract_id": str(draft.get("task_contract_id") or "").strip(),
+        "expand_round_scope_path": interim_round_scope_paths,
+        "round_scope_item": suggested_round_scope_items,
+        "round_scope_path": suggested_round_scope_paths,
+        "round_deliverable": str(draft.get("suggested_round_deliverable") or "").strip(),
+        "round_validation_plan": str(draft.get("suggested_round_validation_plan") or "").strip(),
+        "task_summary": str(draft.get("suggested_task_summary") or "").strip(),
+        "task_intent": str(draft.get("suggested_task_intent") or "").strip(),
+        "task_path": suggested_task_paths,
+        "task_allowed_change": suggested_task_allowed_changes,
+        "task_forbidden_change": suggested_task_forbidden_changes,
+        "task_completion_criterion": suggested_task_completion_criteria,
+    }
+    bundle_success, bundle_detail = execute_governed_bundle(
         args.project_id,
-        "--round-id",
-        str(draft.get("round_id") or "").strip(),
-        "--reason",
-        "Temporarily expand the active round so the task contract can move from its previous scope into the external target dirty paths.",
-        "--replace-scope-paths",
-    ]
-    for path in interim_round_scope_paths:
-        round_expand_args.extend(["--scope-path", path])
-    round_expand = run_cli_command_json(
-        "rewrite-open-round",
-        round_expand_args,
-        failure_message="initial rewrite-open-round failed during external-target workflow",
+        bundle_payload,
+        "assess-external-target-once",
     )
+    if not bundle_success:
+        raise SystemExit(bundle_detail)
 
-    task_rewrite_args = [
-        "--project-id",
-        args.project_id,
-        "--task-contract-id",
-        str(draft.get("task_contract_id") or "").strip(),
-        "--reason",
-        "Align the active task contract to the observed external target dirty paths before running assess-host-adoption.",
-        "--summary",
-        str(draft.get("suggested_task_summary") or "").strip(),
-        "--intent",
-        str(draft.get("suggested_task_intent") or "").strip(),
-        "--replace-paths",
-        "--replace-allowed-changes",
-        "--replace-forbidden-changes",
-        "--replace-completion-criteria",
-    ]
-    for path in suggested_task_paths:
-        task_rewrite_args.extend(["--path", path])
-    for item in suggested_task_allowed_changes:
-        task_rewrite_args.extend(["--allowed-change", item])
-    for item in suggested_task_forbidden_changes:
-        task_rewrite_args.extend(["--forbidden-change", item])
-    for item in suggested_task_completion_criteria:
-        task_rewrite_args.extend(["--completion-criterion", item])
-    task_rewrite = run_cli_command_json(
-        "rewrite-open-task-contract",
-        task_rewrite_args,
-        failure_message="rewrite-open-task-contract failed during external-target workflow",
-    )
-
-    round_rewrite_args = [
-        "--project-id",
-        args.project_id,
-        "--round-id",
-        str(draft.get("round_id") or "").strip(),
-        "--reason",
-        "Align the active round to the observed external target dirty paths before running assess-host-adoption.",
-        "--deliverable",
-        str(draft.get("suggested_round_deliverable") or "").strip(),
-        "--validation-plan",
-        str(draft.get("suggested_round_validation_plan") or "").strip(),
-        "--replace-scope-items",
-        "--replace-scope-paths",
-    ]
-    for item in suggested_round_scope_items:
-        round_rewrite_args.extend(["--scope-item", item])
-    for path in suggested_round_scope_paths:
-        round_rewrite_args.extend(["--scope-path", path])
-    round_rewrite = run_cli_command_json(
-        "rewrite-open-round",
-        round_rewrite_args,
-        failure_message="final rewrite-open-round failed during external-target workflow",
-    )
-
-    refresh_success, refresh_output = run_cli_command(
-        "refresh-current-task-anchor",
+    assessment = run_cli_command_json(
+        "assess-host-adoption",
         [
             "--project-id",
             args.project_id,
             "--workspace-root",
             workspace_root,
+            "--source-repo",
+            source_repo,
+            "--mode",
+            "external-target-shadow",
+            *(["--output", args.report_output.strip()] if args.report_output.strip() else []),
         ],
-        failure_message="refresh-current-task-anchor failed during external-target workflow",
-    )
-    if not refresh_success:
-        raise SystemExit(refresh_output)
-
-    assessment_args = [
-        "--project-id",
-        args.project_id,
-        "--workspace-root",
-        workspace_root,
-        "--source-repo",
-        source_repo,
-        "--mode",
-        "external-target-shadow",
-    ]
-    _append_optional_scalar(assessment_args, "--output", args.report_output)
-    assessment = run_cli_command_json(
-        "assess-host-adoption",
-        assessment_args,
         failure_message="assess-host-adoption failed during external-target workflow",
     )
 
@@ -180,10 +117,8 @@ def main() -> int:
                 "workspace_root": workspace_root,
                 "source_repo": source_repo,
                 "draft": draft,
-                "round_expand": round_expand,
-                "task_rewrite": task_rewrite,
-                "round_rewrite": round_rewrite,
-                "refresh_anchor_stdout": refresh_output,
+                "bundle_payload": bundle_payload,
+                "bundle_detail": bundle_detail,
                 "assessment": assessment,
                 "adopted_round_scope_paths": suggested_round_scope_paths,
                 "adopted_task_paths": suggested_task_paths,

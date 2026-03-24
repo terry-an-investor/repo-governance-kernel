@@ -68,7 +68,9 @@ Preview validation completed on 2026-03-24.
 - `uv run python -m kernel.cli --repo-root <governed-host> draft-external-target-shadow-scope --project-id <project> --workspace-root <external-repo>`
   - owner-layer external-target drafting writes a readable scope draft from the observed dirty paths before the real assessment command runs
 - `uv run python -m kernel.cli --repo-root <governed-host> assess-external-target-once --project-id <project> --workspace-root <external-repo>`
-  - bounded workflow wrapper drafts scope, rewrites the active round/task, refreshes the anchor, and runs the assessment in one pass
+  - bounded workflow wrapper now compiles into one governed bundle-backed external-target assessment flow
+- `uv run python -m kernel.cli --repo-root <governed-host> assess-external-target-from-intent --project-id <project> --request \"Assess C:/path/to/external/repo current changes, set scope first, then give me the verdict.\"`
+  - bounded natural-language entry compiles one supported intent into the same governed bundle-backed flow
 - `uv build`
   - produced:
     - `dist/repo_governance_kernel-0.1.0a0.tar.gz`
@@ -81,5 +83,5 @@ Preview validation completed on 2026-03-24.
 ## Preview Residual Risks
 
 - frozen-host adoption proof is honest preview evidence, not yet live-host shadow-mode proof
-- live-host shadow mode now has an owner-layer draft-plus-assessment surface and one bounded single-pass wrapper, but it is still not a stable general live-host mutation contract
+- live-host shadow mode now has an owner-layer draft-plus-assessment surface, one governed bundle-backed single-pass wrapper, and one bounded natural-language entry, but it is still not a stable general live-host mutation contract
 - host repo and package still share one source repository, so preview packaging hygiene can still regress if repo-local docs and package docs drift

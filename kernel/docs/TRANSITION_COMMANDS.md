@@ -129,6 +129,7 @@ Current governed bundle wrappers include:
 
 - `round-close-chain`
 - `round-close-chain-then-hard-pivot`
+- `assess-external-target-once`
 
 Bundle rules:
 
@@ -138,3 +139,17 @@ Bundle rules:
 - bundles may compose only existing governed commands or bundles
 - bundles may not write durable truth directly outside those governed steps
 - bundles must stay bounded, audit-visible, and smoke-proven
+
+## Bounded Intent Surfaces
+
+Current bounded natural-language wrappers include:
+
+- `assess-external-target-from-intent`
+
+Intent-surface rules:
+
+- the intent parser must compile only into an existing governed command or bundle
+- the parser may not introduce new mutation authority beyond the compiled surface
+- accepted intent classes must stay narrow, explicit, and smoke-proven
+- rejected requests must fail closed when they imply broader monitoring or freeform mutation
+- `assess-external-target-from-intent` currently compiles only one-time external-target assessment requests into `assess-external-target-once`

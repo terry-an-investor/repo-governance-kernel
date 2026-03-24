@@ -733,6 +733,14 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("update-task-contract-status", "status_note", "status-note", "list"),
     CommandExecutorFieldSpec("rewrite-open-task-contract", "task_contract_id", "task-contract-id", "scalar"),
     CommandExecutorFieldSpec("rewrite-open-task-contract", "reason", "reason", "scalar", required=True),
+    CommandExecutorFieldSpec("refresh-anchor", "workspace_root", "workspace-root", "scalar"),
+    CommandExecutorFieldSpec("draft-external-target-shadow-scope", "workspace_root", "workspace-root", "scalar", required=True),
+    CommandExecutorFieldSpec("draft-external-target-shadow-scope", "source_repo", "source-repo", "scalar"),
+    CommandExecutorFieldSpec("draft-external-target-shadow-scope", "output", "output", "scalar"),
+    CommandExecutorFieldSpec("assess-host-adoption", "workspace_root", "workspace-root", "scalar"),
+    CommandExecutorFieldSpec("assess-host-adoption", "source_repo", "source-repo", "scalar"),
+    CommandExecutorFieldSpec("assess-host-adoption", "mode", "mode", "scalar"),
+    CommandExecutorFieldSpec("assess-host-adoption", "output", "output", "scalar"),
     CommandExecutorFieldSpec("set-phase", "objective_id", "objective-id", "scalar"),
     CommandExecutorFieldSpec("set-phase", "phase", "phase", "scalar", required=True),
     CommandExecutorFieldSpec("set-phase", "reason", "reason", "scalar", required=True),
@@ -809,6 +817,23 @@ BUNDLE_EXECUTOR_FIELD_SPECS: tuple[BundleExecutorFieldSpec, ...] = (
     BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "objective_risk", "list"),
     BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "path", "list"),
     BundleExecutorFieldSpec("round-close-chain-then-hard-pivot", "supersession_notes", "scalar"),
+    BundleExecutorFieldSpec("assess-external-target-once", "workspace_root", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "source_repo", "scalar"),
+    BundleExecutorFieldSpec("assess-external-target-once", "draft_output", "scalar"),
+    BundleExecutorFieldSpec("assess-external-target-once", "report_output", "scalar"),
+    BundleExecutorFieldSpec("assess-external-target-once", "round_id", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_contract_id", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "expand_round_scope_path", "list", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "round_scope_item", "list", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "round_scope_path", "list", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "round_deliverable", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "round_validation_plan", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_summary", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_intent", "scalar", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_path", "list", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_allowed_change", "list", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_forbidden_change", "list", required=True),
+    BundleExecutorFieldSpec("assess-external-target-once", "task_completion_criterion", "list", required=True),
 )
 
 
@@ -829,6 +854,20 @@ BUNDLE_GOVERNANCE_SPECS: tuple[BundleGovernanceSpec, ...] = (
         state_resolver="hard_pivot_bundle_state_from_previous_objective_and_round",
         required_validations=("scripts/smoke_adjudication_followups.py",),
     ),
+    BundleGovernanceSpec(
+        name="assess-external-target-once",
+        bundle_kind="executor-wrapper",
+        purpose="Run one bounded external-target shadow workflow by composing draft, controlled round/task rewrites, anchor refresh, and assessment without introducing freeform mutation authority.",
+        composed_commands=(
+            "draft-external-target-shadow-scope",
+            "rewrite-open-round",
+            "rewrite-open-task-contract",
+            "refresh-anchor",
+            "assess-host-adoption",
+        ),
+        state_resolver="constant_start_state",
+        required_validations=("scripts/smoke_assess_host_adoption.py",),
+    ),
 )
 
 
@@ -840,6 +879,10 @@ BUNDLE_STATE_RESOLVER_SPECS: tuple[BundleStateResolverSpec, ...] = (
     BundleStateResolverSpec(
         "hard_pivot_bundle_state_from_previous_objective_and_round",
         "Resolve hard-pivot bundle state from the previous objective status plus the durable status of the target predecessor round.",
+    ),
+    BundleStateResolverSpec(
+        "constant_start_state",
+        "Always start the bundle from one explicit initial route state because the wrapper has already compiled the required payload.",
     ),
 )
 
@@ -856,6 +899,13 @@ BUNDLE_ROUTE_STATE_SPECS: tuple[BundleRouteStateSpec, ...] = (
     BundleRouteStateSpec("round-close-chain-then-hard-pivot", "captured", required_payload_keys=("closed_reason",)),
     BundleRouteStateSpec("round-close-chain-then-hard-pivot", "closed", required_payload_keys=("previous_objective_id", "title", "problem", "success_criterion", "non_goal", "why_now", "phase", "trigger")),
     BundleRouteStateSpec("round-close-chain-then-hard-pivot", "pivoted", terminal=True),
+    BundleRouteStateSpec("assess-external-target-once", "start"),
+    BundleRouteStateSpec("assess-external-target-once", "drafted"),
+    BundleRouteStateSpec("assess-external-target-once", "round_expanded"),
+    BundleRouteStateSpec("assess-external-target-once", "task_rewritten"),
+    BundleRouteStateSpec("assess-external-target-once", "round_rewritten"),
+    BundleRouteStateSpec("assess-external-target-once", "anchor_refreshed"),
+    BundleRouteStateSpec("assess-external-target-once", "assessed", terminal=True),
 )
 
 
@@ -999,6 +1049,96 @@ BUNDLE_STEP_TEMPLATE_SPECS: tuple[BundleStepTemplateSpec, ...] = (
             BundleStepBindingSpec("risk", "objective_risk", "list"),
             BundleStepBindingSpec("path", "path", "list"),
             BundleStepBindingSpec("supersession_notes", "supersession_notes"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="assess-external-target-once",
+        from_state="start",
+        to_state="drafted",
+        command_name="draft-external-target-shadow-scope",
+        label="draft external target scope",
+        bindings=(
+            BundleStepBindingSpec("workspace_root", "workspace_root"),
+            BundleStepBindingSpec("source_repo", "source_repo"),
+            BundleStepBindingSpec("output", "draft_output"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="assess-external-target-once",
+        from_state="drafted",
+        to_state="round_expanded",
+        command_name="rewrite-open-round",
+        label="expand round for scope migration",
+        static_scalar_fields=(("reason", "Temporarily expand the active round so the task contract can move from its previous scope into the external target dirty paths."),),
+        static_bool_fields=(("replace_scope_paths", True),),
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("scope_path", "expand_round_scope_path", "list"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="assess-external-target-once",
+        from_state="round_expanded",
+        to_state="task_rewritten",
+        command_name="rewrite-open-task-contract",
+        label="rewrite task to external target scope",
+        static_scalar_fields=(("reason", "Align the active task contract to the observed external target dirty paths before running assess-host-adoption."),),
+        static_bool_fields=(
+            ("replace_paths", True),
+            ("replace_allowed_changes", True),
+            ("replace_forbidden_changes", True),
+            ("replace_completion_criteria", True),
+        ),
+        bindings=(
+            BundleStepBindingSpec("task_contract_id", "task_contract_id"),
+            BundleStepBindingSpec("summary", "task_summary"),
+            BundleStepBindingSpec("intent", "task_intent"),
+            BundleStepBindingSpec("path", "task_path", "list"),
+            BundleStepBindingSpec("allowed_change", "task_allowed_change", "list"),
+            BundleStepBindingSpec("forbidden_change", "task_forbidden_change", "list"),
+            BundleStepBindingSpec("completion_criterion", "task_completion_criterion", "list"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="assess-external-target-once",
+        from_state="task_rewritten",
+        to_state="round_rewritten",
+        command_name="rewrite-open-round",
+        label="finalize round to external target scope",
+        static_scalar_fields=(
+            ("reason", "Align the active round to the observed external target dirty paths before running assess-host-adoption."),
+        ),
+        static_bool_fields=(
+            ("replace_scope_items", True),
+            ("replace_scope_paths", True),
+        ),
+        bindings=(
+            BundleStepBindingSpec("round_id", "round_id"),
+            BundleStepBindingSpec("scope_item", "round_scope_item", "list"),
+            BundleStepBindingSpec("scope_path", "round_scope_path", "list"),
+            BundleStepBindingSpec("deliverable", "round_deliverable"),
+            BundleStepBindingSpec("validation_plan", "round_validation_plan"),
+        ),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="assess-external-target-once",
+        from_state="round_rewritten",
+        to_state="anchor_refreshed",
+        command_name="refresh-anchor",
+        label="refresh anchor to external workspace",
+        bindings=(BundleStepBindingSpec("workspace_root", "workspace_root"),),
+    ),
+    BundleStepTemplateSpec(
+        bundle_name="assess-external-target-once",
+        from_state="anchor_refreshed",
+        to_state="assessed",
+        command_name="assess-host-adoption",
+        label="assess external target",
+        static_scalar_fields=(("mode", "external-target-shadow"),),
+        bindings=(
+            BundleStepBindingSpec("workspace_root", "workspace_root"),
+            BundleStepBindingSpec("source_repo", "source_repo"),
+            BundleStepBindingSpec("output", "report_output"),
         ),
     ),
 )
@@ -1598,6 +1738,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "refresh-anchor",
         "anchor-maintenance",
+        executor_supported=True,
         implementation_status="partial",
         required_inputs=("project_id",),
         guard_codes=("current_task_anchor_exists", "live_workspace_available"),
@@ -1622,6 +1763,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "draft-external-target-shadow-scope",
         "anchor-maintenance",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "workspace_root"),
         guard_codes=("workspace_locator_available", "live_workspace_available", "active_objective_available"),
@@ -1634,6 +1776,7 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
     TransitionCommandSpec(
         "assess-host-adoption",
         "anchor-maintenance",
+        executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id",),
         guard_codes=("workspace_locator_available", "live_workspace_available", "active_objective_available"),

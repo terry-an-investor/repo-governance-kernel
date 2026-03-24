@@ -278,20 +278,21 @@ def main() -> int:
     if str(external_assessment["final_enforce"]["status"]) != "blocked":
         raise SystemExit("external assessment should still be blocked before the workflow rewrites scope")
 
-    external_workflow = kernel_json(
+    external_intent = kernel_json(
         FIXTURE_ROOT,
-        "assess-external-target-once",
+        "assess-external-target-from-intent",
         "--project-id",
         PROJECT_ID,
-        "--workspace-root",
-        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
-        "--source-repo",
-        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
-        "--draft-output",
-        str(EXTERNAL_DRAFT_PATH),
+        "--request",
+        "评估 "
+        + str(EXTERNAL_TARGET_ROOT).replace("\\", "/")
+        + " 这个外部 repo 当前改动，先把 scope 定准，再给我结论。",
         "--report-output",
         str(WORKFLOW_REPORT_PATH),
     )
+    if external_intent["compiled_intent"]["bundle_name"] != "assess-external-target-once":
+        raise SystemExit("natural-language entry should compile into the governed assessment bundle")
+    external_workflow = external_intent["workflow"]
     workflow_assessment = external_workflow["assessment"]
     if str(workflow_assessment["final_enforce"]["status"]) != "ok":
         raise SystemExit("external workflow should finish with an unblocked assessment after rewriting scope")
@@ -299,6 +300,8 @@ def main() -> int:
         raise SystemExit("workflow assessment round scope should match the adopted rewrite scope")
     if workflow_assessment["task_contract_paths"] != external_workflow["adopted_task_paths"]:
         raise SystemExit("workflow assessment task scope should match the adopted rewrite scope")
+    if "executed assess-external-target-once" not in str(external_workflow["bundle_detail"]):
+        raise SystemExit("workflow wrapper should report governed bundle execution detail")
     if not WORKFLOW_REPORT_PATH.exists():
         raise SystemExit(f"workflow report was not written: {WORKFLOW_REPORT_PATH}")
 
@@ -316,7 +319,7 @@ def main() -> int:
                 "assessment": assessment,
                 "external_draft": external_draft,
                 "external_assessment": external_assessment,
-                "external_workflow": external_workflow,
+                "external_intent": external_intent,
             },
             ensure_ascii=True,
             indent=2,

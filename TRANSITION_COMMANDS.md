@@ -229,6 +229,7 @@ Current governed bundle wrappers include:
 
 - `round-close-chain`
 - `round-close-chain-then-hard-pivot`
+- `assess-external-target-once`
 
 Bundle rules:
 
@@ -240,6 +241,20 @@ Bundle rules:
 - bundles must stay bounded, audit-visible, and smoke-proven
 
 The ban is on private bundle semantics, not on all bundle composition.
+
+## Bounded Intent Surfaces
+
+Current bounded natural-language wrappers include:
+
+- `assess-external-target-from-intent`
+
+Intent-surface rules:
+
+- the intent parser must compile only into an existing governed command or bundle
+- the parser may not introduce new mutation authority beyond the compiled surface
+- accepted intent classes must stay narrow, explicit, and smoke-proven
+- rejected requests must fail closed when they imply broader monitoring or freeform mutation
+- `assess-external-target-from-intent` currently compiles only one-time external-target assessment requests into `assess-external-target-once`
 
 ## Adjudication Execution Boundary
 
@@ -272,6 +287,7 @@ The implemented subset already has real owner-layer runtime coverage across:
 - task-contract commands
 - exception-contract commands
 - bounded governed bundle execution
+- bounded external-target single-assessment bundle execution
 - bounded adjudication follow-up compilation and execution
 
 It still does not provide:

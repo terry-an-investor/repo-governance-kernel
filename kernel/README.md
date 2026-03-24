@@ -118,7 +118,20 @@ This wrapper is intentionally narrow:
 - it drafts scope from the observed external dirty paths
 - it rewrites the current open round and current active task contract to that scope
 - it refreshes the current-task anchor and then runs `assess-host-adoption`
+- it now runs through one governed bundle instead of a private per-command script chain
 - it stays inside existing owner-layer commands instead of inventing freeform mutation authority
+
+Run the bounded natural-language entry for the same path:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/governed/host/repo assess-external-target-from-intent --project-id my-repo --request "Assess C:/path/to/external/repo current changes, set scope first, then give me the verdict."
+```
+
+This natural-language surface stays narrow on purpose:
+
+- it only compiles one-time external-target assessment intents
+- it still routes into the governed bundle-backed workflow instead of bypassing owner-layer controls
+- it rejects continuous monitoring requests rather than pretending the current product supports them
 
 Install or refresh repo-local hooks:
 
