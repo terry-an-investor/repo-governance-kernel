@@ -82,6 +82,57 @@ def classify_evaluation_scope(system_root: Path, source_repo: Path) -> dict[str,
     }
 
 
+def classify_host_adoption_blockers(project_id: str, blocked_paths: list[str]) -> dict[str, object]:
+    normalized_paths: list[str] = []
+    for path in blocked_paths:
+        rendered = str(path).replace("\\", "/").strip()
+        if not rendered:
+            continue
+        while rendered.startswith("./"):
+            rendered = rendered[2:]
+        normalized_paths.append(rendered)
+    bootstrap_control_prefix = f"projects/{project_id}/"
+
+    bucket_order = (
+        "hook_installation_paths",
+        "host_governance_paths",
+        "host_support_paths",
+        "repo_scope_paths",
+    )
+    buckets: dict[str, list[str]] = {key: [] for key in bucket_order}
+
+    for path in normalized_paths:
+        if path in {".githooks/pre-commit", ".githooks/pre-push", "githooks/pre-commit", "githooks/pre-push"}:
+            buckets["hook_installation_paths"].append(path)
+            continue
+        if path.startswith(bootstrap_control_prefix):
+            buckets["host_governance_paths"].append(path)
+            continue
+        if (
+            path.startswith(".claude/")
+            or path.startswith("claude/")
+            or path.startswith("cross-project/")
+            or path.startswith("index/")
+        ):
+            buckets["host_support_paths"].append(path)
+            continue
+        buckets["repo_scope_paths"].append(path)
+
+    meanings = {
+        "hook_installation_paths": "repo-local hook installation side effects created by kernel bootstrap or hook refresh",
+        "host_governance_paths": "host-governance projected or support files created under the adopted project namespace",
+        "host_support_paths": "host-side support surfaces not yet covered by the adopted round/task boundary",
+        "repo_scope_paths": "real source-repo dirty paths that remain outside the adopted round/task boundary",
+    }
+
+    return {
+        "counts": {key: len(value) for key, value in buckets.items()},
+        "buckets": buckets,
+        "meanings": meanings,
+        "has_repo_scope_gap": bool(buckets["repo_scope_paths"]),
+    }
+
+
 def source_git_output(source_repo: Path, *args: str) -> str:
     completed = run_subprocess(["git", "-C", str(source_repo), *args], cwd=source_repo.parent)
     if completed.returncode != 0:

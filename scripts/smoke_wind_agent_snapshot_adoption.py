@@ -9,7 +9,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from evaluation_bundle import copy_repo_snapshot, resolve_snapshot_exclusions
+from evaluation_bundle import (
+    classify_host_adoption_blockers,
+    copy_repo_snapshot,
+    resolve_snapshot_exclusions,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -307,6 +311,21 @@ def main() -> int:
             )
         )
 
+    remaining_blocked_paths: list[str] = []
+    for issue in final_enforce.get("issues", []):
+        if str(issue.get("code") or "").strip() not in {
+            "dirty_paths_outside_scope_round",
+            "dirty_paths_outside_active_task_contracts",
+        }:
+            continue
+        for path in issue.get("evidence", []):
+            normalized = str(path).replace("\\", "/").strip()
+            while normalized.startswith("./"):
+                normalized = normalized[2:]
+            if normalized and normalized not in remaining_blocked_paths:
+                remaining_blocked_paths.append(normalized)
+    blocker_classification = classify_host_adoption_blockers(PROJECT_ID, remaining_blocked_paths)
+
     report_lines = [
         "# Frozen Wind-Agent Adopted Shadow-Mode Report",
         "",
@@ -337,9 +356,39 @@ def main() -> int:
     report_lines.extend(
         [
             "",
+            "## Blocker Classification",
+            "",
+            f"- Hook installation paths: `{blocker_classification['counts']['hook_installation_paths']}`",
+            f"- Host governance paths: `{blocker_classification['counts']['host_governance_paths']}`",
+            f"- Host support paths: `{blocker_classification['counts']['host_support_paths']}`",
+            f"- Repo scope paths: `{blocker_classification['counts']['repo_scope_paths']}`",
+            "",
+            "These buckets separate bootstrap/control-plane noise from real source-repo scope gaps.",
+            "",
+        ]
+    )
+    for bucket in (
+        "hook_installation_paths",
+        "host_governance_paths",
+        "host_support_paths",
+        "repo_scope_paths",
+    ):
+        report_lines.append(f"### `{bucket}`")
+        report_lines.append("")
+        report_lines.append(f"- Meaning: {blocker_classification['meanings'][bucket]}")
+        bucket_paths = blocker_classification["buckets"][bucket]
+        if bucket_paths:
+            for path in bucket_paths:
+                report_lines.append(f"- `{path}`")
+        else:
+            report_lines.append("- none")
+        report_lines.append("")
+    report_lines.extend(
+        [
             "## Next Steps",
             "",
-            "- Compare the adopted frozen-host scope with the original wind-agent round wording and trim any obviously over-broad paths before live shadow mode.",
+            "- Convert host bootstrap/support path treatment into one explicit adoption policy before live shadow mode, instead of leaving them as incidental dirty-path noise.",
+            "- Compare the adopted frozen-host scope with the original wind-agent round wording and trim any obviously over-broad repo scope paths before live shadow mode.",
             "- Keep live-host rollout in shadow mode first: observe verdicts, do not block developer flow yet.",
             "- Promote only the host-side trigger surfaces that now have a clear frozen-host precedent.",
             "",
@@ -365,6 +414,7 @@ def main() -> int:
                 "initial_enforce": initial_enforce,
                 "final_audit": final_audit,
                 "final_enforce": final_enforce,
+                "blocker_classification": blocker_classification,
                 "report_path": str(report_path),
             },
             ensure_ascii=True,
