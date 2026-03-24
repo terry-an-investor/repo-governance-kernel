@@ -1,33 +1,150 @@
-# Repo Governance Kernel Preview
+# Repo Governance Kernel
 
-This repository currently prepares the internal preview release of
+`session-memory` is the source repository for the preview release of
 `repo-governance-kernel`.
 
+The product is a repo governance kernel: a control-first system that makes
+repository work move through explicit objective, round, task-contract, audit,
+and enforcement semantics instead of informal chat state or ad hoc scripts.
+
+This repository contains both:
+
+- the reusable package surface under [`kernel/`](./kernel/)
+- the host-local dogfood sample under [`projects/session-memory/`](./projects/session-memory/)
+
+The host sample is important evidence, but it is not the package contract.
+
+## Current Status
+
+- package: `repo-governance-kernel`
+- current preview release: `0.1.0a1`
+- release level: alpha / internal preview
+- automation scope: bounded registry-owned execution
+- autonomy boundary: not a general autonomous rewrite engine
+
+Release notes and packaging status live in [`RELEASE.md`](./RELEASE.md).
+
+## What The Kernel Already Does
+
+The current preview already provides:
+
+- durable control objects for objective lines, rounds, task contracts, exception
+  contracts, and transition events
+- projected control views for active objective, active round, current task, and
+  related execution context
+- control-state audit and live worktree enforcement
+- registry-owned primitive transition commands with explicit guards and write
+  ownership
+- governed bundle execution for bounded multi-step workflows
+- external-target shadow assessment support that can:
+  - draft scope from the external repo's observed dirty paths
+  - rewrite the active round and task contract through governed commands
+  - refresh the current anchor
+  - run one bounded single-assessment flow without mutating the target repo
+- one bounded natural-language entry that compiles a narrow supported request
+  into the same governed external-target assessment bundle
+- package bootstrap proof from both the source tree and an installed wheel
+
+## Quickstart
+
+This repository is developed and validated with `uv` on Windows.
+
+### 1. Set up the repo
+
+```powershell
+uv sync
+uv run python scripts/install_hooks.py
+```
+
+### 2. Verify host control state
+
+```powershell
+uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli enforce-worktree --project-id session-memory
+```
+
+### 3. Run the package/bootstrap smoke
+
+```powershell
+uv run python scripts/smoke_kernel_bootstrap.py
+```
+
+### 4. Run one external-target single assessment
+
+From the source tree, the governed flow can be exercised with:
+
+```powershell
+uv run python -m kernel.cli `
+  --repo-root C:/Users/terryzzb/Desktop/session-memory `
+  assess-external-target-once `
+  --project-id session-memory `
+  --workspace-root C:/Users/terryzzb/Desktop/git_repos/buffet
+```
+
+That flow drafts scope from the target repo's live dirty paths, rewrites the
+active round and task contract through governed semantics, refreshes the
+current anchor, and writes the final assessment report.
+
+## Package And Repo Boundaries
+
 The reusable package surface lives under [`kernel/`](./kernel/).
-The `projects/session-memory/` tree remains the host-local dogfood sample and is
-not part of the package contract.
 
-Preview release notes are in [`RELEASE.md`](./RELEASE.md).
-Package-facing usage and support-boundary notes are in
-[`kernel/README.md`](./kernel/README.md).
-Auxiliary repo docs that do not need to stay at the root now live under
-[`docs/`](./docs/README.md).
+The following remain host-local and are not part of the package contract:
 
-The current preview now includes a kernel-owned shadow host adoption assessment
-surface for governed external repos. It is still an alpha observation/reporting
-path, not a general live-host rewrite promise.
+- [`projects/session-memory/`](./projects/session-memory/)
+- [`scripts/`](./scripts/)
+- [`.githooks/`](./.githooks/)
+- [`.github/workflows/`](./.github/workflows/)
+- repo-local smoke and evaluation harnesses
 
-For `external-target-shadow`, the preview now also includes a draft surface that
-turns the external repo's observed dirty paths into suggested round/task scope
-before the real assessment runs. That draft artifact is now distinct from the
-later shadow-adoption report instead of reusing one overloaded owner label.
+Package-facing usage notes live in [`kernel/README.md`](./kernel/README.md).
 
-It also now includes one bounded workflow wrapper that can draft scope, rewrite
-the active round/task, refresh the anchor, and run the assessment in one pass.
+## Non-Goals
 
-That workflow is now bundle-backed, and there is also one bounded natural-language
-entry for the same single-assessment path.
+This preview does not promise:
 
-The bootstrap validation path now also proves one installed wheel can bootstrap
-and audit a disposable host repo from an isolated environment, not only from
-the source tree.
+- continuous monitoring of external repositories
+- a background server control plane
+- arbitrary natural-language mutation authority
+- general live-host autonomous rewrite
+- stable public compatibility across all command surfaces
+
+## Repository Map
+
+- [`kernel/`](./kernel/): reusable kernel package, commands, docs, and
+  transition semantics
+- [`projects/session-memory/`](./projects/session-memory/): host-local dogfood
+  control state and memory objects
+- [`scripts/`](./scripts/): repo-local smoke, bootstrap, and validation entry
+  points
+- [`docs/`](./docs/README.md): auxiliary notes, operations docs, and evaluation
+  plans that do not need to stay at the repository root
+
+## Documentation Guide
+
+- [`PRODUCT.md`](./PRODUCT.md): canonical product definition and positioning
+- [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md): durable truth, projection, audit,
+  and enforcement model
+- [`STATE_MACHINE.md`](./STATE_MACHINE.md): legal state domains and transition
+  lifecycle
+- [`TRANSITION_COMMANDS.md`](./TRANSITION_COMMANDS.md): canonical command,
+  bundle, and intent surface
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md): repository structure and ownership
+  boundaries
+- [`RELEASE.md`](./RELEASE.md): current preview evidence, caveats, and release
+  target
+- [`kernel/README.md`](./kernel/README.md): package-facing usage and support
+  boundary
+- [`docs/README.md`](./docs/README.md): index for auxiliary repository
+  documentation
+
+## Practical Reading Order
+
+For a first pass through the repo:
+
+1. Read [`README.md`](./README.md) for orientation.
+2. Read [`PRODUCT.md`](./PRODUCT.md) and [`CONTROL_SYSTEM.md`](./CONTROL_SYSTEM.md)
+   for the product and control model.
+3. Read [`TRANSITION_COMMANDS.md`](./TRANSITION_COMMANDS.md) for the bounded
+   execution surface.
+4. Read [`kernel/README.md`](./kernel/README.md) for package-facing usage.
