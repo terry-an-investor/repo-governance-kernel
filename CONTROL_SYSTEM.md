@@ -435,6 +435,14 @@ The key boundary is:
 Task contracts therefore make task intent durable and auditable without
 pretending that task prose already equals executable rewrite semantics.
 
+That layer is only honest when it is also consumable:
+
+- active task contracts should appear in assembled context and role contexts
+- round and objective transitions should refuse to strand draft or active task
+  contracts behind them
+- live enforcement may narrow dirty-path authority from round scope to active
+  task-contract scope when such contracts exist
+
 ### 5. Evidence And Memory
 
 Evidence and memory explain what is actually known.

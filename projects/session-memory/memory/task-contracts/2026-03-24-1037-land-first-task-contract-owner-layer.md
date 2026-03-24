@@ -2,12 +2,12 @@
 id: taskc-2026-03-24-1037-land-first-task-contract-owner-layer
 type: task-contract
 title: "Land first task-contract owner layer"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 7f45f742beef783b71e84392ec8d2cbe521897c4
+git_sha: a43b816258cb88a3b7e11b2160d0d8612069c814
 paths:
   - PRODUCT.md
   - CONTROL_SYSTEM.md
@@ -27,7 +27,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T10:37:10+08:00
-updated_at: 2026-03-24T10:37:10+08:00
+updated_at: 2026-03-24T10:53:00+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-24-0907-lift-rewrite-open-round-field-semantics-into-registry-owned-owner-layer-contracts"
@@ -61,10 +61,17 @@ Make task-level execution boundaries durable beneath the active round by alignin
 - Repo can create and load durable task-contract objects through repo-owned code.
 - Task-contract audit passes on one real sample in session-memory.
 
+## Resolution
+
+- Canonical docs, registry, create path, audit path, and real sample all landed in commit a43b816.
+
 ## Active Risks
 
 - Task-contract semantics may drift back into prose if command and audit coverage diverge.
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The first task-contract owner-layer round was implemented, validated, committed, and then closed.
+
+resolution recorded:
+- Canonical docs, registry, create path, audit path, and real sample all landed in commit a43b816.

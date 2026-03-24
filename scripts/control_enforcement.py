@@ -15,6 +15,7 @@ from audit_control_state import (
 )
 from round_control import (
     active_exception_contract_records,
+    active_task_contract_records,
     ROOT,
     active_objective_path,
     active_round_path,
@@ -209,6 +210,28 @@ def evaluate_worktree_enforcement(project_id: str, *, round_id: str = "") -> dic
                 evidence=uncovered_paths,
             )
     checks.append("scope-round coverage for dirty non-control paths")
+
+    if non_control_dirty_paths and scope_round_id:
+        active_task_contracts = active_task_contract_records(project_id, round_id=scope_round_id)
+        if active_task_contracts:
+            uncovered_task_paths: list[str] = []
+            for path in non_control_dirty_paths:
+                if any(
+                    path_is_covered(path, [str(item).strip() for item in task_meta.get("paths", []) if str(item).strip()])
+                    for _task_path, task_meta, _task_sections in active_task_contracts
+                ):
+                    continue
+                uncovered_task_paths.append(path)
+            if uncovered_task_paths:
+                add_issue(
+                    issues,
+                    severity="error",
+                    domain="enforcement",
+                    code="dirty_paths_outside_active_task_contracts",
+                    message="the live workspace contains dirty non-control paths that are not covered by any active task contract attached to the scope round",
+                    evidence=uncovered_task_paths,
+                )
+    checks.append("active task-contract coverage for dirty non-control paths")
 
     projection_drift_paths: list[str] = []
     for relative_path, expected_text in expected_projection_texts(project_id).items():

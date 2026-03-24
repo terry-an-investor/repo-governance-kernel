@@ -8,6 +8,8 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from build_index import parse_frontmatter, parse_string_list, split_frontmatter
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = ROOT / "index" / "memory.sqlite"
@@ -83,6 +85,24 @@ def parse_keyed_bullets(text: str) -> dict[str, str]:
         key = match.group(1).strip().lower()
         values[key] = strip_inline_code(match.group(2))
     return values
+
+
+def parse_bullet_list(text: str) -> list[str]:
+    items: list[str] = []
+    current_lines: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            if current_lines:
+                items.append("\n".join(current_lines).strip())
+            current_lines = [stripped[2:].strip()]
+            continue
+        if current_lines and stripped:
+            current_lines.append(stripped)
+    if current_lines:
+        items.append("\n".join(current_lines).strip())
+    return items
 
 
 def extract_frontmatter_scalars(text: str, field_names: list[str]) -> dict[str, str]:
@@ -563,6 +583,66 @@ def load_control_sections(path: Path) -> tuple[str, dict[str, str]]:
     return preface_before_first_h2(cleaned), parse_h2_sections(cleaned)
 
 
+def load_active_task_contract_records(project_dir: Path, round_id: str) -> list[dict[str, object]]:
+    if not round_id.strip():
+        return []
+    directory = project_dir / "memory" / "task-contracts"
+    if not directory.exists():
+        return []
+
+    records: list[dict[str, object]] = []
+    for path in sorted(directory.glob("*.md")):
+        text = read_text(path)
+        frontmatter_text, _body = split_frontmatter(text)
+        meta = parse_frontmatter(frontmatter_text)
+        if str(meta.get("status") or "").strip() != "active":
+            continue
+        if str(meta.get("round_id") or "").strip() != round_id.strip():
+            continue
+        sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
+        records.append(
+            {
+                "id": str(meta.get("id") or path.stem).strip(),
+                "title": str(meta.get("title") or path.stem).strip(),
+                "created_at": str(meta.get("created_at") or "").strip(),
+                "paths": parse_string_list(meta.get("paths")),
+                "summary": str(sections.get("Summary", "")).strip(),
+                "intent": str(sections.get("Intent", "")).strip(),
+                "allowed_changes": parse_bullet_list(str(sections.get("Allowed Changes", ""))),
+                "forbidden_changes": parse_bullet_list(str(sections.get("Forbidden Changes", ""))),
+                "completion_criteria": parse_bullet_list(str(sections.get("Completion Criteria", ""))),
+                "source_file": path.relative_to(ROOT).as_posix(),
+            }
+        )
+    records.sort(key=lambda record: str(record.get("created_at") or record.get("id") or ""))
+    return records
+
+
+def append_active_task_contracts(parts: list[str], records: list[dict[str, object]]) -> None:
+    if not records:
+        return
+    parts.append("## Active Task Contracts\n")
+    for record in records:
+        parts.append(f"- `{record['id']}`: {record['title']}")
+        summary = str(record.get("summary") or "").strip()
+        if summary:
+            parts.append(f"  - summary: {summary}")
+        intent = str(record.get("intent") or "").strip()
+        if intent:
+            parts.append(f"  - intent: {intent}")
+        paths = [str(item).strip() for item in record.get("paths", []) if str(item).strip()]
+        if paths:
+            parts.append(f"  - paths: {', '.join(paths)}")
+        allowed_changes = [str(item).strip() for item in record.get("allowed_changes", []) if str(item).strip()]
+        if allowed_changes:
+            parts.append(f"  - allowed: {allowed_changes[0]}")
+        completion_criteria = [str(item).strip() for item in record.get("completion_criteria", []) if str(item).strip()]
+        if completion_criteria:
+            parts.append(f"  - completion: {completion_criteria[0]}")
+        parts.append(f"  - source: `{record['source_file']}`")
+    parts.append("")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Assemble a fresh-session context packet.")
     parser.add_argument("--project-id", required=True)
@@ -572,6 +652,7 @@ def main() -> None:
 
     project_dir = ROOT / "projects" / args.project_id
     active_objective_path = project_dir / "control" / "active-objective.md"
+    active_round_path = project_dir / "control" / "active-round.md"
     pivot_log_path = project_dir / "control" / "pivot-log.md"
     exception_ledger_path = project_dir / "control" / "exception-ledger.md"
     current_task_path = project_dir / "current" / "current-task.md"
@@ -582,6 +663,7 @@ def main() -> None:
     if current_task_path.exists():
         current_task_sections = parse_h2_sections(clean_section_text(current_task_path, strip_heading=True, strip_yaml=False))
     active_objective_preface, active_objective_sections = load_control_sections(active_objective_path)
+    active_round_preface, active_round_sections = load_control_sections(active_round_path)
     pivot_log_preface, pivot_log_sections = load_control_sections(pivot_log_path)
     exception_preface, exception_sections = load_control_sections(exception_ledger_path)
     current_task_anchor = extract_current_task_anchor(current_task_sections)
@@ -596,6 +678,11 @@ def main() -> None:
     else:
         packet_anchor["anchor_source"] = "unknown"
     live_workspace = inspect_live_workspace(packet_anchor)
+    active_round_values = parse_keyed_bullets(active_round_preface)
+    active_task_contracts = load_active_task_contract_records(
+        project_dir,
+        active_round_values.get("round id", ""),
+    )
 
     parts: list[str] = []
     parts.append(f"# Session Context\n")
@@ -615,6 +702,16 @@ def main() -> None:
         active_objective_sections,
         ["Problem", "Success Criteria", "Non-Goals", "Current Risks"],
     )
+
+    append_control_block(
+        parts,
+        "Active Round",
+        active_round_preface,
+        active_round_sections,
+        ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
+    )
+
+    append_active_task_contracts(parts, active_task_contracts)
 
     append_control_block(
         parts,

@@ -46,6 +46,8 @@ verdict is recorded.
   - pivot log
   - exception ledger
 - add a first file-first task-contract object model beneath active round governance
+- add bounded task-contract lifecycle and context-consumption paths so the new
+  owner layer is not only durable but also operable
 - index Markdown memory files under `projects/` and `cross-project/`
 - populate SQLite metadata tables
 - populate one FTS5 table for recall
@@ -115,7 +117,8 @@ verdict is recorded.
   - can scaffold safe missing control surfaces
   - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
-  - task-contract lifecycle beyond initial creation
+  - deeper task-contract executor or adjudication integration beyond lifecycle
+    and context consumption
   - exception-contract commands
   - adjudication-driven round and objective rewrites
   - or a shared transition engine

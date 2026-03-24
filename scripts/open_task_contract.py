@@ -110,6 +110,7 @@ def main() -> int:
         allowed_changes=args.allowed_change,
         forbidden_changes=args.forbidden_change,
         completion_criteria=args.completion_criterion,
+        resolution=[],
         risks=args.risk,
         status_notes=args.status_note,
     )

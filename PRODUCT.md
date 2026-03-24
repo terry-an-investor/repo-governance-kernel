@@ -80,9 +80,11 @@ Today the product already provides:
 
 - durable objective, pivot, round, exception-contract, and adjudication records
 - first file-first task-contract records attached to round governance
+- bounded task-contract lifecycle commands for status change and in-place rewrite
 - projected control files for active objective, active round, pivot log, and
   exception ledger
 - control audit and worktree enforcement
+- assembled and role-specific contexts that surface active task contracts
 - bounded adjudication follow-up execution
 - role-context and handoff bundle preparation
 - multi-project operation with `session-memory` and `wind-agent`
@@ -138,6 +140,8 @@ Near-term product milestones:
 
 - keep product positioning stable across canonical docs
 - make task-contract the honest task-level owner layer under round governance
+- make task-contract semantics consumable across context assembly, lifecycle
+  commands, and honesty gates
 - continue lifting private execution semantics into owner-layer registries
 - tighten product-doc-to-machine-semantics audits
 - split reusable governance-kernel capabilities from this repo's local sample

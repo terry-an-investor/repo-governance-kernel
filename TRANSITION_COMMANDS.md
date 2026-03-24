@@ -489,8 +489,76 @@ Current implementation status:
 
 - first creation path is implemented
 - task contracts are durable Markdown objects and auditable owner-layer inputs
+- task contracts can now move through a bounded lifecycle and rewrite in place
 - task contracts do not yet compile into general automatic rewrite semantics by
   themselves
+
+### `update-task-contract-status`
+
+Purpose:
+
+- move one task contract through its bounded lifecycle
+
+Required inputs:
+
+- `project_id`
+- `task_contract_id`
+- `status`
+- `reason`
+
+Allowed target status values:
+
+- `active`
+- `completed`
+- `abandoned`
+- `invalidated`
+
+Primary writes:
+
+- task-contract file update
+- transition event record
+
+Guards:
+
+- task contract must exist
+- task-contract status transition must be legal
+- completed task contracts must record at least one resolution entry
+
+### `rewrite-open-task-contract`
+
+Purpose:
+
+- rewrite one open task contract without changing its identity
+
+Required inputs:
+
+- `project_id`
+- `task_contract_id`
+- `reason`
+- one or more mutable fields:
+  - `title`
+  - `summary`
+  - `intent`
+  - `paths`
+  - `allowed_changes`
+  - `forbidden_changes`
+  - `completion_criteria`
+  - `risks`
+  - `status_notes`
+
+Primary writes:
+
+- task-contract file update
+- transition event record
+
+Guards:
+
+- task contract must remain in one open status
+- rewrite reason must be explicit
+- rewritten task contract must still have intent, path scope, allowed changes,
+  forbidden changes, and completion criteria
+- rewritten task-contract paths must stay inside round scope
+- rewrite must preserve task-contract identity
 
 ## 6. Exception-Contract Commands
 
@@ -866,6 +934,8 @@ The current implementation now includes real enforced slices in five command dom
   - `update-round-status`
 - task-contract:
   - `open-task-contract`
+  - `update-task-contract-status`
+  - `rewrite-open-task-contract`
 - exception-contract:
   - `activate-exception-contract`
   - `retire-exception-contract`
@@ -901,6 +971,10 @@ These slices already do these things:
 - rewrite one open round contract durably through `rewrite-open-round`
 - record `transition-event` files for both objective-line and round operations
 - record `transition-event` files for task-contract operations
+- make assembled context and role contexts surface active task contracts for the
+  active round
+- reject round capture, closure, abandonment, objective close, and hard pivot
+  when draft or active task contracts would be stranded
 - record `transition-event` files for exception-contract operations
 - let `audit-control-state` warn when the objective/phase-domain helper or the
   round-domain helper can no longer satisfy their declared registry semantics
@@ -909,7 +983,6 @@ These slices already do these things:
 
 It does not yet implement:
 
-- task-contract lifecycle transitions beyond initial creation
 - adjudication-driven automatic follow-up rewrites beyond the explicit bounded
   command subset already encoded in `executor_followups`
 - hard-pivot-driven automatic round rewrites or broader multi-round replacement

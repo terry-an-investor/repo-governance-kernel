@@ -397,10 +397,14 @@ Current implementation already does these things:
   - one open round contract can be durably rewritten while preserving round id
 - enforces one first task-contract slice through:
   - `open-task-contract`
+  - `update-task-contract-status`
+  - `rewrite-open-task-contract`
   - task contracts attach to one open round and aligned objective
   - task paths are kept inside round scope
   - task intent, allowed changes, forbidden changes, and completion criteria
     become durable and auditable instead of staying transcript-local
+  - task contracts can complete, abandon, invalidate, and rewrite in place
+    without inventing a second private task lifecycle
 - can repair projected control files from durable state through:
   - `reconcile-control-state`
   - only when durable objective and round truth is unambiguous

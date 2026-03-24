@@ -37,6 +37,14 @@ ROUND_STATUS_TRANSITIONS = {
     "closed": set(),
     "abandoned": set(),
 }
+OPEN_TASK_CONTRACT_STATUSES = {"draft", "active"}
+TASK_CONTRACT_STATUS_TRANSITIONS = {
+    "draft": {"active", "abandoned", "invalidated"},
+    "active": {"completed", "abandoned", "invalidated"},
+    "completed": set(),
+    "abandoned": set(),
+    "invalidated": set(),
+}
 
 
 def yaml_quote(value: str) -> str:
@@ -804,6 +812,7 @@ def render_task_contract_file(
     allowed_changes: list[str],
     forbidden_changes: list[str],
     completion_criteria: list[str],
+    resolution: list[str],
     risks: list[str],
     status_notes: str,
 ) -> str:
@@ -839,6 +848,9 @@ def render_task_contract_file(
         "",
         "## Completion Criteria\n",
         render_bullet_list(completion_criteria),
+        "",
+        "## Resolution\n",
+        render_bullet_list(resolution),
         "",
         "## Active Risks\n",
         render_bullet_list(risks),
@@ -1446,6 +1458,29 @@ def load_task_contract_file(path: Path) -> tuple[dict[str, object], dict[str, st
     return meta, sections
 
 
+def task_contract_record_payload(meta: dict[str, object], sections: dict[str, str]) -> dict[str, object]:
+    return {
+        "title": str(meta.get("title") or str(meta.get("id") or "")).strip(),
+        "status": str(meta.get("status") or "").strip(),
+        "paths": [str(item).strip() for item in meta.get("paths", []) if str(item).strip()],
+        "created_at": str(meta.get("created_at") or "").strip(),
+        "evidence_refs": [entry for entry in meta.get("evidence_refs", []) if isinstance(entry, dict)],
+        "tags": [str(item).strip() for item in meta.get("tags", []) if str(item).strip()],
+        "confidence": str(meta.get("confidence") or "high").strip() or "high",
+        "phase": str(meta.get("phase") or "").strip(),
+        "objective_id": str(meta.get("objective_id") or "").strip(),
+        "round_id": str(meta.get("round_id") or "").strip(),
+        "summary": normalize_section_text(sections.get("Summary", "")),
+        "intent": normalize_section_text(sections.get("Intent", "")),
+        "allowed_changes": parse_bullet_list(sections.get("Allowed Changes", "")),
+        "forbidden_changes": parse_bullet_list(sections.get("Forbidden Changes", "")),
+        "completion_criteria": parse_bullet_list(sections.get("Completion Criteria", "")),
+        "resolution": parse_bullet_list(sections.get("Resolution", "")),
+        "risks": parse_bullet_list(sections.get("Active Risks", "")),
+        "status_notes": normalize_section_text(sections.get("Status Notes", "")),
+    }
+
+
 def load_objective_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
     text = read_text(path)
     frontmatter_text, _body = split_frontmatter(text)
@@ -1767,6 +1802,34 @@ def find_task_contracts(
             continue
         matches.append(record)
     return matches
+
+
+def active_task_contract_records(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    round_id: str = "",
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    return find_task_contracts(
+        project_id,
+        objective_id=objective_id,
+        round_id=round_id,
+        statuses={"active"},
+    )
+
+
+def open_task_contract_records(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    round_id: str = "",
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    return find_task_contracts(
+        project_id,
+        objective_id=objective_id,
+        round_id=round_id,
+        statuses=OPEN_TASK_CONTRACT_STATUSES,
+    )
 
 
 def find_exception_contracts(

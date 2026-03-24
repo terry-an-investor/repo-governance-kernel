@@ -123,7 +123,7 @@ def audit_task_contracts(project_id: str) -> dict[str, object]:
         if status == "active" and round_status not in OPEN_ROUND_STATUSES:
             add_issue(
                 issues,
-                severity="warning",
+                severity="error",
                 code="active_task_contract_on_non_open_round",
                 message="active task contract is attached to a round that is no longer open",
                 evidence=[task_contract_id, round_id, f"round status: {round_status}"],
@@ -181,12 +181,21 @@ def audit_task_contracts(project_id: str) -> dict[str, object]:
                     message="active task contract is missing completion criteria",
                     evidence=[task_contract_id, str(path)],
                 )
+        if status == "completed" and not parse_bullet_list(str(sections.get("Resolution", ""))):
+            add_issue(
+                issues,
+                severity="error",
+                code="completed_task_contract_missing_resolution",
+                message="completed task contract is missing Resolution entries",
+                evidence=[task_contract_id, str(path)],
+            )
 
     checks.append("task-contract id uniqueness")
     checks.append("task-contract round linkage")
     checks.append("task-contract objective alignment")
     checks.append("task-contract path scope within round scope")
     checks.append("task-contract required active sections")
+    checks.append("completed task-contract resolution history")
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")
     warning_count = sum(1 for issue in issues if issue["severity"] == "warning")

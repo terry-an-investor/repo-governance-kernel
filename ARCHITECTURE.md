@@ -167,6 +167,7 @@ This layer should answer:
 - what handoff summary should a fresh session read first
 - what objective line is currently active
 - whether the project is in exploration or execution
+- what active task contracts currently authorize concrete implementation work
 - whether a pivot invalidated older assumptions
 
 Before a handoff packet is trusted as current state, this layer should also
@@ -195,6 +196,10 @@ That means project constitution is usually recall-only for the generic packet,
 while reviewer / architect / orchestrator contexts may inline it explicitly.
 
 Context injection should surface freshness explicitly.
+
+When one active round has active task contracts, context injection should also
+surface those task contracts explicitly instead of forcing a fresh session to
+reconstruct the concrete work boundary from transcripts or diffs.
 
 An assembled packet should include:
 

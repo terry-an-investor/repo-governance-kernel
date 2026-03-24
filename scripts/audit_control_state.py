@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections, parse_keyed_bullets
+from audit_task_contracts import audit_task_contracts
 from execute_adjudication_followups import (
     bundle_executor_handler_names,
     validate_bundle_governance_executor_contracts,
@@ -606,6 +607,23 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
         checks=checks,
         current_task_path=current_task_path,
         active_objective_record=active_objective_record,
+    )
+
+    task_contract_audit = audit_task_contracts(project_id)
+    for issue in task_contract_audit.get("issues", []):
+        issues.append(
+            {
+                "severity": str(issue.get("severity") or "warning"),
+                "domain": "task-contract",
+                "code": str(issue.get("code") or "task_contract_issue"),
+                "message": str(issue.get("message") or "").strip(),
+                "evidence": [str(item).strip() for item in issue.get("evidence", []) if str(item).strip()],
+            }
+        )
+    checks.extend(
+        str(item).strip()
+        for item in task_contract_audit.get("summary", {}).get("checks", [])
+        if str(item).strip()
     )
 
     pivot_control_path = pivot_log_path(project_id)

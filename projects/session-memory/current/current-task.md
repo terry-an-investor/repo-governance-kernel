@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-24-0907-lift-rewrite-open-round-field-semantics-into-registry-owned-owner-layer-contracts`
+- Active round id: `round-2026-03-24-1059-ratify-task-contract-lifecycle-landing-into-git`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
@@ -29,14 +29,14 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - establishing one canonical product document so the repo is described consistently as a memory-driven repo governance control plane
-  - aligning major canonical docs to that product stance instead of drifting between memory substrate, control system, and autonomous rewrite narratives
-  - defining the owner-layer path by which machine semantics should follow canonical product docs through structured contracts and audits instead of prose-only interpretation
+  - turning task-contract from a static durable object into a bounded lifecycle with explicit rewrite and status transitions
+  - making assembled and role-specific contexts consume active task contracts instead of leaving the layer invisible
+  - tightening round and objective honesty rules so active task contracts cannot be stranded across closure or pivot
 
 ## Validated Facts
 
 - The latest committed baseline is:
-  - `3ccabeb Institutionalize bundle governance exceptions`
+  - `a43b816 Introduce first task-contract owner layer`
 - `PRODUCT.md` is now being introduced as the canonical product truth source
   for:
   - target users

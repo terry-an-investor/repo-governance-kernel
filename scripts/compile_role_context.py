@@ -9,9 +9,12 @@ from audit_control_state import audit_project_control_state
 from assemble_context import (
     DB_PATH,
     ROOT,
+    append_active_task_contracts,
     clean_section_text,
     latest_snapshot,
+    load_active_task_contract_records,
     load_control_sections,
+    parse_keyed_bullets,
     parse_h2_sections,
 )
 
@@ -121,6 +124,13 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
     review_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "adjudication"), limit)
+    active_round_values = {}
+    if round_preface.strip():
+        active_round_values = parse_keyed_bullets(round_preface)
+    active_task_contracts = load_active_task_contract_records(
+        project_dir,
+        active_round_values.get("round id", ""),
+    )
 
     parts = [f"# Reviewer Context\n", f"Project: `{project_id}`\n"]
     append_control_status(parts, audit_result)
@@ -146,6 +156,7 @@ def compile_reviewer_context(project_dir: Path, project_id: str, limit: int) -> 
         round_sections,
         ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
     )
+    append_active_task_contracts(parts, active_task_contracts)
     append_control_sections(
         parts,
         "Pivot Lineage",
@@ -183,6 +194,13 @@ def compile_architect_context(project_dir: Path, project_id: str, limit: int) ->
     if snapshot_path:
         snapshot_sections = parse_h2_sections(clean_section_text(snapshot_path, strip_heading=False, strip_yaml=True))
     architecture_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern", "adjudication"), limit)
+    active_round_values = {}
+    if round_preface.strip():
+        active_round_values = parse_keyed_bullets(round_preface)
+    active_task_contracts = load_active_task_contract_records(
+        project_dir,
+        active_round_values.get("round id", ""),
+    )
 
     parts = [f"# Architect Context\n", f"Project: `{project_id}`\n"]
     append_control_status(parts, audit_result)
@@ -208,6 +226,7 @@ def compile_architect_context(project_dir: Path, project_id: str, limit: int) ->
         round_sections,
         ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
     )
+    append_active_task_contracts(parts, active_task_contracts)
     append_control_sections(
         parts,
         "Pivot Lineage",
@@ -236,6 +255,13 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
     current_task_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "current-task.md", strip_heading=True))
     blockers_sections = parse_h2_sections(clean_section_text(project_dir / "current" / "blockers.md", strip_heading=True))
     orchestration_memory = fetch_memory_rows(project_id, ("decision", "failure", "constraint", "pattern", "adjudication"), limit)
+    active_round_values = {}
+    if round_preface.strip():
+        active_round_values = parse_keyed_bullets(round_preface)
+    active_task_contracts = load_active_task_contract_records(
+        project_dir,
+        active_round_values.get("round id", ""),
+    )
 
     parts = [f"# Orchestrator Context\n", f"Project: `{project_id}`\n"]
     append_control_status(parts, audit_result)
@@ -261,6 +287,7 @@ def compile_orchestrator_context(project_dir: Path, project_id: str, limit: int)
         round_sections,
         ["Scope", "Deliverable", "Validation Plan", "Active Risks", "Blockers"],
     )
+    append_active_task_contracts(parts, active_task_contracts)
     append_control_sections(
         parts,
         "Pivot Lineage",

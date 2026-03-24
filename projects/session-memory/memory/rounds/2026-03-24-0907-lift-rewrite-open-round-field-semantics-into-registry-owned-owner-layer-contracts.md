@@ -2,12 +2,12 @@
 id: round-2026-03-24-0907-lift-rewrite-open-round-field-semantics-into-registry-owned-owner-layer-contracts
 type: round-contract
 title: "Introduce first task-contract owner layer"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 7f45f742beef783b71e84392ec8d2cbe521897c4
+git_sha: a43b816258cb88a3b7e11b2160d0d8612069c814
 paths:
   - scripts/transition_specs.py
   - scripts/execute_adjudication_followups.py
@@ -35,7 +35,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T09:07:16+08:00
-updated_at: 2026-03-24T10:36:52+08:00
+updated_at: 2026-03-24T10:44:55+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -59,6 +59,12 @@ Session-memory docs describe a three-layer product/control/task contract archite
 ## Validation Plan
 
 Run targeted py_compile for the new task-contract scripts, create one real task-contract for the active round, run the new task-contract audit, refresh current-task anchor, then run control audit and worktree enforcement before commit.
+uv run python -m py_compile scripts/round_control.py scripts/transition_specs.py scripts/open_task_contract.py scripts/audit_task_contracts.py scripts/audit_control_state.py
+uv run python scripts/audit_product_docs.py
+uv run python scripts/audit_task_contracts.py --project-id session-memory
+uv run python scripts/audit_control_state.py --project-id session-memory
+uv run python scripts/enforce_worktree.py --project-id session-memory
+owner-layer validation recorded in round contract and latest commit a43b816
 
 ## Active Risks
 
@@ -95,3 +101,19 @@ Live dirty paths included:
 - scripts/transition_specs.py
 - scripts/audit_task_contracts.py
 - scripts/open_task_contract.py
+
+active -> validation_pending: First task-contract owner-layer docs, registry, creation path, audit path, and real sample were implemented and validated.
+
+validated by:
+- uv run python -m py_compile scripts/round_control.py scripts/transition_specs.py scripts/open_task_contract.py scripts/audit_task_contracts.py scripts/audit_control_state.py
+- uv run python scripts/audit_product_docs.py
+- uv run python scripts/audit_task_contracts.py --project-id session-memory
+- uv run python scripts/audit_control_state.py --project-id session-memory
+- uv run python scripts/enforce_worktree.py --project-id session-memory
+
+validation_pending -> captured: Validated first task-contract owner layer on the real project and repo-owned audits all passed.
+
+validated by:
+- owner-layer validation recorded in round contract and latest commit a43b816
+
+captured -> closed: First task-contract owner-layer round is complete; successor round will land lifecycle and consumption surfaces.

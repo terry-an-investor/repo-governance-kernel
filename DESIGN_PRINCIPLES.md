@@ -230,6 +230,8 @@ Handoff must also preserve control continuity:
 - the active objective
 - whether the project is exploring or executing
 - recent pivots
+- active task contracts when concrete implementation work is already bounded at
+  that lower owner layer
 - active exception contracts
 - the current round boundary
 
