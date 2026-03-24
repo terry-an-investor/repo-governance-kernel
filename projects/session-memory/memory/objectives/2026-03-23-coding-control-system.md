@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: a057eb22768df04e3b2936054f61a2f65d7239ac
+git_sha: d77385036afc78caa4459d488bc9385fdec51cd4
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-24T08:37:29+08:00
-phase: paused
+updated_at: 2026-03-24T08:42:32+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -114,3 +114,5 @@ Phase changed from `execution` to `paused` because Caller-thinning governance sl
 Phase changed from `paused` to `execution` because A bounded execution slice is needed to move adjudication rewrite semantics toward a registry-owned executable contract instead of leaving plan compilation and target resolution scattered across compiler branches.
 
 Phase changed from `execution` to `paused` because Registry-owned adjudication payload-template governance round is closed; objective returns to paused until the next executable-semantics slice opens.
+
+Phase changed from `paused` to `execution` because Open a bounded governance round to lift transition guard rendering into registry-owned owner-layer semantics.

@@ -17,7 +17,7 @@ from assemble_context import (
     read_text,
 )
 from build_index import parse_evidence_refs, parse_frontmatter, parse_string_list, split_frontmatter
-from transition_specs import transition_command_spec
+from transition_specs import guard_spec, render_guard_text, transition_command_spec, transition_command_specs_for_domains
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,121 +30,6 @@ ROUND_STATUS_TRANSITIONS = {
     "captured": {"closed"},
     "closed": set(),
     "abandoned": set(),
-}
-ROUND_COMMAND_NAMES = {"open-round", "refresh-round-scope", "rewrite-open-round", "update-round-status"}
-OBJECTIVE_PHASE_COMMAND_NAMES = {
-    "open-objective",
-    "close-objective",
-    "record-soft-pivot",
-    "record-hard-pivot",
-    "set-phase",
-}
-EXCEPTION_CONTRACT_COMMAND_NAMES = {
-    "activate-exception-contract",
-    "retire-exception-contract",
-    "invalidate-exception-contract",
-}
-ANCHOR_MAINTENANCE_COMMAND_NAMES = {
-    "refresh-anchor",
-    "render-live-workspace",
-    "capture-snapshot",
-}
-ROUND_COMMAND_GUARD_TEXT = {
-    "linked_objective_is_active": lambda context: f"objective `{context['objective_id']}` exists and is active",
-    "linked_objective_is_execution": lambda context: "objective phase is `execution`",
-    "scope_present": lambda context: "scope items are present",
-    "validation_plan_present": lambda context: "validation plan is present",
-    "no_conflicting_open_round": lambda context: "no conflicting active round remains open",
-    "target_round_is_open": lambda context: f"round `{context['round_id']}` exists and remains open",
-    "refresh_reason_present": lambda context: "scope refresh reason is explicit",
-    "resulting_scope_paths_non_empty": lambda context: "resulting scope path set remains non-empty",
-    "scope_change_backed_by_evidence": lambda context: "scope refresh is backed by live dirty paths or explicit path edits",
-    "scope_change_produces_material_change": lambda context: "scope refresh produces a material scope-path change",
-    "round_exists": lambda context: f"round `{context['round_id']}` exists",
-    "status_transition_legal": lambda context: (
-        f"transition `{context['previous_status']} -> {context['next_status']}` is legal"
-        if context.get("previous_status") and context.get("next_status")
-        else "status transition is legal"
-    ),
-    "promotion_passes_enforcement_when_required": lambda context: "captured or closed promotion passes worktree enforcement when required",
-    "captured_has_validation_record": lambda context: "captured status includes at least one validation record when capture is requested",
-    "round_remains_open": lambda context: f"round `{context['round_id']}` exists and remains open",
-    "rewrite_reason_present": lambda context: "rewrite reason is explicit",
-    "rewritten_round_contract_stays_complete": lambda context: "rewritten round still has scope, deliverable, validation plan, and scope paths",
-    "round_identity_preserved": lambda context: "round identity is preserved while contract content is rewritten",
-    "rewrite_produces_material_change": lambda context: "rewrite produces at least one material round-contract change",
-}
-OBJECTIVE_PHASE_COMMAND_GUARD_TEXT = {
-    "objective_fields_present": lambda context: "problem, success criteria, non-goals, and phase are present",
-    "active_objective_phase_valid": lambda context: "initial objective phase is supported",
-    "no_other_active_objective": lambda context: "no control or durable active objective already exists",
-    "target_matches_active_objective": lambda context: (
-        f"objective `{context['objective_id']}` matches both control and durable active truth"
-        if context.get("objective_id")
-        else "target objective matches both control and durable active truth"
-    ),
-    "closing_status_supported": lambda context: (
-        f"closing status `{context['closing_status']}` is supported"
-        if context.get("closing_status")
-        else "closing status is supported"
-    ),
-    "no_open_rounds_for_objective": lambda context: "no durable open round remains attached to the objective",
-    "no_active_exception_contracts_for_objective": lambda context: "no active exception contract remains attached to the objective",
-    "material_objective_change_present": lambda context: "soft pivot produces at least one material objective change",
-    "resulting_objective_fields_present": lambda context: "resulting objective problem, success criteria, non-goals, and phase remain present",
-    "execution_phase_round_alignment_preserved": lambda context: "execution-phase objective state keeps one aligned durable open round when required",
-    "round_review_path_explicit_when_objective_shape_changes": lambda context: "open-round review path is explicit when the objective shape changes",
-    "previous_objective_is_active": lambda context: (
-        f"objective `{context['previous_objective_id']}` exists and is active"
-        if context.get("previous_objective_id")
-        else "previous objective exists and is active"
-    ),
-    "new_objective_fields_present": lambda context: "new objective problem, success criteria, non-goals, and phase are present",
-    "previous_objective_matches_control_truth": lambda context: "previous objective matches both control and durable active truth",
-    "no_open_rounds_on_previous_objective": lambda context: "no durable still-open round remains tied to the previous objective",
-    "phase_supported": lambda context: (
-        f"phase `{context['next_phase']}` is supported"
-        if context.get("next_phase")
-        else "target phase is supported"
-    ),
-    "phase_transition_prerequisites_met": lambda context: (
-        f"phase transition `{context['previous_phase']} -> {context['next_phase']}` satisfies its prerequisites"
-        if context.get("previous_phase") and context.get("next_phase")
-        else "phase transition prerequisites are met"
-    ),
-    "execution_phase_has_or_bootstraps_round": lambda context: "execution phase has one bounded round or bootstraps one in the same guarded transition",
-}
-EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT = {
-    "active_objective_available": lambda context: (
-        f"objective `{context['objective_id']}` exists and is active"
-        if context.get("objective_id")
-        else "one active objective exists"
-    ),
-    "exception_contract_required_fields_present": lambda context: (
-        "summary, reason, temporary behavior, risk, exit condition, and owner scope are present"
-    ),
-    "exception_contract_exists": lambda context: (
-        f"exception contract `{context['exception_contract_id']}` exists"
-        if context.get("exception_contract_id")
-        else "exception contract exists"
-    ),
-    "exception_contract_is_active": lambda context: (
-        f"exception contract `{context['exception_contract_id']}` is `active`"
-        if context.get("exception_contract_id")
-        else "exception contract is `active`"
-    ),
-    "pivot_exists_when_supplied": lambda context: (
-        f"pivot `{context['pivot_id']}` exists"
-        if context.get("pivot_id")
-        else "no pivot id was supplied, so no pivot lookup was required"
-    ),
-}
-ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT = {
-    "current_task_anchor_exists": lambda context: "current-task anchor exists and is readable",
-    "live_workspace_available": lambda context: "live workspace inspection is available",
-    "workspace_locator_available": lambda context: "workspace locator is present in current-task anchor",
-    "project_control_state_available": lambda context: "project control state required for snapshot capture is available",
-    "workspace_anchor_available": lambda context: "workspace anchor is available from current-task or latest snapshot context",
 }
 ROUND_WRITE_TARGET_LABELS = {
     "durable:round",
@@ -331,7 +216,6 @@ def round_command_spec(command_name: str):
     return _domain_command_spec(
         command_name,
         expected_domains={"round"},
-        declared_names=ROUND_COMMAND_NAMES,
         domain_label="round-domain",
     )
 
@@ -340,7 +224,6 @@ def objective_phase_command_spec(command_name: str):
     return _domain_command_spec(
         command_name,
         expected_domains={"objective-line", "phase"},
-        declared_names=OBJECTIVE_PHASE_COMMAND_NAMES,
         domain_label="objective/phase-domain",
     )
 
@@ -349,7 +232,6 @@ def exception_contract_command_spec(command_name: str):
     return _domain_command_spec(
         command_name,
         expected_domains={"exception-contract"},
-        declared_names=EXCEPTION_CONTRACT_COMMAND_NAMES,
         domain_label="exception-contract-domain",
     )
 
@@ -358,7 +240,6 @@ def anchor_maintenance_command_spec(command_name: str):
     return _domain_command_spec(
         command_name,
         expected_domains={"anchor-maintenance"},
-        declared_names=ANCHOR_MAINTENANCE_COMMAND_NAMES,
         domain_label="anchor-maintenance-domain",
     )
 
@@ -367,15 +248,12 @@ def _domain_command_spec(
     command_name: str,
     *,
     expected_domains: set[str],
-    declared_names: set[str],
     domain_label: str,
 ):
     spec = transition_command_spec(command_name)
     if spec.domain not in expected_domains:
         allowed_domains = ", ".join(f"`{domain}`" for domain in sorted(expected_domains))
         raise SystemExit(f"transition command `{command_name}` is not in expected {domain_label} domains {allowed_domains}")
-    if command_name not in declared_names:
-        raise SystemExit(f"{domain_label} command `{command_name}` is not declared in the owner-layer command set")
     return spec
 
 
@@ -385,7 +263,6 @@ def _assert_command_contract(
     domain_label: str,
     spec,
     provided_inputs: set[str],
-    guard_text_map: dict[str, object],
     allowed_write_targets: set[str],
     emits_transition_event: bool,
 ):
@@ -395,11 +272,8 @@ def _assert_command_contract(
             f"{domain_label} command `{command_name}` is missing registry-declared inputs: {', '.join(missing_inputs)}"
         )
 
-    unsupported_guards = sorted(guard_code for guard_code in spec.guard_codes if guard_code not in guard_text_map)
-    if unsupported_guards:
-        raise SystemExit(
-            f"{domain_label} command `{command_name}` declares unsupported guard renderers: {', '.join(unsupported_guards)}"
-        )
+    for guard_code in spec.guard_codes:
+        guard_spec(guard_code)
 
     unsupported_write_targets = sorted(set(spec.write_targets) - allowed_write_targets)
     if unsupported_write_targets:
@@ -426,7 +300,6 @@ def assert_round_command_contract(
         domain_label="round-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        guard_text_map=ROUND_COMMAND_GUARD_TEXT,
         allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
@@ -444,7 +317,6 @@ def assert_objective_phase_command_contract(
         domain_label="objective/phase-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        guard_text_map=OBJECTIVE_PHASE_COMMAND_GUARD_TEXT,
         allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
@@ -462,7 +334,6 @@ def assert_exception_contract_command_contract(
         domain_label="exception-contract-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        guard_text_map=EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT,
         allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
@@ -480,20 +351,19 @@ def assert_anchor_maintenance_command_contract(
         domain_label="anchor-maintenance-domain",
         spec=spec,
         provided_inputs=provided_inputs,
-        guard_text_map=ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT,
         allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
         emits_transition_event=emits_transition_event,
     )
 
 
-def _render_guard_lines(command_name: str, *, domain_label: str, spec, guard_text_map: dict[str, object], context: dict[str, str] | None) -> list[str]:
+def _render_guard_lines(command_name: str, *, domain_label: str, spec, context: dict[str, str] | None) -> list[str]:
     guard_context = context or {}
     rendered: list[str] = []
     for guard_code in spec.guard_codes:
-        renderer = guard_text_map.get(guard_code)
-        if renderer is None:
-            raise SystemExit(f"{domain_label} guard `{guard_code}` has no owner-layer renderer")
-        rendered.append(renderer(guard_context))
+        try:
+            rendered.append(render_guard_text(guard_code, guard_context))
+        except SystemExit as exc:
+            raise SystemExit(f"{domain_label} guard `{guard_code}` has no owner-layer renderer: {exc}") from exc
     return rendered
 
 
@@ -503,7 +373,6 @@ def render_round_guard_lines(command_name: str, *, context: dict[str, str] | Non
         command_name,
         domain_label="round-domain",
         spec=spec,
-        guard_text_map=ROUND_COMMAND_GUARD_TEXT,
         context=context,
     )
 
@@ -514,7 +383,6 @@ def render_objective_phase_guard_lines(command_name: str, *, context: dict[str, 
         command_name,
         domain_label="objective/phase-domain",
         spec=spec,
-        guard_text_map=OBJECTIVE_PHASE_COMMAND_GUARD_TEXT,
         context=context,
     )
 
@@ -525,7 +393,6 @@ def render_exception_contract_guard_lines(command_name: str, *, context: dict[st
         command_name,
         domain_label="exception-contract-domain",
         spec=spec,
-        guard_text_map=EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT,
         context=context,
     )
 
@@ -536,22 +403,21 @@ def render_anchor_maintenance_guard_lines(command_name: str, *, context: dict[st
         command_name,
         domain_label="anchor-maintenance-domain",
         spec=spec,
-        guard_text_map=ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT,
         context=context,
     )
 
 
 def _validate_domain_registry_contracts(
     *,
-    command_names: set[str],
+    expected_domains: set[str],
     domain_label: str,
-    spec_loader,
     allowed_statuses: set[str],
     allowed_write_targets: set[str],
-    guard_text_map: dict[str, object],
 ) -> None:
-    for command_name in sorted(command_names):
-        spec = spec_loader(command_name)
+    for spec in transition_command_specs_for_domains(expected_domains):
+        command_name = spec.name
+        if spec.implementation_status == "planned":
+            continue
         if spec.implementation_status not in allowed_statuses:
             rendered_statuses = ", ".join(f"`{status}`" for status in sorted(allowed_statuses))
             raise SystemExit(
@@ -562,53 +428,42 @@ def _validate_domain_registry_contracts(
                 f"{domain_label} command `{command_name}` declares unsupported write targets: {', '.join(sorted(set(spec.write_targets) - allowed_write_targets))}"
             )
         for guard_code in spec.guard_codes:
-            if guard_code not in guard_text_map:
-                raise SystemExit(
-                    f"{domain_label} command `{command_name}` declares unsupported guard renderer `{guard_code}`"
-                )
+            guard_spec(guard_code)
 
 
 def validate_round_domain_registry_contracts() -> None:
     _validate_domain_registry_contracts(
-        command_names=ROUND_COMMAND_NAMES,
+        expected_domains={"round"},
         domain_label="round-domain",
-        spec_loader=round_command_spec,
         allowed_statuses={"implemented"},
         allowed_write_targets=ROUND_WRITE_TARGET_LABELS,
-        guard_text_map=ROUND_COMMAND_GUARD_TEXT,
     )
 
 
 def validate_objective_phase_domain_registry_contracts() -> None:
     _validate_domain_registry_contracts(
-        command_names=OBJECTIVE_PHASE_COMMAND_NAMES,
+        expected_domains={"objective-line", "phase"},
         domain_label="objective/phase-domain",
-        spec_loader=objective_phase_command_spec,
         allowed_statuses={"implemented"},
         allowed_write_targets=OBJECTIVE_PHASE_WRITE_TARGET_LABELS,
-        guard_text_map=OBJECTIVE_PHASE_COMMAND_GUARD_TEXT,
     )
 
 
 def validate_exception_contract_domain_registry_contracts() -> None:
     _validate_domain_registry_contracts(
-        command_names=EXCEPTION_CONTRACT_COMMAND_NAMES,
+        expected_domains={"exception-contract"},
         domain_label="exception-contract-domain",
-        spec_loader=exception_contract_command_spec,
         allowed_statuses={"implemented"},
         allowed_write_targets=EXCEPTION_CONTRACT_WRITE_TARGET_LABELS,
-        guard_text_map=EXCEPTION_CONTRACT_COMMAND_GUARD_TEXT,
     )
 
 
 def validate_anchor_maintenance_domain_registry_contracts() -> None:
     _validate_domain_registry_contracts(
-        command_names=ANCHOR_MAINTENANCE_COMMAND_NAMES,
+        expected_domains={"anchor-maintenance"},
         domain_label="anchor-maintenance-domain",
-        spec_loader=anchor_maintenance_command_spec,
         allowed_statuses={"implemented", "partial"},
         allowed_write_targets=ANCHOR_MAINTENANCE_WRITE_TARGET_LABELS,
-        guard_text_map=ANCHOR_MAINTENANCE_COMMAND_GUARD_TEXT,
     )
 
 

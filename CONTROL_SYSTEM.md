@@ -178,6 +178,7 @@ That registry-owned contract now includes:
 
 - required inputs
 - guard coverage
+- guard rendering semantics
 - write-target coverage
 - durable owners
 - projection owners
@@ -237,6 +238,8 @@ manual edits:
   round identity, so pivots and adjudication can mutate round truth through a
   bounded owner-layer primitive instead of ad hoc file edits
 - round, exception-contract, and anchor-maintenance commands also consume the same shared registry-backed owner-layer assertion path
+- shared owner-layer consumers should discover implemented commands by registry
+  domain instead of maintaining private per-domain command lists
 - `audit_control_state` now warns when any shared domain consumer drifts from the semantic transition registry
 
 ## Precision Surfaces

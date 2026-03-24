@@ -5,6 +5,35 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class GuardSpec:
+    code: str
+    template: str
+    context_keys: tuple[str, ...] = ()
+    fallback_template: str = ""
+
+    def render(self, context: dict[str, str] | None = None) -> str:
+        render_context = {
+            key: str(value).strip()
+            for key, value in (context or {}).items()
+            if str(value).strip()
+        }
+        if self.context_keys and not all(render_context.get(key) for key in self.context_keys):
+            if self.fallback_template:
+                return self.fallback_template
+            missing = ", ".join(f"`{key}`" for key in self.context_keys)
+            raise SystemExit(f"guard `{self.code}` requires render context keys: {missing}")
+        return self.template.format(**render_context)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "code": self.code,
+            "template": self.template,
+            "context_keys": list(self.context_keys),
+            "fallback_template": self.fallback_template,
+        }
+
+
+@dataclass(frozen=True)
 class TransitionCommandSpec:
     name: str
     domain: str
@@ -73,6 +102,102 @@ SUPPORTED_ARTIFACT_OWNER_LABELS = {
 SUPPORTED_LIVE_INSPECTION_OWNER_LABELS = {
     "workspace:git-status",
 }
+
+
+GUARD_SPECS: tuple[GuardSpec, ...] = (
+    GuardSpec("linked_objective_is_active", "objective `{objective_id}` exists and is active", ("objective_id",), "linked objective exists and is active"),
+    GuardSpec("linked_objective_is_execution", "objective phase is `execution`"),
+    GuardSpec("scope_present", "scope items are present"),
+    GuardSpec("validation_plan_present", "validation plan is present"),
+    GuardSpec("no_conflicting_open_round", "no conflicting active round remains open"),
+    GuardSpec("target_round_is_open", "round `{round_id}` exists and remains open", ("round_id",), "target round exists and remains open"),
+    GuardSpec("refresh_reason_present", "scope refresh reason is explicit"),
+    GuardSpec("resulting_scope_paths_non_empty", "resulting scope path set remains non-empty"),
+    GuardSpec("scope_change_backed_by_evidence", "scope refresh is backed by live dirty paths or explicit path edits"),
+    GuardSpec("scope_change_produces_material_change", "scope refresh produces a material scope-path change"),
+    GuardSpec("round_exists", "round `{round_id}` exists", ("round_id",), "round exists"),
+    GuardSpec(
+        "status_transition_legal",
+        "transition `{previous_status} -> {next_status}` is legal",
+        ("previous_status", "next_status"),
+        "status transition is legal",
+    ),
+    GuardSpec("promotion_passes_enforcement_when_required", "captured or closed promotion passes worktree enforcement when required"),
+    GuardSpec("captured_has_validation_record", "captured status includes at least one validation record when capture is requested"),
+    GuardSpec("round_remains_open", "round `{round_id}` exists and remains open", ("round_id",), "round exists and remains open"),
+    GuardSpec("rewrite_reason_present", "rewrite reason is explicit"),
+    GuardSpec("rewritten_round_contract_stays_complete", "rewritten round still has scope, deliverable, validation plan, and scope paths"),
+    GuardSpec("round_identity_preserved", "round identity is preserved while contract content is rewritten"),
+    GuardSpec("rewrite_produces_material_change", "rewrite produces at least one material round-contract change"),
+    GuardSpec("objective_fields_present", "problem, success criteria, non-goals, and phase are present"),
+    GuardSpec("active_objective_phase_valid", "initial objective phase is supported"),
+    GuardSpec("no_other_active_objective", "no control or durable active objective already exists"),
+    GuardSpec(
+        "target_matches_active_objective",
+        "objective `{objective_id}` matches both control and durable active truth",
+        ("objective_id",),
+        "target objective matches both control and durable active truth",
+    ),
+    GuardSpec(
+        "closing_status_supported",
+        "closing status `{closing_status}` is supported",
+        ("closing_status",),
+        "closing status is supported",
+    ),
+    GuardSpec("no_open_rounds_for_objective", "no durable open round remains attached to the objective"),
+    GuardSpec("no_active_exception_contracts_for_objective", "no active exception contract remains attached to the objective"),
+    GuardSpec("material_objective_change_present", "soft pivot produces at least one material objective change"),
+    GuardSpec("resulting_objective_fields_present", "resulting objective problem, success criteria, non-goals, and phase remain present"),
+    GuardSpec("execution_phase_round_alignment_preserved", "execution-phase objective state keeps one aligned durable open round when required"),
+    GuardSpec("round_review_path_explicit_when_objective_shape_changes", "open-round review path is explicit when the objective shape changes"),
+    GuardSpec(
+        "previous_objective_is_active",
+        "objective `{previous_objective_id}` exists and is active",
+        ("previous_objective_id",),
+        "previous objective exists and is active",
+    ),
+    GuardSpec("new_objective_fields_present", "new objective problem, success criteria, non-goals, and phase are present"),
+    GuardSpec("previous_objective_matches_control_truth", "previous objective matches both control and durable active truth"),
+    GuardSpec("no_open_rounds_on_previous_objective", "no durable still-open round remains tied to the previous objective"),
+    GuardSpec("phase_supported", "phase `{next_phase}` is supported", ("next_phase",), "target phase is supported"),
+    GuardSpec(
+        "phase_transition_prerequisites_met",
+        "phase transition `{previous_phase} -> {next_phase}` satisfies its prerequisites",
+        ("previous_phase", "next_phase"),
+        "phase transition prerequisites are met",
+    ),
+    GuardSpec("execution_phase_has_or_bootstraps_round", "execution phase has one bounded round or bootstraps one in the same guarded transition"),
+    GuardSpec(
+        "active_objective_available",
+        "objective `{objective_id}` exists and is active",
+        ("objective_id",),
+        "one active objective exists",
+    ),
+    GuardSpec("exception_contract_required_fields_present", "summary, reason, temporary behavior, risk, exit condition, and owner scope are present"),
+    GuardSpec(
+        "exception_contract_exists",
+        "exception contract `{exception_contract_id}` exists",
+        ("exception_contract_id",),
+        "exception contract exists",
+    ),
+    GuardSpec(
+        "exception_contract_is_active",
+        "exception contract `{exception_contract_id}` is `active`",
+        ("exception_contract_id",),
+        "exception contract is `active`",
+    ),
+    GuardSpec(
+        "pivot_exists_when_supplied",
+        "pivot `{pivot_id}` exists",
+        ("pivot_id",),
+        "no pivot id was supplied, so no pivot lookup was required",
+    ),
+    GuardSpec("current_task_anchor_exists", "current-task anchor exists and is readable"),
+    GuardSpec("live_workspace_available", "live workspace inspection is available"),
+    GuardSpec("workspace_locator_available", "workspace locator is present in current-task anchor"),
+    GuardSpec("project_control_state_available", "project control state required for snapshot capture is available"),
+    GuardSpec("workspace_anchor_available", "workspace anchor is available from current-task or latest snapshot context"),
+)
 
 
 @dataclass(frozen=True)
@@ -514,6 +639,7 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
 )
 
 
+GUARD_SPEC_BY_CODE = {spec.code: spec for spec in GUARD_SPECS}
 COMMAND_SPEC_BY_NAME = {spec.name: spec for spec in TRANSITION_COMMAND_SPECS}
 PLAN_SPEC_BY_TYPE = {spec.plan_type: spec for spec in ADJUDICATION_PLAN_SPECS}
 
@@ -526,6 +652,8 @@ def validate_transition_specs() -> None:
         "artifact": SUPPORTED_ARTIFACT_OWNER_LABELS,
         "live inspection": SUPPORTED_LIVE_INSPECTION_OWNER_LABELS,
     }
+    if len(GUARD_SPEC_BY_CODE) != len(GUARD_SPECS):
+        raise SystemExit("duplicate guard codes found in transition registry")
     if len(COMMAND_SPEC_BY_NAME) != len(TRANSITION_COMMAND_SPECS):
         raise SystemExit("duplicate transition command names found in transition registry")
     if len(PLAN_SPEC_BY_TYPE) != len(ADJUDICATION_PLAN_SPECS):
@@ -547,6 +675,11 @@ def validate_transition_specs() -> None:
                 raise SystemExit(
                     f"transition command `{spec.name}` declares unsupported {owner_kind} owner labels: {', '.join(unsupported_labels)}"
                 )
+        unknown_guard_codes = sorted(set(spec.guard_codes) - set(GUARD_SPEC_BY_CODE))
+        if unknown_guard_codes:
+            raise SystemExit(
+                f"transition command `{spec.name}` declares unknown guard codes: {', '.join(unknown_guard_codes)}"
+            )
         if spec.emits_transition_event and "memory:transition-event" not in spec.write_targets and spec.implementation_status == "implemented":
             raise SystemExit(f"transition command `{spec.name}` emits transition events but does not declare `memory:transition-event`")
         if not spec.emits_transition_event and "memory:transition-event" in spec.write_targets:
@@ -589,6 +722,14 @@ def transition_command_spec(command_name: str) -> TransitionCommandSpec:
     return spec
 
 
+def transition_command_specs_for_domains(
+    domains: set[str],
+) -> list[TransitionCommandSpec]:
+    validate_transition_specs()
+    expected_domains = {domain.strip() for domain in domains if domain.strip()}
+    return [spec for spec in TRANSITION_COMMAND_SPECS if spec.domain in expected_domains]
+
+
 def semantic_transition_command_names() -> list[str]:
     validate_transition_specs()
     return [spec.name for spec in TRANSITION_COMMAND_SPECS if spec.has_semantic_contract()]
@@ -612,6 +753,18 @@ def adjudication_plan_spec(plan_type: str) -> AdjudicationPlanSpec:
     return spec
 
 
+def guard_spec(code: str) -> GuardSpec:
+    validate_transition_specs()
+    spec = GUARD_SPEC_BY_CODE.get(code.strip())
+    if spec is None:
+        raise SystemExit(f"unknown transition guard `{code}`")
+    return spec
+
+
+def render_guard_text(code: str, context: dict[str, str] | None = None) -> str:
+    return guard_spec(code).render(context)
+
+
 def semantic_adjudication_plan_types() -> list[str]:
     validate_transition_specs()
     return [spec.plan_type for spec in ADJUDICATION_PLAN_SPECS if spec.has_semantic_contract()]
@@ -620,6 +773,7 @@ def semantic_adjudication_plan_types() -> list[str]:
 def export_transition_registry() -> dict[str, object]:
     validate_transition_specs()
     return {
+        "guard_semantics": [spec.to_dict() for spec in GUARD_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
     }
