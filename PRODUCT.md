@@ -16,9 +16,9 @@ canonical_semantics_surfaces:
   - CONTROL_SYSTEM.md
   - STATE_MACHINE.md
   - TRANSITION_COMMANDS.md
-  - scripts/transition_specs.py
+  - kernel/transition_specs.py
   - scripts/audit_product_docs.py
-  - scripts/audit_control_state.py
+  - kernel/audit_control_state.py
 ---
 # Session Memory Product
 
@@ -126,7 +126,7 @@ The required path is:
 3. `STATE_MACHINE.md` freezes the legal state domains and transition intent
 4. `TRANSITION_COMMANDS.md` freezes the legal bounded command and bundle
    surface
-5. `scripts/transition_specs.py` owns the executable machine semantics for the
+5. `kernel/transition_specs.py` owns the executable machine semantics for the
    implemented subset
 6. audits fail when the product contract, canonical docs, and executable
    registry drift apart

@@ -22,7 +22,7 @@ This document defines:
 
 The executable authority for the implemented subset remains:
 
-- `scripts/transition_specs.py`
+- `kernel/transition_specs.py`
 
 ## Design Position
 

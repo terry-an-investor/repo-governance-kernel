@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: c3362fb45d058b5f2aa40e4e95ab00704bff26b4
+git_sha: e6bb8b721fa56c9b5a66a3f22a1b729105d62b37
 paths:
   - scripts/
   - projects/session-memory/control/
@@ -20,6 +20,7 @@ paths:
   - PRODUCT.md
   - ARCHITECTURE.md
   - DESIGN_PRINCIPLES.md
+  - kernel/
 thread_ids: []
 evidence_refs: []
 tags:
@@ -27,7 +28,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T11:51:07+08:00
-updated_at: 2026-03-24T14:44:23+08:00
+updated_at: 2026-03-24T14:51:39+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -43,6 +44,7 @@ A new M3 slice that broadens rewrite semantics honestly and lands the first unif
 - Extend registry-owned adjudication rewrite semantics beyond the current bounded round/task/exception slice without inventing new private executor branches.
 - Extract shared execution-building primitives so owner-layer commands stop accumulating one-off if/else dispatch paths.
 - Kernelize canonical product and control docs so the repo is framed as a repo governance kernel instead of a broader memory/autonomy system.
+- Physically separate reusable governance runtime modules into kernel/ while keeping sample project data under projects/session-memory/.
 
 ## Deliverable
 
@@ -66,3 +68,5 @@ _none recorded_
 _none recorded_
 
 Round rewritten because canonical docs now need to be kernelized so product, architecture, control, and machine-semantic docs match the registry-first governance stance already implemented
+
+Round rewritten because the current milestone now includes physically separating reusable governance runtime modules into a kernel package while keeping scripts as CLI entrypoints and compatibility wrappers

@@ -101,8 +101,8 @@ The immediate objective is:
   - plan target-resolution names are now explicit registry-owned semantics
   - plan side-effect names are now explicit registry-owned semantics instead of unchecked free strings
 - compile and execute now also share one resolver runtime layer:
-  - `scripts/resolver_runtime.py` now owns the bounded round / task-contract / exception-contract target resolution helpers
-  - bundle `state_resolver` names are now declared in `scripts/transition_specs.py` and consumed at runtime
+  - `kernel/resolver_runtime.py` now owns the bounded round / task-contract / exception-contract target resolution helpers
+  - bundle `state_resolver` names are now declared in `kernel/transition_specs.py` and consumed at runtime
   - adjudication `plan_spec.target_resolution` is now an explicit runtime gate instead of a doc-only registry field
   - close-capable round target resolution and hard-pivot bundle state resolution now also live in the same shared runtime instead of bundle-local branching
 - round-domain commands now consume one shared registry-backed owner-layer helper for:
@@ -144,10 +144,10 @@ The immediate objective is:
   - the bundle now composes registry payloads for `update-round-status` instead
     of hand-building nested script CLIs
   - executor smoke now proves `update-round-status` through
-    `scripts/executor_runtime.py` with explicit registry-owned payload fields
+    `kernel/executor_runtime.py` with explicit registry-owned payload fields
 - governed bundle step-selection semantics are now also registry-owned:
-  - bundle route states are declared in `scripts/transition_specs.py`
-  - bundle step templates are declared in `scripts/transition_specs.py`
+  - bundle route states are declared in `kernel/transition_specs.py`
+  - bundle step templates are declared in `kernel/transition_specs.py`
   - `scripts/execute_adjudication_followups.py` now runs one generic governed-bundle engine instead of one private handler per bundle
   - governed bundle steps can now also compose other governed bundles through the same owner-layer execution path instead of falling back to private nested orchestration
 - more already-implemented primitive commands now also declare executor payload semantics:
@@ -376,9 +376,9 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-objective.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/active-round.md`
 - `C:/Users/terryzzb/Desktop/session-memory/projects/session-memory/control/pivot-log.md`
-- `C:/Users/terryzzb/Desktop/session-memory/scripts/build_index.py`
+- `C:/Users/terryzzb/Desktop/session-memory/kernel/build_index.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/query_index.py`
-- `C:/Users/terryzzb/Desktop/session-memory/scripts/assemble_context.py`
+- `C:/Users/terryzzb/Desktop/session-memory/kernel/assemble_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_role_context.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/compile_adjudication_executor_plan.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/close_objective.py`
@@ -394,7 +394,7 @@ The immediate objective is:
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/record_soft_pivot.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/reconcile_control_state.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/rewrite_open_round.py`
-- `C:/Users/terryzzb/Desktop/session-memory/scripts/round_control.py`
+- `C:/Users/terryzzb/Desktop/session-memory/kernel/round_control.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/session_memory.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_adjudication_followups.py`
 - `C:/Users/terryzzb/Desktop/session-memory/scripts/smoke_exception_contracts.py`

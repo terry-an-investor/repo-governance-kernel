@@ -32,7 +32,7 @@ Machine behavior should not follow prose directly. The intended path is:
   language
 - `STATE_MACHINE.md` and `TRANSITION_COMMANDS.md` freeze the bounded machine
   surface
-- `scripts/transition_specs.py` remains the executable owner-layer authority
+- `kernel/transition_specs.py` remains the executable owner-layer authority
 - audits fail when these layers drift apart
 
 ## Repeated Problem Class

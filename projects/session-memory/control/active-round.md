@@ -9,6 +9,7 @@
 - Extend registry-owned adjudication rewrite semantics beyond the current bounded round/task/exception slice without inventing new private executor branches.
 - Extract shared execution-building primitives so owner-layer commands stop accumulating one-off if/else dispatch paths.
 - Kernelize canonical product and control docs so the repo is framed as a repo governance kernel instead of a broader memory/autonomy system.
+- Physically separate reusable governance runtime modules into kernel/ while keeping sample project data under projects/session-memory/.
 
 ## Deliverable
 

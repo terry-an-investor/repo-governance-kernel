@@ -81,7 +81,8 @@ Purpose:
 
 Primary kernel surfaces:
 
-- `scripts/audit_control_state.py`
+- `kernel/audit_control_state.py`
+- `kernel/control_enforcement.py`
 - `scripts/enforce_worktree.py`
 - repo-local git hooks
 - CI invocations of the same repo-owned enforcement commands
@@ -112,9 +113,9 @@ Purpose:
 
 Primary kernel surfaces:
 
-- transition registry
-- shared resolver/runtime helpers
-- transition command scripts
+- `kernel/transition_specs.py`
+- shared resolver/runtime helpers under `kernel/`
+- transition command entrypoints under `scripts/`
 - bounded adjudication follow-up compiler/executor
 
 This runtime must stay registry-first:
@@ -169,12 +170,17 @@ session-memory/
 ├── STATE_MACHINE.md
 ├── TRANSITION_COMMANDS.md
 ├── IMPLEMENTATION_PLAN.md
-├── scripts/
+├── kernel/
 │   ├── transition_specs.py
+│   ├── round_control.py
 │   ├── resolver_runtime.py
 │   ├── control_enforcement.py
 │   ├── audit_control_state.py
+│   └── ...
+├── scripts/
 │   ├── enforce_worktree.py
+│   ├── audit_control_state.py
+│   ├── transition_specs.py
 │   └── ...
 ├── projects/
 │   ├── session-memory/
