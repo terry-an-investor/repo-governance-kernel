@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import json
 import subprocess
-from pathlib import Path
 
 from kernel.executor_command_builder import build_registry_executor_command
+from kernel.runtime_paths import resolve_repo_root
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = resolve_repo_root()
 
 
 def run_command(cmd: list[str], *, failure_message: str) -> tuple[bool, str]:

@@ -15,7 +15,6 @@ It does not own:
 
 - `projects/session-memory/` dogfood control state
 - repo-local smoke/eval harnesses
-- git-hook installation glue
 - this repository's sample-specific history and fixtures
 
 ## Kernel Surfaces
@@ -43,6 +42,18 @@ Installed entrypoint target:
 
 ```powershell
 repo-governance-kernel audit-control-state --project-id session-memory
+```
+
+Bootstrap a new host repo:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
+```
+
+Install or refresh repo-local hooks:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/host/repo install-hooks --project-id my-repo
 ```
 
 Repo-local compatibility entrypoints still exist under `scripts/`, but they are

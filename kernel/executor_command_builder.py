@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 from kernel.transition_specs import command_allowed_executor_payload_keys, executor_field_specs_for_command, mutable_field_specs_for_command
+from kernel.runtime_paths import resolve_repo_root
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = resolve_repo_root()
 SCRIPTS = ROOT / "scripts"
 
 

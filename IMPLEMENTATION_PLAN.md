@@ -108,6 +108,19 @@ Needed outcomes:
 - kernel docs explain release boundary and support surface
 - host repo docs stop treating the sample as the product center
 
+### 7. Prove install-first host bootstrap on low-risk fixtures
+
+Needed outcomes:
+
+- one brand-new git repo can bootstrap the minimal governance surface through the kernel CLI
+- bootstrap installs repo-local hooks that call the shared kernel entrypoint instead of repo-private policy code
+- fixture validation proves the install path before higher-risk host rollout
+- real-host rollout proceeds in this order:
+  - disposable fixture repo
+  - frozen host snapshot
+  - shadow mode on a live host
+  - hard-gated adoption on a lower-risk real repo
+
 ## Out Of Scope
 
 The following should stay out of scope for this phase:

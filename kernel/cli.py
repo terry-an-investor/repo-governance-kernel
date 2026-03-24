@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
-from pathlib import Path
+from kernel.runtime_paths import REPO_ROOT_ENV_VAR, resolve_repo_root
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = resolve_repo_root()
 
 COMMAND_MODULES = {
     "activate-exception-contract": "kernel.commands.activate_exception_contract",
@@ -24,7 +25,9 @@ COMMAND_MODULES = {
     "create-snapshot": "kernel.commands.create_snapshot",
     "execute-adjudication-followups": "kernel.commands.execute_adjudication_followups",
     "invalidate-exception-contract": "kernel.commands.invalidate_exception_contract",
+    "install-hooks": "kernel.commands.install_hooks",
     "list-transition-registry": "kernel.commands.list_transition_registry",
+    "bootstrap-repo": "kernel.commands.bootstrap_repo",
     "open-objective": "kernel.commands.open_objective",
     "open-round": "kernel.commands.open_round",
     "open-task-contract": "kernel.commands.open_task_contract",
@@ -46,13 +49,19 @@ COMMAND_MODULES = {
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Unified CLI for the reusable governance kernel.")
+    parser.add_argument("--repo-root", default="")
     parser.add_argument("command", choices=sorted(COMMAND_MODULES))
     parser.add_argument("args", nargs=argparse.REMAINDER)
     parsed = parser.parse_args()
 
+    env = os.environ.copy()
+    repo_root = parsed.repo_root.strip()
+    if repo_root:
+        env[REPO_ROOT_ENV_VAR] = repo_root
+
     module_name = COMMAND_MODULES[parsed.command]
     cmd = [sys.executable, "-m", module_name, *parsed.args]
-    completed = subprocess.run(cmd, cwd=str(ROOT), check=False)
+    completed = subprocess.run(cmd, cwd=str(ROOT), check=False, env=env)
     return completed.returncode
 
 

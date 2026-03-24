@@ -17,6 +17,7 @@ from kernel.assemble_context import (
     read_text,
 )
 from kernel.build_index import parse_evidence_refs, parse_frontmatter, parse_string_list, split_frontmatter
+from kernel.runtime_paths import resolve_repo_root
 from kernel.transition_specs import (
     normalize_runtime_input_keys,
     guard_spec,
@@ -27,7 +28,7 @@ from kernel.transition_specs import (
 )
 
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = resolve_repo_root()
 OPEN_ROUND_STATUSES = {"draft", "active", "blocked", "validation_pending"}
 ROUND_STATUS_TRANSITIONS = {
     "draft": {"active", "abandoned"},

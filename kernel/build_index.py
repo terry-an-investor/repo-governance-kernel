@@ -6,9 +6,10 @@ import re
 import sqlite3
 from pathlib import Path
 
+from kernel.runtime_paths import resolve_index_path, resolve_repo_root
 
-ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "index" / "memory.sqlite"
+ROOT = resolve_repo_root()
+DB_PATH = resolve_index_path()
 
 
 FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---\r?\n(.*)$", re.DOTALL)

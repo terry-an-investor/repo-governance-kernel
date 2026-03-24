@@ -9,10 +9,10 @@ from datetime import datetime
 from pathlib import Path
 
 from kernel.build_index import parse_frontmatter, parse_string_list, split_frontmatter
+from kernel.runtime_paths import resolve_index_path, resolve_repo_root
 
-
-ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "index" / "memory.sqlite"
+ROOT = resolve_repo_root()
+DB_PATH = resolve_index_path()
 
 
 def read_text(path: Path) -> str:
