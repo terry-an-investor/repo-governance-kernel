@@ -182,6 +182,7 @@ That registry-owned contract now includes:
 - write-target semantics
 - write-target coverage
 - transition-command side-effect semantics
+- bounded command mutable-field semantics
 - durable owners
 - projection owners
 - artifact owners
@@ -239,12 +240,20 @@ manual edits:
 - `rewrite-open-round` rewrites one open round contract durably while preserving
   round identity, so pivots and adjudication can mutate round truth through a
   bounded owner-layer primitive instead of ad hoc file edits
+- the bounded round rewrite primitive should also keep its field-level mutation
+  contract in the registry:
+  - allowed mutable fields
+  - merge vs replace behavior
+  - replace-flag ownership
+  - payload-key admission for compiler and executor consumers
 - round, exception-contract, and anchor-maintenance commands also consume the same shared registry-backed owner-layer assertion path
 - shared owner-layer consumers should discover implemented commands by registry
   domain instead of maintaining private per-domain command lists
 - shared owner-layer consumers should validate command side-effect coverage
   against registry-owned write-target and owner semantics instead of keeping
   private write-target allowlists
+- adjudication rewrite execution should reject undeclared private payload keys
+  instead of silently tolerating executor-local rewrite semantics
 - `audit_control_state` now warns when any shared domain consumer drifts from the semantic transition registry
 
 ## Precision Surfaces
@@ -561,6 +570,8 @@ that subset:
 - `rewrite-open-round`
   - a bounded owner-layer round-contract rewrite that preserves round identity
   - reusable by soft pivots, phase fallback, and adjudication follow-ups
+  - its admitted mutable field surface should be registry-owned for every
+    compiler and executor consumer
 
 That means adjudication should separate:
 
@@ -576,6 +587,9 @@ payload. Those plan contracts should stay anchored to the same machine-readable
 transition registry that names command guards, write targets, side-effect
 classes, and owner-layer responsibilities for the underlying owner-layer
 commands.
+For bounded rewrite primitives, the same registry should also own the admitted
+mutable field surface instead of leaving field names and merge semantics spread
+across the rewrite script, the adjudication compiler, and the executor.
 For the supported bounded plan families, the registry should also own the
 payload-template bindings that materialize executor payload fields from plan
 contracts plus adjudication durable context, instead of leaving that mapping as

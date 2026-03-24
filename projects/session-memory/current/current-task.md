@@ -16,8 +16,8 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: ``
-- Phase: `paused`
+- Active round id: `round-2026-03-24-0907-lift-rewrite-open-round-field-semantics-into-registry-owned-owner-layer-contracts`
+- Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Phase-1 baseline already exists:
@@ -29,15 +29,14 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - extracting a shared round-domain registry consumer so round commands stop hand-owning duplicated guard and side-effect semantics
-  - making open-round, refresh-round-scope, rewrite-open-round, and update-round-status assert registry-backed input, guard, and write-target coverage
-  - teaching owner-layer validation to detect round-domain drift when command implementations stop matching semantic transition-registry contracts
-  - keeping the round-domain slice bounded instead of generalizing the same helper across every command domain at once
+  - lifting `rewrite-open-round` mutable field declarations into the transition registry instead of leaving field semantics private to `rewrite_open_round.py`
+  - making adjudication rewrite execution consume the same registry-owned rewrite field semantics and reject undeclared private payload keys
+  - keeping the rewrite slice bounded to one existing round-domain primitive instead of inventing a parallel rewrite stack
 
 ## Validated Facts
 
 - The latest committed baseline is:
-  - `fdf1e47 Add explicit phase and round-scope control commands`
+  - `06d9df9 Close transition side-effect semantics governance round`
 - `uv run python scripts/session_memory.py smoke` passes on the current working tree after frontmatter `executor_followups` and the prose-only blocked boundary landed.
 - `uv run python scripts/smoke_adjudication_followups.py` now passes with the first bounded multi-step bundle:
   - `round-close-chain`
@@ -63,16 +62,25 @@ The immediate objective is:
   - implementation status
   - required inputs
   - guard codes
+  - guard rendering semantics
+  - write-target semantics
   - write targets
   - side-effect codes
+  - transition-command side-effect semantics
+  - bounded command mutable-field semantics for governed rewrite primitives
   - executor-supported commands
   - bounded adjudication plan family names
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now checks registry name coverage and semantic coverage against `TRANSITION_COMMANDS.md`
 - `uv run python scripts/audit_control_state.py --project-id session-memory` now also checks round-domain registry consumer coverage against the shared owner-layer helper
 - round-domain commands now consume one shared registry-backed owner-layer helper for:
   - guard coverage
+  - guard rendering semantics
+  - transition-command side-effect semantics
   - write-target coverage
   - transition-event expectations
+- `rewrite-open-round` mutable field declarations are now being lifted into the registry so:
+  - the rewrite script consumes one registry-owned field surface
+  - adjudication rewrite execution can reject undeclared private payload keys
 - A deliberate protocol violation now fails honestly:
   - running one disposable adjudication smoke while `smoke_phase1.py` tries to start the suite causes `fixture_leak_before_run`
   - this is now a visible harness-protocol failure instead of a silent flaky test
@@ -343,10 +351,13 @@ The immediate objective is:
 - The new harness law now governs disposable fixture project leakage, but it
   still only checks declared fixture paths; richer contamination classes such as
   shared artifact collisions or index reuse policy remain outside the current suite runner.
-- The new transition registry now owns command and plan names, but it still does
-  not encode full guards, side effects, or write targets; semantic drift between
-  prose and registry remains possible until those richer fields move into the registry.
-- The compiler/executor boundary can still drift if future changes let in-place compilation overwrite explicit payloads or execute the same payload twice.
+- The transition registry now owns guards, write targets, side effects, and the
+  first bounded rewrite-field semantics, but broader field-level mutation
+  semantics and multi-object rewrite contracts still remain outside the current
+  machine-readable owner layer.
+- The compiler/executor boundary can still drift if future changes let in-place
+  compilation overwrite explicit payloads, admit undeclared command-specific
+  keys, or execute the same payload twice.
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
   - round scope refresh and round rewrite now exist, but broader multi-round replacement or hard-pivot-driven rewrite bundles still are not automatic
@@ -355,9 +366,14 @@ The immediate objective is:
 
 ## Next Steps
 
-1. Complete the active semantic-registry round so transition commands carry machine-readable guard, write-target, and side-effect contracts instead of name-only coverage.
-2. Open the successor round that makes round-domain commands and audit consume semantic transition-registry contracts directly.
-3. Open the successor round that broadens bounded adjudication plan families only where registry-backed command semantics already make execution honest.
+1. Finish the active rewrite-field semantics round so `rewrite-open-round`
+   field admission, merge/replace rules, and adjudication rewrite payloads all
+   consume one registry-owned contract.
+2. Continue removing executor-local command semantics by replacing long private
+   per-command payload branches with registry-backed dispatch where the command
+   surface is already frozen.
+3. Broaden bounded adjudication plan families only where underlying command
+   semantics are already registry-owned and auditable.
 4. Keep compressing assembled context so it acts like a handoff packet instead
    of a file dump.
 5. Run the first serious external-target role-eval bundle for `wind-agent`.

@@ -14,6 +14,7 @@ from round_control import (
     find_rounds,
     locate_exception_contract_file,
     locate_round_file,
+    parse_bullet_list,
 )
 from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_json
 
@@ -299,8 +300,29 @@ def main() -> None:
                 "plan_type": "rewrite-open-round-then-close-chain",
                 "round_id": initial_round_id,
                 "rewrite_reason": "Adjudication narrows the active round before it is closed so the durable round contract matches the verdict.",
+                "title": "Disposable predecessor round rewritten by adjudication",
+                "summary": "Adjudication narrows the predecessor round to one explicit validation slice before closure.",
+                "scope_item": [
+                    "Prove that registry-owned rewrite field semantics can replace the predecessor round scope before close-chain execution.",
+                ],
+                "scope_path": [
+                    "current/",
+                    "control/",
+                    "memory/",
+                    "memory/transition-events/",
+                ],
                 "deliverable": "A narrowed predecessor round that was rewritten by adjudication before closure.",
                 "validation_plan": "Rewrite the predecessor round, then close it through the governed close chain.",
+                "risk": [
+                    "Leaving the predecessor round broad would make the adjudication close-chain claim dishonest.",
+                ],
+                "blocker": [
+                    "The predecessor round must close before the successor adjudicated round opens.",
+                ],
+                "replace_scope_items": True,
+                "replace_scope_paths": True,
+                "replace_risks": True,
+                "replace_blockers": True,
                 "validation_pending_reason": "Adjudication accepted the disposable slice for final validation before closing it.",
                 "captured_reason": "Adjudication confirmed the disposable slice was validated and can be captured before closure.",
                 "closed_reason": "Adjudication closed the predecessor round before opening the narrower successor slice.",
@@ -403,8 +425,38 @@ def main() -> None:
         predecessor_meta, predecessor_sections = load_round_file(predecessor_round_path)
         if str(predecessor_meta.get("status") or "").strip() != "closed":
             raise SystemExit("round-close-chain did not close the predecessor round")
+        if str(predecessor_meta.get("title") or "").strip() != "Disposable predecessor round rewritten by adjudication":
+            raise SystemExit("adjudication did not rewrite the predecessor round title before closure")
+        if [str(item).strip() for item in predecessor_meta.get("paths", []) if str(item).strip()] != [
+            "current/",
+            "control/",
+            "memory/",
+            "memory/transition-events/",
+        ]:
+            raise SystemExit("adjudication did not replace the predecessor round scope paths before closure")
+        if parse_bullet_list(str(predecessor_sections.get("Scope", ""))) != [
+            "Prove that registry-owned rewrite field semantics can replace the predecessor round scope before close-chain execution.",
+        ]:
+            raise SystemExit("adjudication did not replace the predecessor round scope items before closure")
+        if str(predecessor_sections.get("Summary", "")).strip() != (
+            "Adjudication narrows the predecessor round to one explicit validation slice before closure."
+        ):
+            raise SystemExit("adjudication did not rewrite the predecessor round summary before closure")
         if "rewritten by adjudication before closure" not in str(predecessor_sections.get("Deliverable", "")):
             raise SystemExit("adjudication did not rewrite the predecessor round before closing it")
+        validation_plan_text = str(predecessor_sections.get("Validation Plan", "")).strip()
+        if "Rewrite the predecessor round, then close it through the governed close chain." not in validation_plan_text:
+            raise SystemExit("adjudication did not rewrite the predecessor round validation plan before closure")
+        if "Disposable adjudication fixture close-chain validation" not in validation_plan_text:
+            raise SystemExit("adjudication close-chain did not preserve the captured validation record")
+        if parse_bullet_list(str(predecessor_sections.get("Active Risks", ""))) != [
+            "Leaving the predecessor round broad would make the adjudication close-chain claim dishonest.",
+        ]:
+            raise SystemExit("adjudication did not replace the predecessor round risks before closure")
+        if parse_bullet_list(str(predecessor_sections.get("Blockers", ""))):
+            raise SystemExit("adjudication close-chain did not clear predecessor blockers before closure")
+        if "Adjudication rewrote the predecessor round before closure." not in str(predecessor_sections.get("Status Notes", "")):
+            raise SystemExit("adjudication did not append the predecessor round rewrite status note before closure")
 
         final_audit = run_json("audit_control_state.py", "--project-id", FIXTURE_PROJECT_ID)
         if final_audit["summary"]["errors"] != 0:

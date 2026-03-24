@@ -70,12 +70,45 @@ class TransitionSideEffectSpec:
 
 
 @dataclass(frozen=True)
+class CommandMutableFieldSpec:
+    command_name: str
+    code: str
+    payload_key: str
+    cli_flag: str
+    value_kind: str
+    storage_kind: str
+    storage_key: str
+    mutation_mode: str
+    replace_flag: str = ""
+    required_after_write: bool = False
+    include_reason_note: bool = False
+    material_requires_explicit_input: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "command_name": self.command_name,
+            "code": self.code,
+            "payload_key": self.payload_key,
+            "cli_flag": self.cli_flag,
+            "value_kind": self.value_kind,
+            "storage_kind": self.storage_kind,
+            "storage_key": self.storage_key,
+            "mutation_mode": self.mutation_mode,
+            "replace_flag": self.replace_flag,
+            "required_after_write": self.required_after_write,
+            "include_reason_note": self.include_reason_note,
+            "material_requires_explicit_input": self.material_requires_explicit_input,
+        }
+
+
+@dataclass(frozen=True)
 class TransitionCommandSpec:
     name: str
     domain: str
     executor_supported: bool = False
     implementation_status: str = "implemented"
     required_inputs: tuple[str, ...] = ()
+    mutable_field_codes: tuple[str, ...] = ()
     guard_codes: tuple[str, ...] = ()
     write_targets: tuple[str, ...] = ()
     side_effect_codes: tuple[str, ...] = ()
@@ -89,8 +122,10 @@ class TransitionCommandSpec:
         return bool(self.durable_owners or self.projection_owners or self.artifact_owners or self.live_inspection_owners)
 
     def has_semantic_contract(self) -> bool:
+        mutable_field_contract_present = "mutable_fields" not in self.required_inputs or bool(self.mutable_field_codes)
         return bool(
             self.required_inputs
+            and mutable_field_contract_present
             and self.guard_codes
             and self.write_targets
             and self.side_effect_codes
@@ -104,6 +139,7 @@ class TransitionCommandSpec:
             "executor_supported": self.executor_supported,
             "implementation_status": self.implementation_status,
             "required_inputs": list(self.required_inputs),
+            "mutable_field_codes": list(self.mutable_field_codes),
             "guard_codes": list(self.guard_codes),
             "write_targets": list(self.write_targets),
             "side_effect_codes": list(self.side_effect_codes),
@@ -198,6 +234,110 @@ TRANSITION_SIDE_EFFECT_SPECS: tuple[TransitionSideEffectSpec, ...] = (
         ("snapshot:historical",),
         artifact_owners=("snapshot:historical",),
         live_inspection_owners=("workspace:git-status",),
+    ),
+)
+
+
+COMMAND_MUTABLE_FIELD_SPECS: tuple[CommandMutableFieldSpec, ...] = (
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="title",
+        payload_key="title",
+        cli_flag="title",
+        value_kind="scalar",
+        storage_kind="meta_scalar",
+        storage_key="title",
+        mutation_mode="replace_if_present",
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="summary",
+        payload_key="summary",
+        cli_flag="summary",
+        value_kind="scalar",
+        storage_kind="section_text",
+        storage_key="Summary",
+        mutation_mode="replace_if_present",
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="scope_items",
+        payload_key="scope_item",
+        cli_flag="scope-item",
+        value_kind="list",
+        storage_kind="section_bullets",
+        storage_key="Scope",
+        mutation_mode="merge_unique",
+        replace_flag="replace_scope_items",
+        required_after_write=True,
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="deliverable",
+        payload_key="deliverable",
+        cli_flag="deliverable",
+        value_kind="scalar",
+        storage_kind="section_text",
+        storage_key="Deliverable",
+        mutation_mode="replace_if_present",
+        required_after_write=True,
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="validation_plan",
+        payload_key="validation_plan",
+        cli_flag="validation-plan",
+        value_kind="scalar",
+        storage_kind="section_text",
+        storage_key="Validation Plan",
+        mutation_mode="replace_if_present",
+        required_after_write=True,
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="risks",
+        payload_key="risk",
+        cli_flag="risk",
+        value_kind="list",
+        storage_kind="section_bullets",
+        storage_key="Active Risks",
+        mutation_mode="merge_unique",
+        replace_flag="replace_risks",
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="blockers",
+        payload_key="blocker",
+        cli_flag="blocker",
+        value_kind="list",
+        storage_kind="section_bullets",
+        storage_key="Blockers",
+        mutation_mode="merge_unique",
+        replace_flag="replace_blockers",
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="status_notes",
+        payload_key="status_note",
+        cli_flag="status-note",
+        value_kind="list",
+        storage_kind="section_text",
+        storage_key="Status Notes",
+        mutation_mode="append_paragraphs",
+        include_reason_note=True,
+        material_requires_explicit_input=True,
+    ),
+    CommandMutableFieldSpec(
+        command_name="rewrite-open-round",
+        code="paths",
+        payload_key="scope_path",
+        cli_flag="scope-path",
+        value_kind="list",
+        storage_kind="meta_list",
+        storage_key="paths",
+        mutation_mode="merge_unique",
+        replace_flag="replace_scope_paths",
+        required_after_write=True,
     ),
 )
 
@@ -507,6 +647,17 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         executor_supported=True,
         implementation_status="implemented",
         required_inputs=("project_id", "round_id", "reason", "mutable_fields"),
+        mutable_field_codes=(
+            "title",
+            "summary",
+            "scope_items",
+            "deliverable",
+            "validation_plan",
+            "risks",
+            "blockers",
+            "status_notes",
+            "paths",
+        ),
         guard_codes=(
             "round_remains_open",
             "rewrite_reason_present",
@@ -760,6 +911,16 @@ TRANSITION_SIDE_EFFECT_SPEC_BY_CODE = {spec.code: spec for spec in TRANSITION_SI
 GUARD_SPEC_BY_CODE = {spec.code: spec for spec in GUARD_SPECS}
 COMMAND_SPEC_BY_NAME = {spec.name: spec for spec in TRANSITION_COMMAND_SPECS}
 PLAN_SPEC_BY_TYPE = {spec.plan_type: spec for spec in ADJUDICATION_PLAN_SPECS}
+COMMAND_MUTABLE_FIELDS_BY_COMMAND: dict[str, tuple[CommandMutableFieldSpec, ...]] = {}
+for _mutable_field_spec in COMMAND_MUTABLE_FIELD_SPECS:
+    COMMAND_MUTABLE_FIELDS_BY_COMMAND.setdefault(_mutable_field_spec.command_name, tuple())
+    COMMAND_MUTABLE_FIELDS_BY_COMMAND[_mutable_field_spec.command_name] = (
+        *COMMAND_MUTABLE_FIELDS_BY_COMMAND[_mutable_field_spec.command_name],
+        _mutable_field_spec,
+    )
+COMMAND_MUTABLE_FIELD_SPEC_BY_COMMAND_AND_CODE = {
+    (spec.command_name, spec.code): spec for spec in COMMAND_MUTABLE_FIELD_SPECS
+}
 
 
 def _owner_labels_for_command(spec: TransitionCommandSpec, owner_bucket: str) -> set[str]:
@@ -851,6 +1012,9 @@ def validate_transition_specs() -> None:
     valid_implementation_statuses = {"implemented", "partial", "planned"}
     valid_write_target_surfaces = {"durable", "projection", "current", "artifact", "snapshot", "event"}
     valid_owner_buckets = {"durable", "projection", "artifact", "none"}
+    valid_mutable_value_kinds = {"scalar", "list"}
+    valid_mutable_storage_kinds = {"meta_scalar", "meta_list", "section_text", "section_bullets"}
+    valid_mutation_modes = {"replace_if_present", "merge_unique", "append_paragraphs"}
     owner_label_sets = {
         "durable": SUPPORTED_DURABLE_OWNER_LABELS,
         "projection": SUPPORTED_PROJECTION_OWNER_LABELS,
@@ -867,6 +1031,8 @@ def validate_transition_specs() -> None:
         raise SystemExit("duplicate transition command names found in transition registry")
     if len(PLAN_SPEC_BY_TYPE) != len(ADJUDICATION_PLAN_SPECS):
         raise SystemExit("duplicate adjudication plan types found in transition registry")
+    if len(COMMAND_MUTABLE_FIELD_SPEC_BY_COMMAND_AND_CODE) != len(COMMAND_MUTABLE_FIELD_SPECS):
+        raise SystemExit("duplicate command mutable-field codes found in transition registry")
 
     for target_spec in WRITE_TARGET_SPECS:
         if target_spec.surface not in valid_write_target_surfaces:
@@ -909,6 +1075,53 @@ def validate_transition_specs() -> None:
                     f"transition side effect `{side_effect_spec.code}` declares unsupported {owner_kind} owner labels: {', '.join(unsupported_labels)}"
                 )
 
+    known_commands = set(COMMAND_SPEC_BY_NAME)
+    for command_name, specs in COMMAND_MUTABLE_FIELDS_BY_COMMAND.items():
+        if command_name not in known_commands:
+            raise SystemExit(
+                f"command mutable-field semantics reference unknown transition command `{command_name}`"
+            )
+        payload_keys: set[str] = set()
+        cli_flags: set[str] = set()
+        replace_flags: set[str] = set()
+        for field_spec in specs:
+            if field_spec.value_kind not in valid_mutable_value_kinds:
+                raise SystemExit(
+                    f"command mutable field `{command_name}.{field_spec.code}` uses unsupported value kind `{field_spec.value_kind}`"
+                )
+            if field_spec.storage_kind not in valid_mutable_storage_kinds:
+                raise SystemExit(
+                    f"command mutable field `{command_name}.{field_spec.code}` uses unsupported storage kind `{field_spec.storage_kind}`"
+                )
+            if field_spec.mutation_mode not in valid_mutation_modes:
+                raise SystemExit(
+                    f"command mutable field `{command_name}.{field_spec.code}` uses unsupported mutation mode `{field_spec.mutation_mode}`"
+                )
+            if field_spec.payload_key in payload_keys:
+                raise SystemExit(
+                    f"command `{command_name}` reuses mutable payload key `{field_spec.payload_key}`"
+                )
+            payload_keys.add(field_spec.payload_key)
+            if field_spec.cli_flag in cli_flags:
+                raise SystemExit(
+                    f"command `{command_name}` reuses mutable cli flag `{field_spec.cli_flag}`"
+                )
+            cli_flags.add(field_spec.cli_flag)
+            if field_spec.replace_flag:
+                if field_spec.mutation_mode != "merge_unique":
+                    raise SystemExit(
+                        f"command mutable field `{command_name}.{field_spec.code}` declares replace flag without merge_unique semantics"
+                    )
+                if field_spec.replace_flag in replace_flags:
+                    raise SystemExit(
+                        f"command `{command_name}` reuses mutable replace flag `{field_spec.replace_flag}`"
+                    )
+                replace_flags.add(field_spec.replace_flag)
+            if field_spec.include_reason_note and field_spec.mutation_mode != "append_paragraphs":
+                raise SystemExit(
+                    f"command mutable field `{command_name}.{field_spec.code}` includes reason notes without append_paragraph semantics"
+                )
+
     for spec in TRANSITION_COMMAND_SPECS:
         if spec.implementation_status not in valid_implementation_statuses:
             raise SystemExit(f"transition command `{spec.name}` uses unsupported implementation status `{spec.implementation_status}`")
@@ -944,10 +1157,30 @@ def validate_transition_specs() -> None:
             raise SystemExit(f"transition command `{spec.name}` emits transition events but does not declare `memory:transition-event`")
         if not spec.emits_transition_event and "memory:transition-event" in spec.write_targets:
             raise SystemExit(f"transition command `{spec.name}` declares `memory:transition-event` despite `emits_transition_event=False`")
+        declared_mutable_codes = set(spec.mutable_field_codes)
+        known_mutable_codes = {
+            field_spec.code for field_spec in COMMAND_MUTABLE_FIELDS_BY_COMMAND.get(spec.name, ())
+        }
+        unknown_mutable_codes = sorted(declared_mutable_codes - known_mutable_codes)
+        if unknown_mutable_codes:
+            raise SystemExit(
+                f"transition command `{spec.name}` declares unknown mutable field codes: {', '.join(unknown_mutable_codes)}"
+            )
+        if "mutable_fields" in spec.required_inputs and not declared_mutable_codes:
+            raise SystemExit(
+                f"transition command `{spec.name}` requires `mutable_fields` but declares no mutable field semantics"
+            )
+        if "mutable_fields" not in spec.required_inputs and declared_mutable_codes:
+            raise SystemExit(
+                f"transition command `{spec.name}` declares mutable field semantics without requiring `mutable_fields`"
+            )
+        undocumented_mutable_specs = sorted(known_mutable_codes - declared_mutable_codes)
+        if undocumented_mutable_specs:
+            raise SystemExit(
+                f"transition command `{spec.name}` has registry mutable field semantics not declared on the command spec: {', '.join(undocumented_mutable_specs)}"
+            )
         if spec.implementation_status in {"implemented", "partial"}:
             validate_transition_command_semantics(spec)
-
-    known_commands = set(COMMAND_SPEC_BY_NAME)
     allowed_bundle_commands = {"round-close-chain"}
     for plan_spec in ADJUDICATION_PLAN_SPECS:
         if plan_spec.implementation_status not in valid_implementation_statuses:
@@ -968,6 +1201,30 @@ def validate_transition_specs() -> None:
             if template.command_name not in declared_compiled_commands:
                 raise SystemExit(
                     f"adjudication plan `{plan_spec.plan_type}` declares payload template for undeclared command `{template.command_name}`"
+                )
+            command_spec = COMMAND_SPEC_BY_NAME.get(template.command_name)
+            if command_spec is None or "mutable_fields" not in command_spec.required_inputs:
+                continue
+            allowed_payload_targets = {
+                field_name
+                for field_name in command_spec.required_inputs
+                if field_name not in {"project_id", "mutable_fields"}
+            }
+            for field_spec in COMMAND_MUTABLE_FIELDS_BY_COMMAND.get(template.command_name, ()):
+                allowed_payload_targets.add(field_spec.payload_key)
+                if field_spec.replace_flag:
+                    allowed_payload_targets.add(field_spec.replace_flag)
+            template_targets = {
+                key for key, _value in template.static_scalar_fields
+            } | {
+                key for key, _value in template.static_bool_fields
+            } | {
+                binding.target_key for binding in template.bindings
+            }
+            unknown_template_targets = sorted(template_targets - allowed_payload_targets)
+            if unknown_template_targets:
+                raise SystemExit(
+                    f"adjudication plan `{plan_spec.plan_type}` targets undeclared mutable payload keys for `{template.command_name}`: {', '.join(unknown_template_targets)}"
                 )
 
 
@@ -1006,6 +1263,25 @@ def transition_side_effect_spec(code: str) -> TransitionSideEffectSpec:
     if spec is None:
         raise SystemExit(f"unknown transition side effect `{code}`")
     return spec
+
+
+def mutable_field_specs_for_command(command_name: str) -> list[CommandMutableFieldSpec]:
+    validate_transition_specs()
+    return list(COMMAND_MUTABLE_FIELDS_BY_COMMAND.get(command_name.strip(), ()))
+
+
+def command_allowed_mutation_payload_keys(command_name: str) -> set[str]:
+    spec = transition_command_spec(command_name)
+    allowed = {
+        field_name
+        for field_name in spec.required_inputs
+        if field_name not in {"project_id", "mutable_fields"}
+    }
+    for field_spec in mutable_field_specs_for_command(command_name):
+        allowed.add(field_spec.payload_key)
+        if field_spec.replace_flag:
+            allowed.add(field_spec.replace_flag)
+    return allowed
 
 
 def semantic_transition_command_names() -> list[str]:
@@ -1054,6 +1330,7 @@ def export_transition_registry() -> dict[str, object]:
         "guard_semantics": [spec.to_dict() for spec in GUARD_SPECS],
         "write_target_semantics": [spec.to_dict() for spec in WRITE_TARGET_SPECS],
         "transition_side_effect_semantics": [spec.to_dict() for spec in TRANSITION_SIDE_EFFECT_SPECS],
+        "command_mutable_field_semantics": [spec.to_dict() for spec in COMMAND_MUTABLE_FIELD_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
     }

@@ -18,6 +18,7 @@ from round_control import (
     select_open_round_record,
 )
 from transition_specs import executor_supported_command_names
+from transition_specs import command_allowed_mutation_payload_keys, mutable_field_specs_for_command
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -163,6 +164,14 @@ def require_payload_text(payload: dict[str, object], field_name: str) -> str:
     if not value:
         raise SystemExit(f"executor {payload.get('command')} requires `{field_name}`")
     return value
+
+
+def _reject_unknown_payload_keys(command_name: str, payload: dict[str, object], allowed_keys: set[str]) -> None:
+    unknown_keys = sorted(set(payload) - {"command"} - allowed_keys)
+    if unknown_keys:
+        raise SystemExit(
+            f"executor {command_name} payload carries undeclared private keys: {', '.join(unknown_keys)}"
+        )
 
 
 def build_update_round_status_command(
@@ -372,40 +381,26 @@ def build_executor_command(project_id: str, payload: dict[str, object]) -> list[
         reason = str(payload.get("reason") or "").strip()
         if not reason:
             raise SystemExit("executor rewrite-open-round requires `reason`")
+        _reject_unknown_payload_keys(
+            command_name,
+            payload,
+            command_allowed_mutation_payload_keys("rewrite-open-round"),
+        )
         round_id = str(payload.get("round_id") or "").strip()
         if round_id:
             cmd.extend(["--round-id", round_id])
         cmd.extend(["--reason", reason])
-        title = str(payload.get("title") or "").strip()
-        if title:
-            cmd.extend(["--title", title])
-        summary = str(payload.get("summary") or "").strip()
-        if summary:
-            cmd.extend(["--summary", summary])
-        deliverable = str(payload.get("deliverable") or "").strip()
-        if deliverable:
-            cmd.extend(["--deliverable", deliverable])
-        validation_plan = str(payload.get("validation_plan") or "").strip()
-        if validation_plan:
-            cmd.extend(["--validation-plan", validation_plan])
-        for item in _string_list(payload.get("scope_item")):
-            cmd.extend(["--scope-item", item])
-        for item in _string_list(payload.get("scope_path")):
-            cmd.extend(["--scope-path", item])
-        for item in _string_list(payload.get("risk")):
-            cmd.extend(["--risk", item])
-        for item in _string_list(payload.get("blocker")):
-            cmd.extend(["--blocker", item])
-        for item in _string_list(payload.get("status_note")):
-            cmd.extend(["--status-note", item])
-        if bool(payload.get("replace_scope_items")):
-            cmd.append("--replace-scope-items")
-        if bool(payload.get("replace_risks")):
-            cmd.append("--replace-risks")
-        if bool(payload.get("replace_blockers")):
-            cmd.append("--replace-blockers")
-        if bool(payload.get("replace_scope_paths")):
-            cmd.append("--replace-scope-paths")
+        for field_spec in mutable_field_specs_for_command("rewrite-open-round"):
+            cli_flag = f"--{field_spec.cli_flag}"
+            if field_spec.value_kind == "scalar":
+                value = str(payload.get(field_spec.payload_key) or "").strip()
+                if value:
+                    cmd.extend([cli_flag, value])
+            else:
+                for item in _string_list(payload.get(field_spec.payload_key)):
+                    cmd.extend([cli_flag, item])
+            if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
+                cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
         return cmd
 
     if command_name == "set-phase":

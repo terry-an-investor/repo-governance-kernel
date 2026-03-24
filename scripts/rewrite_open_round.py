@@ -20,6 +20,7 @@ from round_control import (
     resolve_anchor,
     timestamp_now,
 )
+from transition_specs import mutable_field_specs_for_command
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,19 +28,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--round-id")
     parser.add_argument("--reason", required=True)
-    parser.add_argument("--title")
-    parser.add_argument("--summary")
-    parser.add_argument("--scope-item", action="append", default=[])
-    parser.add_argument("--deliverable")
-    parser.add_argument("--validation-plan")
-    parser.add_argument("--risk", action="append", default=[])
-    parser.add_argument("--blocker", action="append", default=[])
-    parser.add_argument("--status-note", action="append", default=[])
-    parser.add_argument("--scope-path", action="append", default=[])
-    parser.add_argument("--replace-scope-items", action="store_true")
-    parser.add_argument("--replace-risks", action="store_true")
-    parser.add_argument("--replace-blockers", action="store_true")
-    parser.add_argument("--replace-scope-paths", action="store_true")
+    for field_spec in mutable_field_specs_for_command("rewrite-open-round"):
+        cli_flag = f"--{field_spec.cli_flag}"
+        if field_spec.value_kind == "scalar":
+            parser.add_argument(cli_flag, default="")
+        else:
+            parser.add_argument(cli_flag, action="append", default=[])
+        if field_spec.replace_flag:
+            parser.add_argument(f"--{field_spec.replace_flag.replace('_', '-')}", action="store_true")
     return parser.parse_args()
 
 
@@ -55,6 +51,91 @@ def _merge_lists(existing: list[str], additions: list[str], *, replace: bool) ->
         if item not in merged:
             merged.append(item)
     return merged
+
+
+def _rewrite_field_specs():
+    return mutable_field_specs_for_command("rewrite-open-round")
+
+
+def _previous_field_value(field_spec, meta: dict[str, object], sections: dict[str, str]) -> str | list[str]:
+    if field_spec.storage_kind == "meta_scalar":
+        return str(meta.get(field_spec.storage_key) or "").strip()
+    if field_spec.storage_kind == "meta_list":
+        return [str(item).strip() for item in meta.get(field_spec.storage_key, []) if str(item).strip()]
+    if field_spec.storage_kind == "section_text":
+        return str(sections.get(field_spec.storage_key, "")).strip()
+    if field_spec.storage_kind == "section_bullets":
+        return parse_bullet_list(str(sections.get(field_spec.storage_key, "")))
+    raise SystemExit(
+        f"unsupported mutable field storage kind `{field_spec.storage_kind}` for `{field_spec.command_name}.{field_spec.code}`"
+    )
+
+
+def _incoming_field_value(args: argparse.Namespace, field_spec) -> str | list[str]:
+    raw_value = getattr(args, field_spec.payload_key)
+    if field_spec.value_kind == "scalar":
+        return str(raw_value or "").strip()
+    return _clean_list(list(raw_value or []))
+
+
+def _apply_field_mutation(
+    *,
+    previous_value: str | list[str],
+    incoming_value: str | list[str],
+    field_spec,
+    reason: str,
+    replace: bool,
+) -> str | list[str]:
+    if field_spec.mutation_mode == "replace_if_present":
+        return incoming_value if isinstance(incoming_value, str) and incoming_value else previous_value
+    if field_spec.mutation_mode == "merge_unique":
+        return _merge_lists(
+            list(previous_value) if isinstance(previous_value, list) else [],
+            list(incoming_value) if isinstance(incoming_value, list) else [],
+            replace=replace,
+        )
+    if field_spec.mutation_mode == "append_paragraphs":
+        parts: list[str] = []
+        previous_text = str(previous_value).strip()
+        if previous_text:
+            parts.append(previous_text)
+        if field_spec.include_reason_note:
+            parts.append(f"Round rewritten because {reason.strip()}")
+        parts.extend(item for item in list(incoming_value) if str(item).strip())
+        return "\n\n".join(parts).strip()
+    raise SystemExit(
+        f"unsupported mutable field mutation mode `{field_spec.mutation_mode}` for `{field_spec.command_name}.{field_spec.code}`"
+    )
+
+
+def _material_field_changed(
+    *,
+    previous_value: str | list[str],
+    next_value: str | list[str],
+    incoming_value: str | list[str],
+    field_spec,
+) -> bool:
+    if field_spec.material_requires_explicit_input:
+        return bool(incoming_value) and next_value != previous_value
+    return next_value != previous_value
+
+
+def _assert_required_field_values(rewritten_values: dict[str, str | list[str]]) -> None:
+    required_messages = {
+        "scope_items": "rewrite-open-round requires at least one scope item",
+        "deliverable": "rewrite-open-round requires a deliverable",
+        "validation_plan": "rewrite-open-round requires a validation plan",
+        "paths": "rewrite-open-round requires at least one scope path",
+    }
+    for field_spec in _rewrite_field_specs():
+        if not field_spec.required_after_write:
+            continue
+        value = rewritten_values[field_spec.code]
+        if isinstance(value, list) and value:
+            continue
+        if isinstance(value, str) and value.strip():
+            continue
+        raise SystemExit(required_messages.get(field_spec.code, f"rewrite-open-round requires `{field_spec.code}`"))
 
 
 def main() -> int:
@@ -78,90 +159,65 @@ def main() -> int:
             f"rewrite-open-round requires an open round status in {sorted(OPEN_ROUND_STATUSES)}; found `{previous_status}`"
         )
 
-    previous_scope_items = parse_bullet_list(str(sections.get("Scope", "")))
-    previous_risks = parse_bullet_list(str(sections.get("Active Risks", "")))
-    previous_blockers = parse_bullet_list(str(sections.get("Blockers", "")))
-    previous_paths = [str(item).strip() for item in meta.get("paths", []) if str(item).strip()]
-    previous_status_notes = str(sections.get("Status Notes", "")).strip()
-
-    next_title = (args.title or str(meta.get("title") or round_id)).strip()
-    next_summary = (args.summary or str(sections.get("Summary", ""))).strip()
-    next_scope_items = _merge_lists(previous_scope_items, _clean_list(args.scope_item), replace=args.replace_scope_items)
-    next_deliverable = (args.deliverable or str(sections.get("Deliverable", ""))).strip()
-    next_validation_plan = (args.validation_plan or str(sections.get("Validation Plan", ""))).strip()
-    next_risks = _merge_lists(previous_risks, _clean_list(args.risk), replace=args.replace_risks)
-    next_blockers = _merge_lists(previous_blockers, _clean_list(args.blocker), replace=args.replace_blockers)
-    next_paths = _merge_lists(previous_paths, _clean_list(args.scope_path), replace=args.replace_scope_paths)
-    next_status_notes = "\n\n".join(
-        part
-        for part in [
-            previous_status_notes,
-            f"Round rewritten because {args.reason.strip()}",
-            *[item for item in _clean_list(args.status_note)],
-        ]
-        if part
-    ).strip()
-
-    if not next_scope_items:
-        raise SystemExit("rewrite-open-round requires at least one scope item")
-    if not next_deliverable:
-        raise SystemExit("rewrite-open-round requires a deliverable")
-    if not next_validation_plan:
-        raise SystemExit("rewrite-open-round requires a validation plan")
-    if not next_paths:
-        raise SystemExit("rewrite-open-round requires at least one scope path")
-
+    previous_values = {
+        field_spec.code: _previous_field_value(field_spec, meta, sections)
+        for field_spec in _rewrite_field_specs()
+    }
+    rewritten_values: dict[str, str | list[str]] = {}
     changed_fields: list[str] = []
-    if next_title != str(meta.get("title") or round_id).strip():
-        changed_fields.append("title")
-    if next_summary != str(sections.get("Summary", "")).strip():
-        changed_fields.append("summary")
-    if next_scope_items != previous_scope_items:
-        changed_fields.append("scope_items")
-    if next_deliverable != str(sections.get("Deliverable", "")).strip():
-        changed_fields.append("deliverable")
-    if next_validation_plan != str(sections.get("Validation Plan", "")).strip():
-        changed_fields.append("validation_plan")
-    if next_risks != previous_risks:
-        changed_fields.append("risks")
-    if next_blockers != previous_blockers:
-        changed_fields.append("blockers")
-    if next_paths != previous_paths:
-        changed_fields.append("paths")
+    for field_spec in _rewrite_field_specs():
+        incoming_value = _incoming_field_value(args, field_spec)
+        replace = bool(field_spec.replace_flag and getattr(args, field_spec.replace_flag))
+        next_value = _apply_field_mutation(
+            previous_value=previous_values[field_spec.code],
+            incoming_value=incoming_value,
+            field_spec=field_spec,
+            reason=args.reason,
+            replace=replace,
+        )
+        rewritten_values[field_spec.code] = next_value
+        if _material_field_changed(
+            previous_value=previous_values[field_spec.code],
+            next_value=next_value,
+            incoming_value=incoming_value,
+            field_spec=field_spec,
+        ):
+            changed_fields.append(field_spec.code)
+    _assert_required_field_values(rewritten_values)
     if not changed_fields:
         raise SystemExit("rewrite-open-round produced no material round change")
 
     anchor = resolve_anchor(args.project_id)
     round_text = render_round_file(
         round_id=round_id,
-        title=next_title,
+        title=str(rewritten_values["title"]),
         status=previous_status,
         project_id=args.project_id,
         objective_id=str(meta.get("objective_id") or "").strip(),
         anchor=anchor,
-        paths=next_paths,
+        paths=list(rewritten_values["paths"]),
         created_at=str(meta.get("created_at") or "").strip() or timestamp_now().isoformat(timespec="seconds"),
         evidence_refs=[entry for entry in meta.get("evidence_refs", []) if isinstance(entry, dict)],
         tags=[str(item).strip() for item in meta.get("tags", []) if str(item).strip()],
         confidence=str(meta.get("confidence") or "high").strip() or "high",
         phase=str(meta.get("phase") or "execution").strip() or "execution",
-        summary=next_summary,
-        scope_items=next_scope_items,
-        deliverable=next_deliverable,
-        validation_plan=next_validation_plan,
-        risks=next_risks,
-        blockers=next_blockers,
-        status_notes=next_status_notes,
+        summary=str(rewritten_values["summary"]),
+        scope_items=list(rewritten_values["scope_items"]),
+        deliverable=str(rewritten_values["deliverable"]),
+        validation_plan=str(rewritten_values["validation_plan"]),
+        risks=list(rewritten_values["risks"]),
+        blockers=list(rewritten_values["blockers"]),
+        status_notes=str(rewritten_values["status_notes"]),
     )
     active_round_text = render_active_round_file(
         round_id=round_id,
         objective_id=str(meta.get("objective_id") or "").strip(),
         status=previous_status,
-        scope_items=next_scope_items,
-        deliverable=next_deliverable,
-        validation_plan=next_validation_plan,
-        risks=next_risks,
-        blockers=next_blockers,
+        scope_items=list(rewritten_values["scope_items"]),
+        deliverable=str(rewritten_values["deliverable"]),
+        validation_plan=str(rewritten_values["validation_plan"]),
+        risks=list(rewritten_values["risks"]),
+        blockers=list(rewritten_values["blockers"]),
     )
 
     timestamp = timestamp_now().strftime("%Y-%m-%d-%H%M%S")
