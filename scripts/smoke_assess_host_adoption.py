@@ -12,9 +12,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "assess-host-adoption"
+EXTERNAL_TARGET_ROOT = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-target"
 PROJECT_ID = "assess-host-adoption"
 EXTERNAL_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-report.md"
 EXTERNAL_DRAFT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-draft.md"
+WORKFLOW_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-workflow-report.md"
 
 
 def run(cmd: list[str], *, cwd: Path, expect_success: bool = True) -> subprocess.CompletedProcess[str]:
@@ -65,21 +67,45 @@ def kernel_json(repo_root: Path, command: str, *args: str, expect_success: bool 
     return json.loads(payload)
 
 
+def init_git_repo(path: Path) -> None:
+    run(["C:\\Program Files\\Git\\cmd\\git.exe", "init"], cwd=path)
+    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.email", "fixture@example.com"], cwd=path)
+    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.name", "Fixture Smoke"], cwd=path)
+
+
+def write_external_target_fixture(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    init_git_repo(path)
+    (path / "README.md").write_text("external fixture\n", encoding="utf-8", newline="\n")
+    baseline_doc = path / "docs" / "baseline.md"
+    baseline_doc.parent.mkdir(parents=True, exist_ok=True)
+    baseline_doc.write_text("baseline\n", encoding="utf-8", newline="\n")
+    run(["C:\\Program Files\\Git\\cmd\\git.exe", "add", "README.md", "docs/baseline.md"], cwd=path)
+    run(["C:\\Program Files\\Git\\cmd\\git.exe", "commit", "-m", "Initial external fixture baseline"], cwd=path)
+
+    (path / "docs" / "baseline.md").write_text("baseline changed\n", encoding="utf-8", newline="\n")
+    (path / "docs" / "close_reading" / "README.md").parent.mkdir(parents=True, exist_ok=True)
+    (path / "docs" / "close_reading" / "README.md").write_text("close reading\n", encoding="utf-8", newline="\n")
+    (path / "docs" / "close_reading" / "theme_close_read.md").write_text("theme close read\n", encoding="utf-8", newline="\n")
+
+
 def main() -> int:
     if FIXTURE_ROOT.exists():
         shutil.rmtree(FIXTURE_ROOT, onexc=on_rm_error)
+    if EXTERNAL_TARGET_ROOT.exists():
+        shutil.rmtree(EXTERNAL_TARGET_ROOT, onexc=on_rm_error)
     if EXTERNAL_REPORT_PATH.exists():
         EXTERNAL_REPORT_PATH.unlink()
     if EXTERNAL_DRAFT_PATH.exists():
         EXTERNAL_DRAFT_PATH.unlink()
+    if WORKFLOW_REPORT_PATH.exists():
+        WORKFLOW_REPORT_PATH.unlink()
     FIXTURE_ROOT.mkdir(parents=True, exist_ok=True)
-
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "init"], cwd=FIXTURE_ROOT)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.email", "fixture@example.com"], cwd=FIXTURE_ROOT)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.name", "Fixture Smoke"], cwd=FIXTURE_ROOT)
+    init_git_repo(FIXTURE_ROOT)
     (FIXTURE_ROOT / "README.md").write_text("fixture\n", encoding="utf-8", newline="\n")
     run(["C:\\Program Files\\Git\\cmd\\git.exe", "add", "README.md"], cwd=FIXTURE_ROOT)
     run(["C:\\Program Files\\Git\\cmd\\git.exe", "commit", "-m", "Initial fixture baseline"], cwd=FIXTURE_ROOT)
+    write_external_target_fixture(EXTERNAL_TARGET_ROOT)
 
     bootstrap = kernel_json(FIXTURE_ROOT, "bootstrap-repo", "--project-id", PROJECT_ID)
     objective = kernel_json(
@@ -199,9 +225,9 @@ def main() -> int:
         "--project-id",
         PROJECT_ID,
         "--workspace-root",
-        "C:/Users/terryzzb/Desktop/git_repos/buffet",
+        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
         "--source-repo",
-        "C:/Users/terryzzb/Desktop/git_repos/buffet",
+        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
         "--output",
         str(EXTERNAL_DRAFT_PATH),
     )
@@ -230,9 +256,9 @@ def main() -> int:
         "--project-id",
         PROJECT_ID,
         "--workspace-root",
-        "C:/Users/terryzzb/Desktop/git_repos/buffet",
+        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
         "--source-repo",
-        "C:/Users/terryzzb/Desktop/git_repos/buffet",
+        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
         "--mode",
         "external-target-shadow",
         "--output",
@@ -249,6 +275,32 @@ def main() -> int:
         raise SystemExit("external assessment output should not be marked as governed project current artifact")
     if not EXTERNAL_REPORT_PATH.exists():
         raise SystemExit(f"external assessment report was not written: {EXTERNAL_REPORT_PATH}")
+    if str(external_assessment["final_enforce"]["status"]) != "blocked":
+        raise SystemExit("external assessment should still be blocked before the workflow rewrites scope")
+
+    external_workflow = kernel_json(
+        FIXTURE_ROOT,
+        "assess-external-target-once",
+        "--project-id",
+        PROJECT_ID,
+        "--workspace-root",
+        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
+        "--source-repo",
+        str(EXTERNAL_TARGET_ROOT).replace("\\", "/"),
+        "--draft-output",
+        str(EXTERNAL_DRAFT_PATH),
+        "--report-output",
+        str(WORKFLOW_REPORT_PATH),
+    )
+    workflow_assessment = external_workflow["assessment"]
+    if str(workflow_assessment["final_enforce"]["status"]) != "ok":
+        raise SystemExit("external workflow should finish with an unblocked assessment after rewriting scope")
+    if workflow_assessment["round_scope_paths"] != external_workflow["adopted_round_scope_paths"]:
+        raise SystemExit("workflow assessment round scope should match the adopted rewrite scope")
+    if workflow_assessment["task_contract_paths"] != external_workflow["adopted_task_paths"]:
+        raise SystemExit("workflow assessment task scope should match the adopted rewrite scope")
+    if not WORKFLOW_REPORT_PATH.exists():
+        raise SystemExit(f"workflow report was not written: {WORKFLOW_REPORT_PATH}")
 
     print(
         json.dumps(
@@ -264,6 +316,7 @@ def main() -> int:
                 "assessment": assessment,
                 "external_draft": external_draft,
                 "external_assessment": external_assessment,
+                "external_workflow": external_workflow,
             },
             ensure_ascii=True,
             indent=2,

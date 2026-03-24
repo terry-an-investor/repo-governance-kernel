@@ -107,6 +107,19 @@ This draft surface is for external-target setup:
 - it writes a readable draft artifact and suggested command sequence instead of mutating durable control truth automatically
 - it exists to reduce hand-authored ambiguity before `assess-host-adoption` interprets the external target boundary
 
+Run the bounded single-pass external-target workflow:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/governed/host/repo assess-external-target-once --project-id my-repo --workspace-root C:/path/to/external/repo
+```
+
+This wrapper is intentionally narrow:
+
+- it drafts scope from the observed external dirty paths
+- it rewrites the current open round and current active task contract to that scope
+- it refreshes the current-task anchor and then runs `assess-host-adoption`
+- it stays inside existing owner-layer commands instead of inventing freeform mutation authority
+
 Install or refresh repo-local hooks:
 
 ```powershell

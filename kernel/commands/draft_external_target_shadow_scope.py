@@ -14,7 +14,6 @@ from kernel.host_adoption import (
 )
 from kernel.round_control import (
     assert_anchor_maintenance_command_contract,
-    current_task_path,
     find_task_contracts,
     project_dir,
     resolve_active_objective_record,
@@ -54,6 +53,7 @@ def main() -> int:
         raise SystemExit(f"external-target shadow drafting requires one open round: {details}")
     round_path, round_meta, _round_sections = round_record
     round_id = str(round_meta.get("id") or round_path.stem).strip()
+    current_round_scope_paths = [str(item).strip() for item in round_meta.get("paths", []) if str(item).strip()]
 
     active_task_contracts = find_task_contracts(args.project_id, round_id=round_id, statuses={"active"})
     if not active_task_contracts:
@@ -66,6 +66,7 @@ def main() -> int:
         )
     task_contract_path, task_contract_meta, _task_contract_sections = active_task_contracts[0]
     task_contract_id = str(task_contract_meta.get("id") or task_contract_path.stem).strip()
+    current_task_paths = [str(item).strip() for item in task_contract_meta.get("paths", []) if str(item).strip()]
 
     workspace_root = args.workspace_root.strip()
     source_repo = args.source_repo.strip() or workspace_root
@@ -94,6 +95,21 @@ def main() -> int:
     suggested_task_intent = (
         f"Author the smallest honest task boundary for the current `{repo_label}` dirty paths so assess-host-adoption can judge the repo without hand-authored ambiguity."
     )
+    suggested_task_summary = (
+        f"One bounded external-target shadow assessment path for the current `{repo_label}` dirty worktree."
+    )
+    suggested_task_allowed_changes = [
+        "Rewrite the active round and task-contract so their paths match the observed external target dirty paths.",
+        "Refresh the current-task anchor to the external workspace and run assess-host-adoption in external-target-shadow mode.",
+    ]
+    suggested_task_forbidden_changes = [
+        "Do not mutate the external source repository.",
+        "Do not claim broader live-host rewrite or continuous monitoring authority.",
+    ]
+    suggested_task_completion_criteria = [
+        "The active round and task-contract paths match the observed external target dirty paths.",
+        "The assessment report exists and its verdict reflects the rewritten external target scope.",
+    ]
 
     command_sequence = [
         "uv run python -m kernel.cli rewrite-open-round --project-id "
@@ -136,8 +152,12 @@ def main() -> int:
         suggested_round_deliverable=suggested_round_deliverable,
         suggested_round_validation_plan=suggested_round_validation_plan,
         suggested_task_title=str(task_contract_meta.get("title") or task_contract_id),
+        suggested_task_summary=suggested_task_summary,
         suggested_task_intent=suggested_task_intent,
         suggested_task_paths=suggested_scope_paths,
+        suggested_task_allowed_changes=suggested_task_allowed_changes,
+        suggested_task_forbidden_changes=suggested_task_forbidden_changes,
+        suggested_task_completion_criteria=suggested_task_completion_criteria,
         draft_contract_payload=contract_payload,
         live_workspace=live_workspace,
         dirty_paths=dirty_paths,
@@ -165,6 +185,8 @@ def main() -> int:
                 "round_path": str(round_path),
                 "task_contract_id": task_contract_id,
                 "task_contract_path": str(task_contract_path),
+                "current_round_scope_paths": current_round_scope_paths,
+                "current_task_paths": current_task_paths,
                 "workspace_root": workspace_root,
                 "source_repo": source_repo,
                 "draft_path": str(draft_path),
@@ -174,8 +196,12 @@ def main() -> int:
                 "suggested_round_scope_paths": suggested_scope_paths,
                 "suggested_round_deliverable": suggested_round_deliverable,
                 "suggested_round_validation_plan": suggested_round_validation_plan,
+                "suggested_task_summary": suggested_task_summary,
                 "suggested_task_paths": suggested_scope_paths,
                 "suggested_task_intent": suggested_task_intent,
+                "suggested_task_allowed_changes": suggested_task_allowed_changes,
+                "suggested_task_forbidden_changes": suggested_task_forbidden_changes,
+                "suggested_task_completion_criteria": suggested_task_completion_criteria,
                 "command_sequence": command_sequence,
                 "wrote_draft": True,
             }

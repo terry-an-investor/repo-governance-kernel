@@ -18,3 +18,6 @@ path, not a general live-host rewrite promise.
 For `external-target-shadow`, the preview now also includes a draft surface that
 turns the external repo's observed dirty paths into suggested round/task scope
 before the real assessment runs.
+
+It also now includes one bounded workflow wrapper that can draft scope, rewrite
+the active round/task, refresh the anchor, and run the assessment in one pass.

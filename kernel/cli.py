@@ -12,6 +12,7 @@ ROOT = resolve_repo_root()
 
 COMMAND_MODULES = {
     "activate-exception-contract": "kernel.commands.activate_exception_contract",
+    "assess-external-target-once": "kernel.commands.assess_external_target_once",
     "assess-host-adoption": "kernel.commands.assess_host_adoption",
     "adjudicate-control-state": "kernel.commands.adjudicate_control_state",
     "audit-control-state": "kernel.audit_control_state",

@@ -238,8 +238,12 @@ def render_external_target_shadow_scope_draft(
     suggested_round_deliverable: str,
     suggested_round_validation_plan: str,
     suggested_task_title: str,
+    suggested_task_summary: str,
     suggested_task_intent: str,
     suggested_task_paths: list[str],
+    suggested_task_allowed_changes: list[str],
+    suggested_task_forbidden_changes: list[str],
+    suggested_task_completion_criteria: list[str],
     draft_contract_payload: dict[str, object],
     live_workspace: dict[str, str],
     dirty_paths: list[str],
@@ -309,6 +313,7 @@ def render_external_target_shadow_scope_draft(
             "## Suggested Task-Contract Authoring",
             "",
             f"- Title: `{suggested_task_title}`",
+            f"- Summary: {suggested_task_summary}",
             f"- Intent: {suggested_task_intent}",
             "",
             "### Task Paths",
@@ -316,6 +321,30 @@ def render_external_target_shadow_scope_draft(
         ]
     )
     lines.extend(f"- `{path}`" for path in suggested_task_paths)
+    lines.extend(
+        [
+            "",
+            "### Allowed Changes",
+            "",
+        ]
+    )
+    lines.extend(f"- {item}" for item in suggested_task_allowed_changes)
+    lines.extend(
+        [
+            "",
+            "### Forbidden Changes",
+            "",
+        ]
+    )
+    lines.extend(f"- {item}" for item in suggested_task_forbidden_changes)
+    lines.extend(
+        [
+            "",
+            "### Completion Criteria",
+            "",
+        ]
+    )
+    lines.extend(f"- {item}" for item in suggested_task_completion_criteria)
     lines.extend(
         [
             "",
