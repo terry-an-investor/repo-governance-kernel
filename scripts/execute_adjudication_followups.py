@@ -5,9 +5,9 @@ import argparse
 import json
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
-from audit_control_state import audit_project_control_state
 from compile_adjudication_executor_plan import compile_plan_contracts
 from round_control import (
     load_all_adjudications,
@@ -18,6 +18,7 @@ from round_control import (
     select_open_round_record,
 )
 from transition_specs import (
+    bundle_governance_names,
     command_allowed_executor_payload_keys,
     executor_field_specs_for_command,
     executor_supported_command_names,
@@ -27,7 +28,19 @@ from transition_specs import (
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
-SUPPORTED_EXECUTOR_COMMANDS = set(executor_supported_command_names()) | {"round-close-chain"}
+GENERIC_EXECUTOR_COMMANDS = frozenset(
+    {
+        "close-objective",
+        "invalidate-exception-contract",
+        "refresh-round-scope",
+        "retire-exception-contract",
+        "set-phase",
+        "update-round-status",
+    }
+)
+
+ExecutorCommandBuilder = Callable[[str, dict[str, object]], list[str]]
+BundleExecutorHandler = Callable[[str, dict[str, object]], tuple[bool, str]]
 
 
 def parse_args() -> argparse.Namespace:
@@ -147,10 +160,11 @@ def parse_executor_followup_payload(payload_text: str, *, source_label: str) -> 
     command_name = str(payload.get("command") or "").strip()
     if not command_name:
         raise SystemExit(f"executor follow-up is missing `command`: {source_label}")
-    if command_name not in SUPPORTED_EXECUTOR_COMMANDS:
+    supported_commands = supported_executor_commands()
+    if command_name not in supported_commands:
         raise SystemExit(
             f"executor follow-up command `{command_name}` is not supported; "
-            f"supported commands: {', '.join(sorted(SUPPORTED_EXECUTOR_COMMANDS))}"
+            f"supported commands: {', '.join(sorted(supported_commands))}"
         )
     return payload
 
@@ -359,66 +373,98 @@ def build_round_close_chain_commands(project_id: str, payload: dict[str, object]
     )
 
 
+def build_rewrite_open_round_command(project_id: str, payload: dict[str, object]) -> list[str]:
+    cmd = [sys.executable, str(SCRIPTS / "rewrite_open_round.py"), "--project-id", project_id]
+    _append_executor_field_specs(cmd, payload, "rewrite-open-round")
+    for field_spec in mutable_field_specs_for_command("rewrite-open-round"):
+        cli_flag = f"--{field_spec.cli_flag}"
+        if field_spec.value_kind == "scalar":
+            value = str(payload.get(field_spec.payload_key) or "").strip()
+            if value:
+                cmd.extend([cli_flag, value])
+        else:
+            for item in _string_list(payload.get(field_spec.payload_key)):
+                cmd.extend([cli_flag, item])
+        if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
+            cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
+    return cmd
+
+
+EXECUTOR_COMMAND_BUILDERS: dict[str, ExecutorCommandBuilder] = {
+    "rewrite-open-round": build_rewrite_open_round_command,
+}
+
+
+def build_registry_executor_command(project_id: str, payload: dict[str, object], command_name: str) -> list[str]:
+    cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
+    _append_executor_field_specs(cmd, payload, command_name)
+    return cmd
+
+
 def build_executor_command(project_id: str, payload: dict[str, object]) -> list[str]:
     command_name = str(payload.get("command") or "").strip()
-    cmd = [sys.executable, str(SCRIPTS / f"{command_name.replace('-', '_')}.py"), "--project-id", project_id]
-
-    if command_name == "close-objective":
-        _append_executor_field_specs(cmd, payload, command_name)
-        return cmd
-
-    if command_name == "update-round-status":
-        _append_executor_field_specs(cmd, payload, command_name)
-        return cmd
-
-    if command_name == "refresh-round-scope":
-        _append_executor_field_specs(cmd, payload, command_name)
-        return cmd
-
-    if command_name == "rewrite-open-round":
-        _append_executor_field_specs(cmd, payload, command_name)
-        for field_spec in mutable_field_specs_for_command("rewrite-open-round"):
-            cli_flag = f"--{field_spec.cli_flag}"
-            if field_spec.value_kind == "scalar":
-                value = str(payload.get(field_spec.payload_key) or "").strip()
-                if value:
-                    cmd.extend([cli_flag, value])
-            else:
-                for item in _string_list(payload.get(field_spec.payload_key)):
-                    cmd.extend([cli_flag, item])
-            if field_spec.replace_flag and bool(payload.get(field_spec.replace_flag)):
-                cmd.append(f"--{field_spec.replace_flag.replace('_', '-')}")
-        return cmd
-
-    if command_name == "set-phase":
-        _append_executor_field_specs(cmd, payload, command_name)
-        return cmd
-
-    if command_name == "retire-exception-contract":
-        _append_executor_field_specs(cmd, payload, command_name)
-        return cmd
-
-    if command_name == "invalidate-exception-contract":
-        _append_executor_field_specs(cmd, payload, command_name)
-        return cmd
+    if command_name in GENERIC_EXECUTOR_COMMANDS:
+        return build_registry_executor_command(project_id, payload, command_name)
+    builder = EXECUTOR_COMMAND_BUILDERS.get(command_name)
+    if builder is not None:
+        return builder(project_id, payload)
 
     raise SystemExit(f"unsupported executor command `{command_name}`")
+
+
+def execute_round_close_chain(project_id: str, payload: dict[str, object]) -> tuple[bool, str]:
+    round_id, commands = build_round_close_chain_commands(project_id, payload)
+    if not commands:
+        return True, f"round `{round_id}` already closed"
+    executed_steps: list[str] = []
+    for step_label, cmd in commands:
+        success, detail = run_executor_command(cmd)
+        if not success:
+            return False, f"round `{round_id}` {step_label} failed: {detail}"
+        executed_steps.append(step_label)
+    return True, f"executed round-close-chain for `{round_id}` ({', '.join(executed_steps)})"
+
+
+BUNDLE_EXECUTOR_HANDLERS: dict[str, BundleExecutorHandler] = {
+    "round-close-chain": execute_round_close_chain,
+}
+
+
+def bundle_executor_handler_names() -> list[str]:
+    return sorted(BUNDLE_EXECUTOR_HANDLERS)
+
+
+def validate_bundle_governance_executor_contracts() -> None:
+    governed_bundle_names = set(bundle_governance_names())
+    executor_bundle_names = set(bundle_executor_handler_names())
+    missing_executor_handlers = sorted(governed_bundle_names - executor_bundle_names)
+    undocumented_executor_handlers = sorted(executor_bundle_names - governed_bundle_names)
+    if missing_executor_handlers or undocumented_executor_handlers:
+        details: list[str] = []
+        if missing_executor_handlers:
+            details.append(
+                "missing executor handlers for governed bundle wrappers: "
+                + ", ".join(f"`{name}`" for name in missing_executor_handlers)
+            )
+        if undocumented_executor_handlers:
+            details.append(
+                "executor exposes ungoverned bundle handlers: "
+                + ", ".join(f"`{name}`" for name in undocumented_executor_handlers)
+            )
+        raise SystemExit("; ".join(details))
+
+
+def supported_executor_commands() -> set[str]:
+    validate_bundle_governance_executor_contracts()
+    return set(executor_supported_command_names()) | set(bundle_executor_handler_names())
 
 
 def maybe_execute_structured_payload(project_id: str, payload_text: str) -> tuple[bool, str]:
     payload = parse_executor_followup_payload(payload_text, source_label="from adjudication frontmatter `executor_followups`")
     command_name = str(payload.get("command") or "").strip()
-    if command_name == "round-close-chain":
-        round_id, commands = build_round_close_chain_commands(project_id, payload)
-        if not commands:
-            return True, f"round `{round_id}` already closed"
-        executed_steps: list[str] = []
-        for step_label, cmd in commands:
-            success, detail = run_executor_command(cmd)
-            if not success:
-                return False, f"round `{round_id}` {step_label} failed: {detail}"
-            executed_steps.append(step_label)
-        return True, f"executed round-close-chain for `{round_id}` ({', '.join(executed_steps)})"
+    bundle_handler = BUNDLE_EXECUTOR_HANDLERS.get(command_name)
+    if bundle_handler is not None:
+        return bundle_handler(project_id, payload)
 
     success, detail = run_executor_command(build_executor_command(project_id, payload))
     if not success:
@@ -491,6 +537,8 @@ def maybe_execute_open_round(args: argparse.Namespace, adjudication_meta: dict[s
 
 
 def main() -> int:
+    from audit_control_state import audit_project_control_state
+
     args = parse_args()
     project_path = project_dir(args.project_id)
     if not project_path.exists():

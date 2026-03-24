@@ -7,6 +7,10 @@ import re
 from pathlib import Path
 
 from assemble_context import clean_section_text, inspect_live_workspace, parse_h2_sections, parse_keyed_bullets
+from execute_adjudication_followups import (
+    bundle_executor_handler_names,
+    validate_bundle_governance_executor_contracts,
+)
 from round_control import (
     ROOT,
     active_exception_contract_records,
@@ -31,6 +35,7 @@ from round_control import (
 )
 from transition_specs import (
     adjudication_plan_types,
+    bundle_governance_names,
     semantic_adjudication_plan_types,
     semantic_transition_command_names,
     transition_command_names,
@@ -171,6 +176,33 @@ def documented_plan_family_names(path: Path) -> set[str]:
             if line.startswith("- ") and "`" not in line:
                 break
     return plan_names
+
+
+def documented_bundle_wrapper_names(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    text = path.read_text(encoding="utf-8")
+    capture = False
+    started = False
+    bundle_names: set[str] = set()
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        if "current governed bundle wrappers include:" in line.lower():
+            capture = True
+            continue
+        if capture:
+            if not line.strip():
+                if started:
+                    break
+                continue
+            match = re.match(r"^\s*-\s+`([^`]+)`\s*$", line)
+            if match:
+                started = True
+                bundle_names.add(match.group(1).strip())
+                continue
+            if started or line.startswith("## "):
+                break
+    return bundle_names
 
 
 def relativize_changed_paths(
@@ -719,6 +751,60 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             message="TRANSITION_COMMANDS.md documents adjudication plan families that do not yet have semantic machine-readable coverage in the transition registry",
             evidence=missing_semantic_plans,
         )
+    documented_bundles = documented_bundle_wrapper_names(transition_commands_doc_path)
+    registry_bundles = set(bundle_governance_names())
+    executor_bundle_handlers = set(bundle_executor_handler_names())
+    missing_registry_bundles = sorted(documented_bundles - registry_bundles)
+    if missing_registry_bundles:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="documented_bundle_wrappers_missing_from_registry",
+            message="TRANSITION_COMMANDS.md documents bundle wrappers that are not present in the machine-readable bundle governance surface",
+            evidence=missing_registry_bundles,
+        )
+    undocumented_registry_bundles = sorted(registry_bundles - documented_bundles)
+    if undocumented_registry_bundles:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="registry_bundle_wrappers_missing_from_docs",
+            message="the machine-readable bundle governance surface includes bundle wrappers that TRANSITION_COMMANDS.md does not document",
+            evidence=undocumented_registry_bundles,
+        )
+    missing_executor_bundle_handlers = sorted(registry_bundles - executor_bundle_handlers)
+    if missing_executor_bundle_handlers:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="registry_bundle_wrappers_missing_from_executor",
+            message="the machine-readable bundle governance surface includes bundle wrappers that the executor does not implement",
+            evidence=missing_executor_bundle_handlers,
+        )
+    undocumented_executor_bundle_handlers = sorted(executor_bundle_handlers - registry_bundles)
+    if undocumented_executor_bundle_handlers:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="executor_bundle_wrappers_missing_from_registry",
+            message="the executor exposes bundle handlers that are not present in the machine-readable bundle governance surface",
+            evidence=undocumented_executor_bundle_handlers,
+        )
+    try:
+        validate_bundle_governance_executor_contracts()
+    except SystemExit as exc:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="bundle_governance_executor_consumer_drift",
+            message=str(exc),
+            evidence=["scripts/execute_adjudication_followups.py", "scripts/transition_specs.py"],
+        )
     try:
         validate_objective_phase_domain_registry_contracts()
     except SystemExit as exc:
@@ -765,6 +851,8 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
         )
     checks.append("transition registry coverage against documented command surface")
     checks.append("transition registry semantic coverage against documented command surface")
+    checks.append("bundle governance coverage against documented wrapper surface")
+    checks.append("bundle governance executor consumer coverage")
     checks.append("objective-phase-domain registry consumer coverage")
     checks.append("round-domain registry consumer coverage")
     checks.append("exception-contract-domain registry consumer coverage")

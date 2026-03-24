@@ -29,10 +29,10 @@ The immediate objective is:
   - durable docs define objective, pivot, and exception-contract as first-class objects
   - this project is the first real sample for hard pivot, soft pivot, and explicit objective close semantics
 - Current work is focused on:
-  - lifting `rewrite-open-round` mutable field declarations into the transition registry instead of leaving field semantics private to `rewrite_open_round.py`
-  - making adjudication rewrite execution consume the same registry-owned rewrite field semantics and reject undeclared private payload keys
-  - lifting supported executor command payload fields into the transition registry so `execute_adjudication_followups.py` stops hand-owning per-command payload-to-CLI semantics
-  - keeping the rewrite slice bounded to one existing round-domain primitive instead of inventing a parallel rewrite stack
+  - generalizing the bundle problem beyond `round-close-chain` so bundle wrappers are treated as a governed exception layer instead of accidental orchestration
+  - moving bundle wrapper admission out of local literals into one explicit owner-layer governance surface shared by plan validation and executor admission
+  - moving executor bundle dispatch out of private single-use branches into one explicit governed handler surface
+  - updating canonical docs and audit so bundle governance becomes repo law instead of a private implementation convention
 
 ## Validated Facts
 
@@ -87,6 +87,12 @@ The immediate objective is:
   - payload key admission
   - CLI flag binding
   - required runtime executor fields
+- bundle wrapper admission is now being pulled into one explicit governance
+  surface so executor and plan validation stop carrying hidden bundle exception
+  literals
+- executor bundle consumption is now being tightened toward one explicit
+  governed handler surface so adding a bundle requires touching the same
+  owner-layer contract instead of sneaking through a new private branch
 - A deliberate protocol violation now fails honestly:
   - running one disposable adjudication smoke while `smoke_phase1.py` tries to start the suite causes `fixture_leak_before_run`
   - this is now a visible harness-protocol failure instead of a silent flaky test
@@ -366,6 +372,10 @@ The immediate objective is:
   keys, or execute the same payload twice.
 - `round-close-chain` still remains a bundle-local executor semantic surface
   instead of a fully registry-declared payload builder.
+- broader bundle payload semantics are still intentionally narrow:
+  - the repo now governs wrapper admission explicitly
+  - but bundle-local payload semantics should not expand casually while this
+    governance layer is still settling
 - Automatic enforcement is still only partially implemented:
   - owner-layer enforcement now covers scope drift, projection drift, and guarded exception-path dishonesty, but broader abusive change classes still need explicit durable law instead of heuristics
   - round scope refresh and round rewrite now exist, but broader multi-round replacement or hard-pivot-driven rewrite bundles still are not automatic
@@ -374,14 +384,14 @@ The immediate objective is:
 
 ## Next Steps
 
-1. Finish the active rewrite-field semantics round so `rewrite-open-round`
-   field admission, merge/replace rules, and adjudication rewrite payloads all
-   consume one registry-owned contract.
-2. Continue removing executor-local command semantics by replacing long private
+1. Finish the active bundle-governance round so bundle wrapper admission,
+   executor admission, executor handler dispatch, and canonical docs all
+   consume one explicit owner-layer governance surface.
+2. Decide whether `round-close-chain` stays a bounded wrapper with narrow local
+   payload semantics or also gets a fuller machine-readable payload contract.
+3. Continue removing executor-local command semantics by replacing long private
    per-command payload branches with registry-backed dispatch where the command
    surface is already frozen.
-3. Decide whether `round-close-chain` stays a bounded bundle wrapper or also
-   gets registry-declared executor payload semantics.
 4. Broaden bounded adjudication plan families only where underlying command
    semantics are already registry-owned and auditable.
 5. Keep compressing assembled context so it acts like a handoff packet instead

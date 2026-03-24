@@ -287,6 +287,24 @@ This is why this project keeps moving work out of prompts and into:
 
 That shift is not ceremony. It is where review becomes tractable.
 
+## Bundle Governance
+
+Bundles are bounded orchestration wrappers, not a second primitive transition
+layer.
+
+The current governed bundle wrappers include:
+
+- `round-close-chain`
+
+Bundle wrappers should stay under these repo laws:
+
+- a bundle wrapper must be explicitly governed before plan compilation or executor admission
+- executor bundle dispatch must go through one explicit handler registry aligned with the governed wrapper surface
+- a bundle wrapper must compose existing primitive transition commands only
+- a bundle wrapper must not write durable truth directly outside those primitive commands
+- a bundle wrapper must not invent private semantics in compiler or executor branches
+- a bundle wrapper change must update canonical docs, machine-readable governance, and real smoke validation in the same round
+
 ## Review Leverage
 
 Human review should not depend on reading an entire session transcript or
@@ -606,6 +624,9 @@ auditable.
 They may also reuse the adjudication's existing round bootstrap fields when the
 repo is compiling a bounded phase-side-effect bundle such as entering
 `execution` and auto-opening one round.
+If a plan family must invoke a bundle wrapper instead of a primitive command,
+that wrapper should already appear in the repo-owned bundle governance surface;
+otherwise the plan is trying to smuggle in a private orchestration layer.
 Prose alone is not authority to rewrite durable truth.
 
 ## Drift Detection

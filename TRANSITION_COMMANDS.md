@@ -49,6 +49,10 @@ The current milestone also adds one first enforcement owner layer:
 
 - worktree enforcement before round promotion or closure
 
+The current governed bundle wrappers include:
+
+- `round-close-chain`
+
 ## Design Position
 
 Commands should map to state transitions, not to ad hoc file edits.
@@ -64,6 +68,12 @@ That means:
   in private executor or script branches
 - supported automatic executor commands should admit only registry-declared
   payload keys and CLI bindings
+- bundle wrappers are explicit exceptions:
+  - they must be governed explicitly
+  - executor bundle dispatch must go through one governed handler registry instead of private branches
+  - they must compose existing primitive commands only
+  - they must not write durable truth directly
+  - they must not invent private semantics outside repo-owned governance
 
 Current implementation status:
 
@@ -750,6 +760,7 @@ Current implementation status:
   - supports `active -> validation_pending -> captured -> closed`
   - supports resuming from `validation_pending` or `captured`
   - refuses unsupported starting statuses instead of improvising
+  - remains a governed bundle wrapper, not a primitive transition command
 - bounded exception-contract plan bundles can target active exception contracts
   through adjudication `Objects Invalidated` when the mapping stays
   deterministic and auditable

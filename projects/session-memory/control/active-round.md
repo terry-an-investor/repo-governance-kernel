@@ -6,17 +6,17 @@
 
 ## Scope
 
-- Lift rewrite-open-round mutable field declarations into the transition registry instead of leaving field semantics private to rewrite_open_round.py and executor plumbing.
-- Make adjudication rewrite payload execution consume the same registry-owned field semantics and reject undeclared private rewrite keys.
-- Update canonical docs and current-task so the registry contract truthfully includes rewrite field semantics for the bounded round primitive.
+- Generalize the bundle problem beyond round-close-chain and define the repo law for bundle wrappers versus primitive transition commands.
+- Move bundle wrapper admission out of local literals into one explicit owner-layer governance surface that executor and plan validation both consume.
+- Update canonical docs and current-task so bundle governance is treated as a system rule, not an implementation afterthought.
 
 ## Deliverable
 
-Registry-owned rewrite field semantics govern rewrite-open-round mutation surface and adjudication executor payloads.
+Bundle wrappers are governed by explicit repo-owned rules and one narrow machine-readable governance surface instead of private ad hoc exceptions.
 
 ## Validation Plan
 
-Run targeted py_compile, registry export, adjudication follow-up smoke, control audit, and worktree enforcement after the rewrite field semantics land.
+Run py_compile, transition registry export, adjudication follow-up smoke, control audit, and worktree enforcement after bundle governance law lands.
 
 ## Active Risks
 

@@ -120,6 +120,28 @@ class CommandExecutorFieldSpec:
 
 
 @dataclass(frozen=True)
+class BundleGovernanceSpec:
+    name: str
+    bundle_kind: str
+    purpose: str
+    composed_commands: tuple[str, ...]
+    direct_write_forbidden: bool = True
+    private_semantics_forbidden: bool = True
+    required_validations: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "bundle_kind": self.bundle_kind,
+            "purpose": self.purpose,
+            "composed_commands": list(self.composed_commands),
+            "direct_write_forbidden": self.direct_write_forbidden,
+            "private_semantics_forbidden": self.private_semantics_forbidden,
+            "required_validations": list(self.required_validations),
+        }
+
+
+@dataclass(frozen=True)
 class TransitionCommandSpec:
     name: str
     domain: str
@@ -403,6 +425,17 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("invalidate-exception-contract", "reason", "reason", "scalar", required=True),
     CommandExecutorFieldSpec("invalidate-exception-contract", "evidence", "evidence", "list"),
     CommandExecutorFieldSpec("invalidate-exception-contract", "pivot_id", "pivot-id", "scalar"),
+)
+
+
+BUNDLE_GOVERNANCE_SPECS: tuple[BundleGovernanceSpec, ...] = (
+    BundleGovernanceSpec(
+        name="round-close-chain",
+        bundle_kind="executor-wrapper",
+        purpose="Advance one round through the legal close sequence by composing only existing round status transitions.",
+        composed_commands=("update-round-status",),
+        required_validations=("scripts/smoke_adjudication_followups.py",),
+    ),
 )
 
 
@@ -992,6 +1025,7 @@ for _executor_field_spec in COMMAND_EXECUTOR_FIELD_SPECS:
         *COMMAND_EXECUTOR_FIELDS_BY_COMMAND[_executor_field_spec.command_name],
         _executor_field_spec,
     )
+BUNDLE_GOVERNANCE_SPEC_BY_NAME = {spec.name: spec for spec in BUNDLE_GOVERNANCE_SPECS}
 
 
 def _owner_labels_for_command(spec: TransitionCommandSpec, owner_bucket: str) -> set[str]:
@@ -1105,6 +1139,8 @@ def validate_transition_specs() -> None:
         raise SystemExit("duplicate adjudication plan types found in transition registry")
     if len(COMMAND_MUTABLE_FIELD_SPEC_BY_COMMAND_AND_CODE) != len(COMMAND_MUTABLE_FIELD_SPECS):
         raise SystemExit("duplicate command mutable-field codes found in transition registry")
+    if len(BUNDLE_GOVERNANCE_SPEC_BY_NAME) != len(BUNDLE_GOVERNANCE_SPECS):
+        raise SystemExit("duplicate bundle governance names found in transition registry")
 
     for target_spec in WRITE_TARGET_SPECS:
         if target_spec.surface not in valid_write_target_surfaces:
@@ -1217,6 +1253,23 @@ def validate_transition_specs() -> None:
                 )
             cli_flags.add(field_spec.cli_flag)
 
+    for bundle_spec in BUNDLE_GOVERNANCE_SPECS:
+        if bundle_spec.name in known_commands:
+            raise SystemExit(
+                f"bundle governance `{bundle_spec.name}` collides with a transition command name"
+            )
+        unknown_composed_commands = sorted(set(bundle_spec.composed_commands) - known_commands)
+        if unknown_composed_commands:
+            raise SystemExit(
+                f"bundle governance `{bundle_spec.name}` composes unknown transition commands: {', '.join(unknown_composed_commands)}"
+            )
+        for command_name in bundle_spec.composed_commands:
+            command_spec = COMMAND_SPEC_BY_NAME[command_name]
+            if not command_spec.executor_supported:
+                raise SystemExit(
+                    f"bundle governance `{bundle_spec.name}` composes non-executor-supported command `{command_name}`"
+                )
+
     for spec in TRANSITION_COMMAND_SPECS:
         if spec.implementation_status not in valid_implementation_statuses:
             raise SystemExit(f"transition command `{spec.name}` uses unsupported implementation status `{spec.implementation_status}`")
@@ -1287,7 +1340,7 @@ def validate_transition_specs() -> None:
                 )
         if spec.implementation_status in {"implemented", "partial"}:
             validate_transition_command_semantics(spec)
-    allowed_bundle_commands = {"round-close-chain"}
+    allowed_bundle_commands = set(BUNDLE_GOVERNANCE_SPEC_BY_NAME)
     for plan_spec in ADJUDICATION_PLAN_SPECS:
         if plan_spec.implementation_status not in valid_implementation_statuses:
             raise SystemExit(
@@ -1413,6 +1466,11 @@ def executor_supported_command_names() -> list[str]:
     return [spec.name for spec in TRANSITION_COMMAND_SPECS if spec.executor_supported]
 
 
+def bundle_governance_names() -> list[str]:
+    validate_transition_specs()
+    return [spec.name for spec in BUNDLE_GOVERNANCE_SPECS]
+
+
 def adjudication_plan_types() -> list[str]:
     validate_transition_specs()
     return [spec.plan_type for spec in ADJUDICATION_PLAN_SPECS]
@@ -1451,6 +1509,7 @@ def export_transition_registry() -> dict[str, object]:
         "transition_side_effect_semantics": [spec.to_dict() for spec in TRANSITION_SIDE_EFFECT_SPECS],
         "command_mutable_field_semantics": [spec.to_dict() for spec in COMMAND_MUTABLE_FIELD_SPECS],
         "command_executor_field_semantics": [spec.to_dict() for spec in COMMAND_EXECUTOR_FIELD_SPECS],
+        "bundle_governance": [spec.to_dict() for spec in BUNDLE_GOVERNANCE_SPECS],
         "transition_commands": [spec.to_dict() for spec in TRANSITION_COMMAND_SPECS],
         "adjudication_plan_families": [spec.to_dict() for spec in ADJUDICATION_PLAN_SPECS],
     }
