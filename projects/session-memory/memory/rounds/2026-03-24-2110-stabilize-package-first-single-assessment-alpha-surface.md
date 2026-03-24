@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: e3f037ca785a31fa742af7d8d54d55734991afcb
+git_sha: e93c10d47b4be2445bb73d8deb0e65d8661959a1
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
@@ -25,6 +25,8 @@ paths:
   - projects/session-memory/memory/decisions
   - kernel/README.md
   - kernel/docs/TRANSITION_COMMANDS.md
+  - scripts/enforce_worktree.py
+  - .github/workflows
 thread_ids: []
 evidence_refs: []
 tags:
@@ -32,7 +34,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:10:50+08:00
-updated_at: 2026-03-24T21:38:14+08:00
+updated_at: 2026-03-24T21:57:28+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -80,3 +82,5 @@ Round rewritten because Root markdown cleanup now includes creating a docs hiera
 Round rewritten because Root doc cleanup deletes the old auxiliary paths after migrating them into docs/, so the round must cover both the new docs tree and the retiring root files.
 
 Round rewritten because The a2 package-first slice now extends from installed-wheel bootstrap and audit to installed-wheel external-target single assessment proof plus package-facing smoke registration, so the round contract must describe the real proof path.
+
+Round rewritten because CI now needs a cross-environment workspace-root override for owner-layer enforcement, so the round boundary must cover the workflow surface and the repo-local enforcement wrapper that consume that override.

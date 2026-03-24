@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: e3f037ca785a31fa742af7d8d54d55734991afcb
+git_sha: e93c10d47b4be2445bb73d8deb0e65d8661959a1
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
@@ -25,6 +25,8 @@ paths:
   - projects/session-memory/memory/decisions
   - kernel/README.md
   - kernel/docs/TRANSITION_COMMANDS.md
+  - scripts/enforce_worktree.py
+  - .github/workflows
 thread_ids: []
 evidence_refs: []
 tags:
@@ -32,7 +34,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:11:05+08:00
-updated_at: 2026-03-24T21:38:14+08:00
+updated_at: 2026-03-24T21:57:28+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface"
@@ -88,3 +90,5 @@ Task contract rewritten because Root markdown cleanup now includes moving weakly
 Task contract rewritten because Root doc cleanup deletes the old auxiliary paths after migrating them into docs/, so the task boundary must cover both the new docs tree and the retiring root files.
 
 Task contract rewritten because The active task now needs to prove installed-wheel external-target single assessment and register that proof path in package-facing docs and smoke surfaces, so the task contract must describe that real execution boundary.
+
+Task contract rewritten because The active task now also needs to repair GitHub Actions enforcement by passing an explicit runner workspace root through the owner-layer command surface, so the task must cover the workflow file and enforcement wrapper path.

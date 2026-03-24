@@ -197,6 +197,10 @@ Detect dishonest or conflicting control state without mutation.
 Block dishonest promotion when the live worktree no longer matches active
 control truth.
 
+This command normally inspects the workspace root from the governed anchor, but
+it may also accept one explicit `workspace_root` override when the execution
+environment differs from the durable host path, such as CI runners.
+
 ### `adjudicate-control-state`
 
 Record an explicit durable verdict when control truth conflicts.

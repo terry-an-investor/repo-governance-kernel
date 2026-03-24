@@ -125,6 +125,15 @@ This command is an owner-layer observation surface:
 
 Capture one bounded historical snapshot from the current anchored workspace state.
 
+### `enforce-worktree`
+
+Block dishonest promotion when the live worktree no longer matches active
+control truth.
+
+This command normally inspects the workspace root from the governed anchor, but
+it may also accept one explicit `workspace_root` override when the execution
+environment differs from the durable host path, such as CI runners.
+
 ## Governed Bundles
 
 Current governed bundle wrappers include:
