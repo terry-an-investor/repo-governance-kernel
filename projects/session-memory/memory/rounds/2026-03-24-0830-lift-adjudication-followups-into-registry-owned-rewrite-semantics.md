@@ -2,12 +2,12 @@
 id: round-2026-03-24-0830-lift-adjudication-followups-into-registry-owned-rewrite-semantics
 type: round-contract
 title: "Lift adjudication followups into registry-owned rewrite semantics"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: a4fe9a80c4afa3b901a927ebc81a1232babbb91a
+git_sha: a057eb22768df04e3b2936054f61a2f65d7239ac
 paths:
   - scripts/transition_specs.py
   - scripts/compile_adjudication_executor_plan.py
@@ -24,7 +24,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T08:30:20+08:00
-updated_at: 2026-03-24T08:30:20+08:00
+updated_at: 2026-03-24T08:37:17+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -47,6 +47,11 @@ Adjudication plan compilation is driven by registry-owned rewrite semantics for 
 ## Validation Plan
 
 Compile changed scripts, run adjudication follow-up smoke coverage, run real-project audit and enforce, then close the round and return the objective to paused.
+uv run python -m py_compile scripts/transition_specs.py scripts/compile_adjudication_executor_plan.py scripts/execute_adjudication_followups.py
+uv run python scripts/list_transition_registry.py
+uv run python scripts/smoke_adjudication_followups.py
+uv run python scripts/audit_control_state.py --project-id session-memory
+uv run python scripts/enforce_worktree.py --project-id session-memory
 
 ## Active Risks
 
@@ -58,4 +63,15 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> validation_pending: Registry-owned adjudication payload templates compiled and passed targeted smoke plus real-project audit/enforcement.
+
+validation_pending -> captured: Registry-owned adjudication payload templates are validated and ready to close.
+
+validated by:
+- uv run python -m py_compile scripts/transition_specs.py scripts/compile_adjudication_executor_plan.py scripts/execute_adjudication_followups.py
+- uv run python scripts/list_transition_registry.py
+- uv run python scripts/smoke_adjudication_followups.py
+- uv run python scripts/audit_control_state.py --project-id session-memory
+- uv run python scripts/enforce_worktree.py --project-id session-memory
+
+captured -> closed: Registry-owned adjudication payload-template governance round closed after validated smoke and control-plane checks.
