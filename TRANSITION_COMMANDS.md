@@ -92,9 +92,10 @@ The minimal command surface should cover:
 1. objective-line transitions
 2. phase transitions
 3. round transitions
-4. exception-contract transitions
-5. anchor maintenance
-6. control diagnostics and adjudication
+4. task-contract transitions
+5. exception-contract transitions
+6. anchor maintenance
+7. control diagnostics and adjudication
 
 ## 1. Objective-Line Commands
 
@@ -443,7 +444,55 @@ Guards:
   scope paths
 - rewrite must not quietly perform a hard pivot or change round identity
 
-## 5. Exception-Contract Commands
+## 5. Task-Contract Commands
+
+### `open-task-contract`
+
+Purpose:
+
+- create one durable task contract inside an open round without widening round
+  authority
+
+Required inputs:
+
+- `project_id`
+- `round_id`
+- `title`
+- `intent`
+- `paths`
+- `allowed_changes`
+- `forbidden_changes`
+- `completion_criteria`
+
+Primary writes:
+
+- `projects/<project_id>/memory/task-contracts/<timestamp>-<slug>.md`
+- transition event record
+
+Guards:
+
+- target round must exist and remain open
+- task-contract objective linkage must align with the referenced round
+- task intent must be explicit
+- task paths must be explicit
+- task paths must stay inside round scope
+- allowed changes, forbidden changes, and completion criteria must all be
+  present
+
+Side effects:
+
+- record one durable task-level contract beneath round governance
+- preserve the round boundary instead of treating task prose as license to
+  widen scope
+
+Current implementation status:
+
+- first creation path is implemented
+- task contracts are durable Markdown objects and auditable owner-layer inputs
+- task contracts do not yet compile into general automatic rewrite semantics by
+  themselves
+
+## 6. Exception-Contract Commands
 
 ### `activate-exception-contract`
 
@@ -514,7 +563,7 @@ Primary writes:
 - exception-contract file update
 - exception ledger update
 
-## 6. Anchor And Capture Commands
+## 7. Anchor And Capture Commands
 
 ### `refresh-anchor`
 
@@ -801,7 +850,7 @@ This set is enough to make the control plane materially real.
 
 ## Current Implementation Status
 
-The current implementation now includes real enforced slices in four command domains:
+The current implementation now includes real enforced slices in five command domains:
 
 - objective-line:
   - `open-objective`
@@ -815,6 +864,8 @@ The current implementation now includes real enforced slices in four command dom
   - `refresh-round-scope`
   - `rewrite-open-round`
   - `update-round-status`
+- task-contract:
+  - `open-task-contract`
 - exception-contract:
   - `activate-exception-contract`
   - `retire-exception-contract`
@@ -823,12 +874,14 @@ The current implementation now includes real enforced slices in four command dom
 These slices already do these things:
 
 - write durable `objective`, `pivot`, and `round-contract` files
+- write durable `task-contract` files
 - write durable `exception-contract` files
 - update `control/active-objective.md`, `control/pivot-log.md`, `control/active-round.md`, and `control/exception-ledger.md`
 - make the objective-line plus phase command slice consume one shared
   registry-backed owner-layer contract for declared inputs, guard coverage,
   guard rendering semantics, write-target semantics, transition-command side-effect semantics, write-target coverage, and transition-event expectations
 - make the round command slice consume one shared registry-backed owner-layer contract for guard coverage, guard rendering semantics, write-target semantics, transition-command side-effect semantics, write-target coverage, and transition-event expectations
+- make the task-contract command slice consume one shared registry-backed owner-layer contract for guard coverage, guard rendering semantics, write-target semantics, transition-command side-effect semantics, write-target coverage, and transition-event expectations
 - discover implemented command membership from registry domains instead of
   maintaining private per-domain command sets in the shared helper
 - remove private write-target allowlists from shared domain helpers by making
@@ -847,12 +900,16 @@ These slices already do these things:
 - preserve existing round metadata when rewriting status
 - rewrite one open round contract durably through `rewrite-open-round`
 - record `transition-event` files for both objective-line and round operations
+- record `transition-event` files for task-contract operations
 - record `transition-event` files for exception-contract operations
 - let `audit-control-state` warn when the objective/phase-domain helper or the
   round-domain helper can no longer satisfy their declared registry semantics
+- let `audit-control-state` warn when the task-contract-domain helper can no
+  longer satisfy its declared registry semantics
 
 It does not yet implement:
 
+- task-contract lifecycle transitions beyond initial creation
 - adjudication-driven automatic follow-up rewrites beyond the explicit bounded
   command subset already encoded in `executor_followups`
 - hard-pivot-driven automatic round rewrites or broader multi-round replacement

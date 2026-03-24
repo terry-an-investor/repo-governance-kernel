@@ -6,17 +6,17 @@
 
 ## Scope
 
-- Create one canonical product document that states target users, product promise, value proposition, boundaries, and roadmap for session-memory.
-- Align major canonical docs so architecture, control-system framing, and implementation plan describe the same product rather than drifting between memory tool, control system, and autonomous rewrite narratives.
-- Define and begin codifying the owner-layer path by which machine semantics should follow canonical product docs through explicit machine-readable contracts and audits instead of prose-only interpretation.
+- Align canonical docs so product, control, state-machine, and transition surfaces explicitly place task-contract under round governance instead of leaving task-level execution semantics in prose.
+- Add a first file-first task-contract object model and creation path that can attach one concrete task contract to an active round without inventing a new DSL.
+- Add a minimal audit path for task-contract integrity and pressure-test the model with one real task contract in the session-memory project.
 
 ## Deliverable
 
-Session-memory has one canonical product definition, the main governance docs read consistently from that product stance, and the repo gains an explicit documented mechanism for turning canonical product intent into auditable machine semantics.
+Session-memory docs describe a three-layer product/control/task contract architecture, the repo can create and read durable task-contract objects, and one real task-contract sample plus audit path proves the layer is no longer only prose.
 
 ## Validation Plan
 
-Read the aligned product/control docs, run targeted doc drift checks or audit additions if introduced, refresh current-task anchor, and run control audit plus worktree enforcement before commit.
+Run targeted py_compile for the new task-contract scripts, create one real task-contract for the active round, run the new task-contract audit, refresh current-task anchor, then run control audit and worktree enforcement before commit.
 
 ## Active Risks
 

@@ -64,6 +64,11 @@ also gains a first control-audit path and a first durable adjudication record
 path. It now also gains a narrow follow-up executor for safe scaffolding. It
 still lacks general adjudication-driven state rewrites.
 
+It also needs one explicit sub-round owner layer:
+
+- round contracts keep project-level execution bounded
+- task contracts keep concrete implementation work bounded inside that round
+
 ## Layer 1: Raw Event Store
 
 Purpose:
@@ -105,6 +110,7 @@ Extraction outputs should include:
 - constraint records
 - objective records
 - pivot records
+- task-contract records where task-level control must become durable
 - exception-contract records
 - task state
 - reusable patterns
@@ -278,6 +284,8 @@ Suggested types:
   - temporary deviation with risk, owner scope, and exit condition
 - `adjudication`
   - explicit durable verdict about conflicting control truth
+- `task-contract`
+  - a concrete round-governed task boundary with allowed and forbidden changes
 - `task`
   - current or pending work state
 - `artifact`
@@ -310,6 +318,7 @@ Important memory items should carry:
 - `confidence`
 - `supersedes[]`
 - `tags[]`
+- round-governed task objects should also carry `round_id`
 
 Why these matter:
 
@@ -350,6 +359,7 @@ session-memory/
 │   │   │   ├── objectives/
 │   │   │   ├── pivots/
 │   │   │   ├── rounds/
+│   │   │   ├── task-contracts/
 │   │   │   ├── transition-events/
 │   │   │   ├── adjudications/
 │   │   │   ├── decisions/
@@ -386,6 +396,12 @@ The control plane is expected to evolve from:
 to:
 
 - transition commands with guards and side effects over these canonical paths
+
+The task-contract layer should follow the same file-first rule:
+
+- durable Markdown objects under `projects/<project_id>/memory/task-contracts/`
+- explicit linkage to one round id and objective id
+- no new DSL before the file object and audit path prove useful
 
 ## Snapshot Model
 

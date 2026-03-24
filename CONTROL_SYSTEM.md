@@ -18,6 +18,7 @@ The problem is not only recall. The harder problem is control:
 - preserving project direction while implementation is moving
 - containing temporary deviation debt before it becomes the real architecture
 - allowing new ideas without derailing the active mainline
+- constraining concrete implementation tasks under one durable round boundary
 - making architecture review and side-session work actually project-aware
 - supporting legitimate project pivots without losing provenance
 
@@ -115,6 +116,7 @@ Durable truth is the append-mostly memory substrate:
 - objectives
 - pivots
 - round contracts
+- task contracts
 - exception contracts
 - transition events
 
@@ -250,7 +252,8 @@ The control model has four layers:
 1. constitution
 2. objective line
 3. round control
-4. evidence and memory
+4. task-contract control
+5. evidence and memory
 
 Phase and round-scope changes are now first-class owner-layer transitions, not
 manual edits:
@@ -399,7 +402,40 @@ It should contain:
 
 This is the layer that keeps agile work from turning into uncontrolled drift.
 
-### 4. Evidence And Memory
+The round contract is the outer execution envelope. It says what this round is
+allowed to touch at a project level, but it is still too coarse to express one
+concrete implementation task honestly.
+
+### 4. Task-Contract Control
+
+Task-contract control governs the concrete work unit inside an active round.
+
+It should contain:
+
+- one durable task contract per concrete implementation slice
+- explicit intent
+- file or path scope that must remain inside round scope
+- allowed changes
+- forbidden changes
+- completion criteria
+- task-local risks or status notes
+
+This is the missing owner layer between "one round is active" and "the repo may
+now rewrite whatever seems useful."
+
+The key boundary is:
+
+- round contract
+  - authorizes the bounded project slice
+- task contract
+  - authorizes one concrete task inside that slice
+- transition command
+  - mutates durable truth only where machine semantics are already explicit
+
+Task contracts therefore make task intent durable and auditable without
+pretending that task prose already equals executable rewrite semantics.
+
+### 5. Evidence And Memory
 
 Evidence and memory explain what is actually known.
 
@@ -549,6 +585,8 @@ The system should add these project-agnostic control objects:
   - objective-line change record with provenance
 - `round-contract`
   - bounded execution contract for the active round
+- `task-contract`
+  - bounded task-level contract under one active round
 - `exception-contract`
   - temporary deviation with exit condition, owner scope, and risk
 - `adjudication`
@@ -596,16 +634,18 @@ The smallest honest lifecycle is:
 
 1. open objective
 2. explore or execute under one active round
-3. capture decisions, failures, exception contracts, and evidence
-4. detect drift or objective mismatch
-5. record soft or hard pivot when needed
-6. refresh round control under the new objective line
-7. capture snapshot and handoff
+3. open one or more task contracts inside that round when work needs a more
+   concrete bounded owner layer
+4. capture decisions, failures, exception contracts, and evidence
+5. detect drift or objective mismatch
+6. record soft or hard pivot when needed
+7. refresh round control under the new objective line
+8. capture snapshot and handoff
 
 For conflicting durable truth, the lifecycle needs one extra control step:
 
-8. record an adjudication verdict
-9. execute only the explicit, structured subset of follow-up rewrites that the
+9. record an adjudication verdict
+10. execute only the explicit, structured subset of follow-up rewrites that the
    system can map onto existing transition commands without guessing intent
 
 The current implementation now includes one real durable rewrite primitive in

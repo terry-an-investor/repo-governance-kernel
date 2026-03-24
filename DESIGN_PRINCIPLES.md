@@ -39,6 +39,7 @@ control state to answer:
 
 - what objective is currently active
 - whether the project is in exploration or execution
+- what concrete task contract is currently authorizing one implementation slice
 - which exception contracts are temporary debt
 - whether the project has pivoted
 
@@ -57,6 +58,14 @@ It should also separate:
   - rebuild the compact control files after the durable state is coherent
 
 Without this split, repair logic will silently become an accidental judge.
+
+That same precision should also exist inside execution:
+
+- round contracts bound the project slice
+- task contracts bound the concrete task inside that slice
+
+Without the lower layer, a round is often still too coarse and the repo slides
+back into transcript-local "just do this part" semantics.
 
 ### 1. Files are the source of truth
 
@@ -153,6 +162,11 @@ A repo may have local concepts such as:
 
 These should appear as `evidence_refs`, `artifact` records, or project-local
 notes.
+
+Project-local governance objects are still allowed when they are explicitly
+declared and file-first. A task-contract layer in this repo is one such local
+governance object: it is reusable inside the repo control plane, but it does
+not become a mandatory global schema field for every memory item everywhere.
 
 They must not become mandatory fields of the global schema.
 

@@ -35,6 +35,7 @@ The product does that by making project control explicit:
 - what the active objective is
 - what phase the project is in
 - what bounded round is currently allowed to move code
+- what concrete task contracts are allowed to move inside that round
 - what temporary exceptions exist
 - what adjudications and follow-up actions are trusted
 
@@ -78,6 +79,7 @@ The product promise is:
 Today the product already provides:
 
 - durable objective, pivot, round, exception-contract, and adjudication records
+- first file-first task-contract records attached to round governance
 - projected control files for active objective, active round, pivot log, and
   exception ledger
 - control audit and worktree enforcement
@@ -96,7 +98,11 @@ That means:
 - the system can execute only the repo-owned safe subset whose semantics are
   already explicit
 - prose does not authorize arbitrary durable rewrites
+- rounds define the outer execution envelope, but task contracts define the
+  concrete allowed subtask before execution semantics broaden
 - new automation surfaces must first become explicit owner-layer contracts
+- task contracts do not yet authorize automatic rewrite by themselves; they
+  only make task-level intent and boundaries durable enough to audit
 
 ## Product To Semantics Path
 
@@ -107,11 +113,13 @@ The required path is:
 
 1. `PRODUCT.md` owns the canonical product contract
 2. `PRODUCT.md` frontmatter carries the machine-readable product stance
-3. machine-semantic docs such as `STATE_MACHINE.md` and
+3. canonical control docs define the round-governed task-contract layer between
+   project control and low-level command semantics
+4. machine-semantic docs such as `STATE_MACHINE.md` and
    `TRANSITION_COMMANDS.md` implement only the bounded executable subset
-4. owner-layer registries such as `scripts/transition_specs.py` carry the
+5. owner-layer registries such as `scripts/transition_specs.py` carry the
    executable semantics
-5. audits fail when canonical docs, machine-readable product contract, and
+6. audits fail when canonical docs, machine-readable product contract, and
    machine-semantic docs drift apart
 
 This keeps "start from the product" real without pretending that natural
@@ -129,6 +137,7 @@ operable before broadening automation.
 Near-term product milestones:
 
 - keep product positioning stable across canonical docs
+- make task-contract the honest task-level owner layer under round governance
 - continue lifting private execution semantics into owner-layer registries
 - tighten product-doc-to-machine-semantics audits
 - split reusable governance-kernel capabilities from this repo's local sample

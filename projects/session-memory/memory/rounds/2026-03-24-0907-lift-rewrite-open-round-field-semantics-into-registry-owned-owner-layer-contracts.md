@@ -1,13 +1,13 @@
 ---
 id: round-2026-03-24-0907-lift-rewrite-open-round-field-semantics-into-registry-owned-owner-layer-contracts
 type: round-contract
-title: "Define product positioning and align governance docs to it"
+title: "Introduce first task-contract owner layer"
 status: active
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 3ccabebc4819d82e2fc5994e79dffd7c4a5d20e9
+git_sha: 7f45f742beef783b71e84392ec8d2cbe521897c4
 paths:
   - scripts/transition_specs.py
   - scripts/execute_adjudication_followups.py
@@ -24,6 +24,10 @@ paths:
   - PRODUCT.md
   - scripts/audit_product_docs.py
   - scripts/product_semantics.py
+  - scripts/round_control.py
+  - scripts/audit_task_contracts.py
+  - scripts/open_task_contract.py
+  - projects/session-memory/memory/task-contracts
 thread_ids: []
 evidence_refs: []
 tags:
@@ -31,7 +35,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T09:07:16+08:00
-updated_at: 2026-03-24T10:12:46+08:00
+updated_at: 2026-03-24T10:36:52+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -40,21 +44,21 @@ superseded_by: []
 
 ## Summary
 
-Establish one canonical product document for session-memory as a memory-driven repo governance control plane, align major canonical docs to that positioning, and define how machine semantics should follow product docs without turning prose into hidden authority.
+Define task-contract as the missing layer between round contracts and concrete implementation tasks, align canonical docs to that architecture, and land the first minimal file-first task-contract object plus audit path on this repository.
 
 ## Scope
 
-- Create one canonical product document that states target users, product promise, value proposition, boundaries, and roadmap for session-memory.
-- Align major canonical docs so architecture, control-system framing, and implementation plan describe the same product rather than drifting between memory tool, control system, and autonomous rewrite narratives.
-- Define and begin codifying the owner-layer path by which machine semantics should follow canonical product docs through explicit machine-readable contracts and audits instead of prose-only interpretation.
+- Align canonical docs so product, control, state-machine, and transition surfaces explicitly place task-contract under round governance instead of leaving task-level execution semantics in prose.
+- Add a first file-first task-contract object model and creation path that can attach one concrete task contract to an active round without inventing a new DSL.
+- Add a minimal audit path for task-contract integrity and pressure-test the model with one real task contract in the session-memory project.
 
 ## Deliverable
 
-Session-memory has one canonical product definition, the main governance docs read consistently from that product stance, and the repo gains an explicit documented mechanism for turning canonical product intent into auditable machine semantics.
+Session-memory docs describe a three-layer product/control/task contract architecture, the repo can create and read durable task-contract objects, and one real task-contract sample plus audit path proves the layer is no longer only prose.
 
 ## Validation Plan
 
-Read the aligned product/control docs, run targeted doc drift checks or audit additions if introduced, refresh current-task anchor, and run control audit plus worktree enforcement before commit.
+Run targeted py_compile for the new task-contract scripts, create one real task-contract for the active round, run the new task-contract audit, refresh current-task anchor, then run control audit and worktree enforcement before commit.
 
 ## Active Risks
 
@@ -73,3 +77,21 @@ Round rewritten because Scope shifted from continuing bundle-semantic registrati
 Round rewritten because Scope shifted from bundle-governance law to product-definition alignment and doc-driven semantics governance.
 
 Round rewritten because Product-definition alignment round expanded to additional canonical docs, product semantics audit scripts, and enforcement entrypoints that must be explicitly in round scope.
+
+Round rewritten because Scope shifted from product-doc alignment to introducing the first task-contract owner layer and pressure-testing it on the current repository.
+
+Scope refreshed because task-contract owner-layer implementation adds new task-contract scripts and durable task-contract sample path
+
+Live dirty paths included:
+- ARCHITECTURE.md
+- CONTROL_SYSTEM.md
+- DESIGN_PRINCIPLES.md
+- IMPLEMENTATION_PLAN.md
+- PRODUCT.md
+- STATE_MACHINE.md
+- TRANSITION_COMMANDS.md
+- scripts/audit_control_state.py
+- scripts/round_control.py
+- scripts/transition_specs.py
+- scripts/audit_task_contracts.py
+- scripts/open_task_contract.py

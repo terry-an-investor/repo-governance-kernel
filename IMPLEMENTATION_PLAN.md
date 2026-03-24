@@ -27,6 +27,7 @@ Today that enforcement is intentionally narrow:
 - the objective-line domain can open a first active objective
 - the objective-line domain can record a guarded hard pivot
 - the round domain has real transition commands
+- the repo is introducing a first task-contract owner layer under round governance
 - illegal round-status transitions are rejected
 - transition events are recorded as durable files
 - control projections can be rebuilt from durable truth when the state is
@@ -44,6 +45,7 @@ verdict is recorded.
   - active objective
   - pivot log
   - exception ledger
+- add a first file-first task-contract object model beneath active round governance
 - index Markdown memory files under `projects/` and `cross-project/`
 - populate SQLite metadata tables
 - populate one FTS5 table for recall
@@ -72,6 +74,7 @@ verdict is recorded.
 - generalized memory ontology expansion
 - automatic pivot detection beyond explicit operator-authored records
 - unified transition engine with enforced guards and side effects
+- task-contract-driven automatic rewrite from prose alone
 
 ## Current Implementation Gaps
 
@@ -80,6 +83,8 @@ verdict is recorded.
 - add canonical project-agnostic control files under `projects/<project_id>/control/`
 - make `assemble` read active objective and exception-contract state
 - keep pivot handling explicit before any automation tries to infer it
+- introduce task contracts as a repo-owned lower owner layer before claiming
+  broader task-level rewrite semantics
 - keep constitution out of the default handoff packet unless later evidence
   proves that always inlining it helps more than it bloats
 - compile constitution into role-specific contexts instead
@@ -110,6 +115,7 @@ verdict is recorded.
   - can scaffold safe missing control surfaces
   - keeps underspecified follow-ups blocked instead of guessing
 - next enforcement slice should target:
+  - task-contract lifecycle beyond initial creation
   - exception-contract commands
   - adjudication-driven round and objective rewrites
   - or a shared transition engine

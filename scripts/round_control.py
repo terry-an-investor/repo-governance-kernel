@@ -126,6 +126,10 @@ def rounds_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "rounds"
 
 
+def task_contracts_dir(project_id: str) -> Path:
+    return project_dir(project_id) / "memory" / "task-contracts"
+
+
 def objectives_dir(project_id: str) -> Path:
     return project_dir(project_id) / "memory" / "objectives"
 
@@ -216,6 +220,14 @@ def exception_contract_command_spec(command_name: str):
         command_name,
         expected_domains={"exception-contract"},
         domain_label="exception-contract-domain",
+    )
+
+
+def task_contract_command_spec(command_name: str):
+    return _domain_command_spec(
+        command_name,
+        expected_domains={"task-contract"},
+        domain_label="task-contract-domain",
     )
 
 
@@ -313,6 +325,22 @@ def assert_exception_contract_command_contract(
     )
 
 
+def assert_task_contract_command_contract(
+    command_name: str,
+    *,
+    provided_inputs: set[str],
+    emits_transition_event: bool = True,
+) -> object:
+    spec = task_contract_command_spec(command_name)
+    return _assert_command_contract(
+        command_name,
+        domain_label="task-contract-domain",
+        spec=spec,
+        provided_inputs=provided_inputs,
+        emits_transition_event=emits_transition_event,
+    )
+
+
 def assert_anchor_maintenance_command_contract(
     command_name: str,
     *,
@@ -370,6 +398,16 @@ def render_exception_contract_guard_lines(command_name: str, *, context: dict[st
     )
 
 
+def render_task_contract_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
+    spec = task_contract_command_spec(command_name)
+    return _render_guard_lines(
+        command_name,
+        domain_label="task-contract-domain",
+        spec=spec,
+        context=context,
+    )
+
+
 def render_anchor_maintenance_guard_lines(command_name: str, *, context: dict[str, str] | None = None) -> list[str]:
     spec = anchor_maintenance_command_spec(command_name)
     return _render_guard_lines(
@@ -420,6 +458,14 @@ def validate_exception_contract_domain_registry_contracts() -> None:
     _validate_domain_registry_contracts(
         expected_domains={"exception-contract"},
         domain_label="exception-contract-domain",
+        allowed_statuses={"implemented"},
+    )
+
+
+def validate_task_contract_domain_registry_contracts() -> None:
+    _validate_domain_registry_contracts(
+        expected_domains={"task-contract"},
+        domain_label="task-contract-domain",
         allowed_statuses={"implemented"},
     )
 
@@ -730,6 +776,72 @@ def render_round_file(
         "",
         "## Blockers\n",
         render_bullet_list(blockers),
+        "",
+        "## Status Notes\n",
+        status_notes.strip() or "_none recorded_",
+        "",
+    ]
+    return "\n".join(body_parts).strip() + "\n"
+
+
+def render_task_contract_file(
+    *,
+    task_contract_id: str,
+    title: str,
+    status: str,
+    project_id: str,
+    objective_id: str,
+    round_id: str,
+    anchor: dict[str, str],
+    paths: list[str],
+    created_at: str | None,
+    evidence_refs: list[dict[str, str]] | None,
+    tags: list[str] | None,
+    confidence: str,
+    phase: str,
+    summary: str,
+    intent: str,
+    allowed_changes: list[str],
+    forbidden_changes: list[str],
+    completion_criteria: list[str],
+    risks: list[str],
+    status_notes: str,
+) -> str:
+    frontmatter = build_memory_frontmatter(
+        item_id=task_contract_id,
+        memory_type="task-contract",
+        title=title,
+        status=status,
+        project_id=project_id,
+        anchor=anchor,
+        paths=paths,
+        created_at=created_at,
+        evidence_refs=evidence_refs,
+        tags=tags,
+        confidence=confidence,
+        phase=phase,
+        objective_id=objective_id,
+        extra_fields={"round_id": round_id},
+    )
+    body_parts = [
+        frontmatter,
+        "## Summary\n",
+        summary.strip() or "_none recorded_",
+        "",
+        "## Intent\n",
+        intent.strip() or "_none recorded_",
+        "",
+        "## Allowed Changes\n",
+        render_bullet_list(allowed_changes),
+        "",
+        "## Forbidden Changes\n",
+        render_bullet_list(forbidden_changes),
+        "",
+        "## Completion Criteria\n",
+        render_bullet_list(completion_criteria),
+        "",
+        "## Active Risks\n",
+        render_bullet_list(risks),
         "",
         "## Status Notes\n",
         status_notes.strip() or "_none recorded_",
@@ -1220,6 +1332,17 @@ def locate_round_file(project_id: str, round_id: str) -> Path | None:
     return None
 
 
+def locate_task_contract_file(project_id: str, task_contract_id: str) -> Path | None:
+    directory = task_contracts_dir(project_id)
+    if not directory.exists():
+        return None
+    for path in sorted(directory.glob("*.md")):
+        values = extract_frontmatter_scalars(read_text(path), ["id"])
+        if values.get("id") == task_contract_id:
+            return path
+    return None
+
+
 def locate_objective_file(project_id: str, objective_id: str) -> Path | None:
     directory = objectives_dir(project_id)
     if not directory.exists():
@@ -1268,6 +1391,45 @@ def load_round_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
             normalized_tags.append(normalized_tag)
     meta["tags"] = normalized_tags
 
+    normalized_evidence_refs: list[dict[str, str]] = []
+    for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
+        normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))
+        if not normalized_ref:
+            continue
+        normalized_evidence_refs.append(
+            {
+                "type": normalize_scalar_metadata(entry.get("type", "")),
+                "ref": normalized_ref,
+            }
+        )
+    meta["evidence_refs"] = normalized_evidence_refs
+    sections = parse_h2_sections(clean_section_text(path, strip_heading=False, strip_yaml=True))
+    return meta, sections
+
+
+def load_task_contract_file(path: Path) -> tuple[dict[str, object], dict[str, str]]:
+    text = read_text(path)
+    frontmatter_text, _body = split_frontmatter(text)
+    meta = parse_frontmatter(frontmatter_text)
+    for key in [
+        "id",
+        "title",
+        "status",
+        "project_id",
+        "workspace_id",
+        "workspace_root",
+        "branch",
+        "git_sha",
+        "objective_id",
+        "round_id",
+        "created_at",
+        "confidence",
+        "phase",
+    ]:
+        if key in meta:
+            meta[key] = normalize_scalar_metadata(meta[key])
+    meta["paths"] = parse_string_list(meta.get("paths"))
+    meta["tags"] = [normalize_scalar_metadata(item) for item in parse_string_list(meta.get("tags")) if normalize_scalar_metadata(item)]
     normalized_evidence_refs: list[dict[str, str]] = []
     for entry in parse_evidence_refs(meta.get("evidence_refs", [])):
         normalized_ref = normalize_scalar_metadata(entry.get("ref", ""))
@@ -1496,6 +1658,18 @@ def load_all_rounds(project_id: str) -> list[tuple[Path, dict[str, object], dict
     return records
 
 
+def load_all_task_contracts(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    directory = task_contracts_dir(project_id)
+    if not directory.exists():
+        return []
+    records: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for path in sorted(directory.glob("*.md")):
+        meta, sections = load_task_contract_file(path)
+        records.append((path, meta, sections))
+    records.sort(key=lambda record: record_sort_key(record[0], record[1]), reverse=True)
+    return records
+
+
 def load_all_pivots(project_id: str) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
     directory = pivots_dir(project_id)
     if not directory.exists():
@@ -1562,6 +1736,32 @@ def find_rounds(
         round_objective_id = str(meta.get("objective_id") or "").strip()
         status = str(meta.get("status") or "").strip()
         if target_objective_id and round_objective_id != target_objective_id:
+            continue
+        if allowed_statuses and status not in allowed_statuses:
+            continue
+        matches.append(record)
+    return matches
+
+
+def find_task_contracts(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    round_id: str = "",
+    statuses: set[str] | None = None,
+) -> list[tuple[Path, dict[str, object], dict[str, str]]]:
+    target_objective_id = objective_id.strip()
+    target_round_id = round_id.strip()
+    allowed_statuses = {status.strip() for status in (statuses or set()) if status.strip()}
+    matches: list[tuple[Path, dict[str, object], dict[str, str]]] = []
+    for record in load_all_task_contracts(project_id):
+        _path, meta, _sections = record
+        contract_objective_id = str(meta.get("objective_id") or "").strip()
+        contract_round_id = str(meta.get("round_id") or "").strip()
+        status = str(meta.get("status") or "").strip()
+        if target_objective_id and contract_objective_id != target_objective_id:
+            continue
+        if target_round_id and contract_round_id != target_round_id:
             continue
         if allowed_statuses and status not in allowed_statuses:
             continue

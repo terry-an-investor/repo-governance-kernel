@@ -32,6 +32,7 @@ from round_control import (
     validate_exception_contract_domain_registry_contracts,
     validate_objective_phase_domain_registry_contracts,
     validate_round_domain_registry_contracts,
+    validate_task_contract_domain_registry_contracts,
 )
 from transition_specs import (
     adjudication_plan_types,
@@ -839,6 +840,17 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
             evidence=["scripts/round_control.py", "scripts/transition_specs.py"],
         )
     try:
+        validate_task_contract_domain_registry_contracts()
+    except SystemExit as exc:
+        add_issue(
+            issues,
+            severity="warning",
+            domain="transition-registry",
+            code="task_contract_domain_registry_consumer_drift",
+            message=str(exc),
+            evidence=["scripts/round_control.py", "scripts/transition_specs.py"],
+        )
+    try:
         validate_anchor_maintenance_domain_registry_contracts()
     except SystemExit as exc:
         add_issue(
@@ -856,6 +868,7 @@ def audit_project_control_state(project_id: str) -> dict[str, object]:
     checks.append("objective-phase-domain registry consumer coverage")
     checks.append("round-domain registry consumer coverage")
     checks.append("exception-contract-domain registry consumer coverage")
+    checks.append("task-contract-domain registry consumer coverage")
     checks.append("anchor-maintenance-domain registry consumer coverage")
 
     error_count = sum(1 for issue in issues if issue["severity"] == "error")

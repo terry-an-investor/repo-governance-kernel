@@ -32,8 +32,9 @@ It should be modeled as several coordinated state domains:
 1. objective-line state
 2. project phase state
 3. round state
-4. exception-contract state
-5. memory freshness state
+4. task-contract state
+5. exception-contract state
+6. memory freshness state
 
 This keeps transitions local and makes invalid combinations easier to detect.
 
@@ -197,7 +198,60 @@ When a round is marked `abandoned`:
 - the reason should be preserved
 - unfinished work should not remain disguised as active progress
 
-## 4. Exception-Contract State
+## 4. Task-Contract State
+
+This domain answers:
+
+- what concrete task is currently authorized inside one active round
+- whether that task contract is still the honest boundary for implementation
+
+Task-contract state is subordinate to round state, not a replacement for it.
+
+The intended layering is:
+
+- objective and phase
+  - why execution exists
+- round
+  - what bounded project slice is allowed
+- task contract
+  - what concrete task inside that slice is allowed
+
+### Task-Contract States
+
+- `draft`
+- `active`
+- `completed`
+- `abandoned`
+- `invalidated`
+
+### Task-Contract Transitions
+
+- `draft -> active`
+- `active -> completed`
+- `active -> abandoned`
+- `active -> invalidated`
+
+### Guards
+
+A task contract should not become `active` unless it has:
+
+- round linkage
+- objective linkage aligned with that round
+- explicit path scope inside round scope
+- explicit allowed changes
+- explicit forbidden changes
+- explicit completion criteria
+
+### Side Effects
+
+When a task contract is active:
+
+- implementation review should be able to inspect one concrete task boundary
+- task scope should stay subordinate to the round scope instead of widening it
+- later machine semantics may compile from this contract, but only after the
+  contract surface itself is registry-owned and audited
+
+## 5. Exception-Contract State
 
 This domain answers:
 
@@ -238,7 +292,7 @@ Active exception contracts should influence:
 Retired or invalidated exception contracts should not remain in default active context
 unless they are still needed as historical warning.
 
-## 5. Memory Freshness State
+## 6. Memory Freshness State
 
 This domain already has partial implementation.
 
@@ -265,6 +319,7 @@ The main event types that should drive state transitions are:
 - `record_soft_pivot`
 - `record_hard_pivot`
 - `open_round`
+- `open_task_contract`
 - `mark_blocked`
 - `mark_validation_pending`
 - `capture_snapshot`
@@ -316,6 +371,7 @@ Refusing ambiguity belongs to repair. It is not a substitute for adjudication.
 Current implementation already does these things:
 
 - stores explicit objective and pivot files
+- stores first file-first task-contract files
 - stores explicit exception-contract files
 - stores exception ledger state
 - compiles contexts from active control files
@@ -339,6 +395,12 @@ Current implementation already does these things:
   - legal round transitions are rejected
   - round-contract metadata is preserved during status rewrites
   - one open round contract can be durably rewritten while preserving round id
+- enforces one first task-contract slice through:
+  - `open-task-contract`
+  - task contracts attach to one open round and aligned objective
+  - task paths are kept inside round scope
+  - task intent, allowed changes, forbidden changes, and completion criteria
+    become durable and auditable instead of staying transcript-local
 - can repair projected control files from durable state through:
   - `reconcile-control-state`
   - only when durable objective and round truth is unambiguous
@@ -400,13 +462,14 @@ Current implementation already does these things:
 Current implementation does not yet do these things:
 
 - reject illegal transitions outside the implemented round slice
+- advance task-contract lifecycle beyond initial creation
 - apply adjudication verdicts as a fully general automatic rewrite engine
 - infer executable follow-up rewrites directly from verdict prose without explicit structured contracts
 - auto-close or re-scope active rounds when an allowed hard pivot demands it
 - auto-invalidate or automatically replace stale round contracts after hard pivots
   or broader verdict bundles without an explicit rewrite contract
 - enforce the same worktree gate before every repository mutation path such as commit or push
-- cover objective, pivot, round, and exception-contract domains with the same unified enforcement depth
+- cover objective, pivot, round, task-contract, and exception-contract domains with the same unified enforcement depth
 - provide a richer harness integration layer for runtimes that do expose native hooks, without making correctness depend on them
 
 This gap should remain explicit until enforcement exists.
