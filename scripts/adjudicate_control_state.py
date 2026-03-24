@@ -5,6 +5,7 @@ import argparse
 import json
 
 from audit_control_state import audit_project_control_state
+from kernel.runtime_paths import render_project_state_prefix
 from round_control import (
     adjudications_dir,
     project_dir,
@@ -126,8 +127,8 @@ def main() -> int:
     paths = normalize_items(args.path)
     if not paths:
         paths = [
-            f"projects/{args.project_id}/control/",
-            f"projects/{args.project_id}/memory/adjudications/",
+            f"{render_project_state_prefix(args.project_id)}control/",
+            f"{render_project_state_prefix(args.project_id)}memory/adjudications/",
         ]
 
     summary = args.summary.strip()

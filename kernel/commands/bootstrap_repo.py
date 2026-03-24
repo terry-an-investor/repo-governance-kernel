@@ -7,7 +7,7 @@ from pathlib import Path
 
 from kernel.commands.install_hooks import install_repo_hooks
 from kernel.round_control import render_exception_ledger_file, render_pivot_log_file
-from kernel.runtime_paths import resolve_repo_root
+from kernel.runtime_paths import render_project_state_prefix, resolve_project_state_root, resolve_repo_root
 
 
 CONSTITUTION_TEXT = """# Constitution
@@ -19,8 +19,8 @@ CONSTITUTION_TEXT = """# Constitution
 
 ## Architecture Invariants
 
-- Control truth lives under `projects/{project_id}/memory/`.
-- Projected control state lives under `projects/{project_id}/control/` and `projects/{project_id}/current/`.
+- Control truth lives under `state/{project_id}/memory/`.
+- Projected control state lives under `state/{project_id}/control/` and `state/{project_id}/current/`.
 - Repo-local hooks and CI call the shared kernel rather than owning private policy logic.
 
 ## Quality Bar
@@ -103,7 +103,7 @@ def main() -> int:
     if not (root / ".git").exists():
         raise SystemExit(f"git repository not found at {root}")
 
-    project_root = root / "projects" / args.project_id
+    project_root = resolve_project_state_root(args.project_id, root)
     for relative in [
         "artifacts",
         "control",
@@ -152,10 +152,10 @@ def main() -> int:
                 "project_root": str(project_root),
                 "installed_hooks": hook_result.get("installed_hooks", []) if hook_result else [],
                 "bootstrap_created": [
-                    "projects/<project_id>/control/constitution.md",
-                    "projects/<project_id>/control/pivot-log.md",
-                    "projects/<project_id>/control/exception-ledger.md",
-                    "projects/<project_id>/current/current-task.md",
+                    f"{render_project_state_prefix(args.project_id)}control/constitution.md".replace(args.project_id, "<project_id>"),
+                    f"{render_project_state_prefix(args.project_id)}control/pivot-log.md".replace(args.project_id, "<project_id>"),
+                    f"{render_project_state_prefix(args.project_id)}control/exception-ledger.md".replace(args.project_id, "<project_id>"),
+                    f"{render_project_state_prefix(args.project_id)}current/current-task.md".replace(args.project_id, "<project_id>"),
                     ".githooks/pre-commit",
                     ".githooks/pre-push",
                 ],

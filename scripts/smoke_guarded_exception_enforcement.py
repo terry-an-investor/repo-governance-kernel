@@ -18,7 +18,7 @@ from smoke_fixture_lib import (
 
 
 FIXTURE_PROJECT_ID = "__guarded_exception_enforcement_smoke__"
-FIXTURE_PROJECT_DIR = ROOT / "projects" / FIXTURE_PROJECT_ID
+FIXTURE_PROJECT_DIR = ROOT / "state" / FIXTURE_PROJECT_ID
 FIXTURE_GUARDED_FILE = FIXTURE_PROJECT_DIR / "src" / "guarded-runtime.txt"
 
 
@@ -180,7 +180,7 @@ def main() -> None:
             "--phase",
             "execution",
             "--path",
-            f"projects/{FIXTURE_PROJECT_ID}/control/constitution.md",
+            f"state/{FIXTURE_PROJECT_ID}/control/constitution.md",
         )
         objective_id = str(objective_result["objective_id"])
 

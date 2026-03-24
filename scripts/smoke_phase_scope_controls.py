@@ -7,7 +7,7 @@ from smoke_fixture_lib import ROOT, init_fixture_repo, reset_fixture_repo, run_j
 
 
 FIXTURE_PROJECT_ID = "__phase_scope_control_smoke__"
-FIXTURE_PROJECT_DIR = ROOT / "projects" / FIXTURE_PROJECT_ID
+FIXTURE_PROJECT_DIR = ROOT / "state" / FIXTURE_PROJECT_ID
 
 
 def write_fixture_files() -> None:

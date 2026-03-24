@@ -10,7 +10,7 @@ and enforcement semantics instead of informal chat state or ad hoc scripts.
 This repository contains both:
 
 - the reusable package surface under [`kernel/`](./kernel/)
-- the host-local dogfood sample under [`projects/session-memory/`](./projects/session-memory/)
+- the host-local dogfood sample under [`state/session-memory/`](./state/session-memory/)
 
 The host sample is important evidence, but it is not the package contract.
 
@@ -91,7 +91,7 @@ The reusable package surface lives under [`kernel/`](./kernel/).
 
 The following remain host-local and are not part of the package contract:
 
-- [`projects/session-memory/`](./projects/session-memory/)
+- [`state/session-memory/`](./state/session-memory/)
 - [`scripts/`](./scripts/)
 - [`.githooks/`](./.githooks/)
 - [`.github/workflows/`](./.github/workflows/)
@@ -113,7 +113,7 @@ This preview does not promise:
 
 - [`kernel/`](./kernel/): reusable kernel package, commands, docs, and
   transition semantics
-- [`projects/session-memory/`](./projects/session-memory/): host-local dogfood
+- [`state/session-memory/`](./state/session-memory/): host-local dogfood
   control state and memory objects
 - [`scripts/`](./scripts/): repo-local smoke, bootstrap, and validation entry
   points
@@ -151,3 +151,4 @@ For a first pass through the repo:
 3. Read [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md)
    for the bounded execution surface.
 4. Read [`kernel/README.md`](./kernel/README.md) for package-facing usage.
+

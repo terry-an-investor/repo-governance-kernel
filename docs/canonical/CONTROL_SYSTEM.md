@@ -247,7 +247,7 @@ The repo should converge toward two explicitly different things:
   - transition registry
   - audit and enforcement runtime
 - dogfood/sample project
-  - `projects/session-memory/...`
+  - `state/session-memory/...`
   - self-hosted rounds, adjudications, and sample history
 
 Without that split, self-hosting noise will keep appearing as kernel
@@ -264,3 +264,4 @@ It is:
 - continue eliminating private semantics
 - keep all new execution surfaces registry-owned
 - separate kernel concerns from sample-specific repo history
+

@@ -6,7 +6,7 @@ import re
 
 from kernel.assemble_context import extract_current_task_anchor, inspect_live_workspace, parse_h2_sections, read_text
 from kernel.round_control import assert_anchor_maintenance_command_contract, expected_current_task_control_values
-from kernel.runtime_paths import resolve_repo_root
+from kernel.runtime_paths import resolve_project_state_root, resolve_repo_root
 
 
 ROOT = resolve_repo_root()
@@ -126,7 +126,7 @@ def refresh_current_state_section(
 
 def main() -> int:
     args = parse_args()
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = resolve_project_state_root(args.project_id, ROOT)
     current_task_path = project_dir / "current" / "current-task.md"
     if not current_task_path.exists():
         raise SystemExit(f"missing current-task file: {current_task_path}")

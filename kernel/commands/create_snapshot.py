@@ -15,6 +15,7 @@ from kernel.assemble_context import (
     read_text,
 )
 from kernel.round_control import assert_anchor_maintenance_command_contract
+from kernel.runtime_paths import resolve_project_state_root
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -101,7 +102,7 @@ def render_blockers(blocker_sections: dict[str, str]) -> str:
 
 def main() -> int:
     args = parse_args()
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = resolve_project_state_root(args.project_id, ROOT)
     current_task_path = project_dir / "current" / "current-task.md"
     blockers_path = project_dir / "current" / "blockers.md"
     snapshot_seed_path = latest_snapshot(project_dir)

@@ -11,7 +11,7 @@ Current builder:
 
 Current contract:
 
-- scans `projects/` and `cross-project/`
+- scans `state/` and `cross-project/`
 - parses frontmatter from Markdown memory objects
 - writes:
   - `memory_items`
@@ -20,30 +20,30 @@ Current contract:
 
 Rebuild command:
 
-```bash
+```powershell
 uv run python scripts/build_index.py
 ```
 
 Unified CLI:
 
-```bash
+```powershell
 uv run python scripts/session_memory.py build-index
 ```
 
 Smoke check:
 
-```bash
+```powershell
 uv run python scripts/session_memory.py smoke
 ```
 
 Example query:
 
-```bash
+```powershell
 uv run python scripts/session_memory.py query --project-id wind-agent --type decision
 ```
 
 Example context assembly:
 
-```bash
+```powershell
 uv run python scripts/session_memory.py assemble --project-id wind-agent --output artifacts/wind-agent/session-context.md
 ```

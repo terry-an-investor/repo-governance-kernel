@@ -94,7 +94,7 @@ Make the conceptual split increasingly real:
 - kernel
   - reusable governance semantics and runtime
 - sample
-  - `projects/session-memory/...`
+  - `state/session-memory/...`
   - dogfood/example rounds, adjudications, and sample history
 
 This can begin as documentation and module-boundary cleanup before it becomes a
@@ -156,3 +156,4 @@ Kernelization is only considered real when:
 - newly added execution semantics are registry-owned, audit-visible, and
   smoke-proven
 - sample-specific complexity is distinguishable from reusable kernel semantics
+

@@ -27,7 +27,7 @@ package contract.
 
 The host repository continues to own:
 
-- `projects/session-memory/` dogfood sample state
+- `state/session-memory/` dogfood sample state
 - `scripts/` compatibility and adapter entrypoints
 - `.githooks/`
 - `.github/workflows/`
@@ -85,3 +85,4 @@ Preview validation completed on 2026-03-24.
 - frozen-host adoption proof remains honest preview evidence for adopted host snapshots rather than the whole live-host story
 - external-target shadow mode now has one smoke-proven owner-layer draft-plus-assessment path, one governed bundle-backed single-pass wrapper, one bounded natural-language entry, and one installed-wheel package proof, but it is still not a stable general live-host mutation contract
 - host repo and package still share one source repository, so preview packaging hygiene can still regress if repo-local docs and package docs drift
+

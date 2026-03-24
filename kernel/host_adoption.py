@@ -7,6 +7,7 @@ from pathlib import Path
 from kernel.assemble_context import inspect_live_workspace
 from kernel.audit_control_state import parse_changed_paths, relativize_changed_paths
 from kernel.round_control import current_task_path
+from kernel.runtime_paths import render_project_state_prefix
 
 
 def classify_host_adoption_blockers(project_id: str, blocked_paths: list[str]) -> dict[str, object]:
@@ -18,7 +19,7 @@ def classify_host_adoption_blockers(project_id: str, blocked_paths: list[str]) -
         while rendered.startswith("./"):
             rendered = rendered[2:]
         normalized_paths.append(rendered)
-    bootstrap_control_prefix = f"projects/{project_id}/"
+    bootstrap_control_prefix = render_project_state_prefix(project_id)
 
     bucket_order = (
         "hook_installation_paths",

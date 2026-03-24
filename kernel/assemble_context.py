@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from kernel.build_index import parse_frontmatter, parse_string_list, split_frontmatter
-from kernel.runtime_paths import resolve_index_path, resolve_repo_root
+from kernel.runtime_paths import resolve_index_path, resolve_project_state_root, resolve_repo_root
 
 ROOT = resolve_repo_root()
 DB_PATH = resolve_index_path()
@@ -650,7 +650,7 @@ def main() -> None:
     parser.add_argument("--output")
     args = parser.parse_args()
 
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = resolve_project_state_root(args.project_id, ROOT)
     active_objective_path = project_dir / "control" / "active-objective.md"
     active_round_path = project_dir / "control" / "active-round.md"
     pivot_log_path = project_dir / "control" / "pivot-log.md"

@@ -17,6 +17,7 @@ from kernel.assemble_context import (
     parse_keyed_bullets,
     parse_h2_sections,
 )
+from kernel.runtime_paths import resolve_project_state_root
 
 
 ROLE_CHOICES = ("reviewer", "architect", "orchestrator")
@@ -322,7 +323,7 @@ def main() -> None:
     parser.add_argument("--output")
     args = parser.parse_args()
 
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = resolve_project_state_root(args.project_id, ROOT)
     if not project_dir.exists():
         raise SystemExit(f"project directory not found: {project_dir}")
 

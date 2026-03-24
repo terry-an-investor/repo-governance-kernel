@@ -14,6 +14,7 @@ from kernel.round_control import (
     slugify,
     timestamp_now,
 )
+from kernel.runtime_paths import render_project_state_prefix
 
 
 def parse_args() -> argparse.Namespace:
@@ -126,8 +127,8 @@ def main() -> int:
     paths = normalize_items(args.path)
     if not paths:
         paths = [
-            f"projects/{args.project_id}/control/",
-            f"projects/{args.project_id}/memory/adjudications/",
+            f"{render_project_state_prefix(args.project_id)}control/",
+            f"{render_project_state_prefix(args.project_id)}memory/adjudications/",
         ]
 
     summary = args.summary.strip()
@@ -202,4 +203,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

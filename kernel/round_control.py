@@ -17,7 +17,7 @@ from kernel.assemble_context import (
     read_text,
 )
 from kernel.build_index import parse_evidence_refs, parse_frontmatter, parse_string_list, split_frontmatter
-from kernel.runtime_paths import resolve_repo_root
+from kernel.runtime_paths import resolve_project_state_root, resolve_repo_root
 from kernel.transition_specs import (
     normalize_runtime_input_keys,
     guard_spec,
@@ -123,7 +123,7 @@ def safe_file_name_for_dir(
 
 
 def project_dir(project_id: str) -> Path:
-    return ROOT / "projects" / project_id
+    return resolve_project_state_root(project_id, ROOT)
 
 
 def current_task_path(project_id: str) -> Path:

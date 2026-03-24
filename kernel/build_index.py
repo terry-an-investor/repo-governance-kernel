@@ -17,7 +17,7 @@ FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---\r?\n(.*)$", re.DOTALL)
 
 def find_memory_files() -> list[Path]:
     roots = [
-        ROOT / "projects",
+        ROOT / "state",
         ROOT / "cross-project",
     ]
     files: list[Path] = []
@@ -130,7 +130,7 @@ def infer_scope_kind(path: Path) -> str:
     parts = path.relative_to(ROOT).parts
     if not parts:
         return "unknown"
-    if parts[0] == "projects":
+    if parts[0] == "state":
         return "project"
     if parts[0] == "cross-project":
         return "cross_project"

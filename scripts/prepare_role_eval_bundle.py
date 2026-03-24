@@ -258,7 +258,7 @@ Role: `{role}`
 
 def main() -> None:
     args = parse_args()
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = ROOT / "state" / args.project_id
     if not project_dir.exists():
         raise SystemExit(f"project directory not found: {project_dir}")
 

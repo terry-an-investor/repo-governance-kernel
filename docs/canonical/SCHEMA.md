@@ -36,7 +36,7 @@ Memory is also split by scope:
 
 ```text
 session-memory/
-├── projects/
+├── state/
 │   ├── <project_id>/
 │   │   ├── control/
 │   │   │   ├── constitution.md
@@ -502,7 +502,7 @@ Use for reusable tactics or process fragments.
 
 Patterns may live in either:
 
-- `projects/<project_id>/memory/patterns/`
+- `state/<project_id>/memory/patterns/`
 - `cross-project/patterns/`
 
 depending on whether the lesson is project-local or reusable across projects.
@@ -518,7 +518,7 @@ an object with provenance.
 
 Control-state files are mutable and optimize for current project governance.
 
-### `projects/<project_id>/control/constitution.md`
+### `state/<project_id>/control/constitution.md`
 
 Purpose:
 
@@ -563,7 +563,7 @@ Suggested initial hook names:
 - `current_task_mentions_active_round`
 - `current_task_phase_matches_active_objective`
 
-### `projects/<project_id>/control/active-objective.md`
+### `state/<project_id>/control/active-objective.md`
 
 Purpose:
 
@@ -593,7 +593,7 @@ Suggested shape:
 ## Current Risks
 ```
 
-### `projects/<project_id>/control/active-round.md`
+### `state/<project_id>/control/active-round.md`
 
 Purpose:
 
@@ -619,7 +619,7 @@ Suggested shape:
 ## Blockers
 ```
 
-### `projects/<project_id>/control/pivot-log.md`
+### `state/<project_id>/control/pivot-log.md`
 
 Purpose:
 
@@ -637,7 +637,7 @@ Suggested shape:
 ## Historical Objectives
 ```
 
-### `projects/<project_id>/control/exception-ledger.md`
+### `state/<project_id>/control/exception-ledger.md`
 
 Purpose:
 
@@ -660,7 +660,7 @@ Suggested shape:
 Working-state files are mutable and optimized for live use, not immutable
 history.
 
-### `projects/<project_id>/current/current-task.md`
+### `state/<project_id>/current/current-task.md`
 
 Purpose:
 
@@ -719,7 +719,7 @@ Recommended maintenance path:
 - keep the broader task narrative editable without requiring full projection
   reconciliation so fresh sessions do not anchor on stale execution contracts
 
-### `projects/<project_id>/current/blockers.md`
+### `state/<project_id>/current/blockers.md`
 
 Purpose:
 
@@ -737,7 +737,7 @@ Suggested shape:
 ## Cleared
 ```
 
-### `projects/<project_id>/current/idea-inbox.md`
+### `state/<project_id>/current/idea-inbox.md`
 
 Purpose:
 
@@ -762,7 +762,7 @@ Snapshots are commit-like summaries for phase transitions and handoff.
 Suggested filename:
 
 ```text
-projects/<project_id>/snapshots/YYYY-MM-DD-HHMM-<topic>.md
+state/<project_id>/snapshots/YYYY-MM-DD-HHMM-<topic>.md
 ```
 
 Suggested frontmatter:
@@ -877,14 +877,14 @@ Durable item naming should be explicit and grep-friendly.
 Suggested patterns:
 
 ```text
-projects/<project_id>/memory/<type>s/YYYY-MM-DD-<slug>.md
+state/<project_id>/memory/<type>s/YYYY-MM-DD-<slug>.md
 cross-project/<type>s/YYYY-MM-DD-<slug>.md
 ```
 
 Examples:
 
-- `projects/wind-agent/memory/decisions/2026-03-22-prepared-query-context-first-class-contract.md`
-- `projects/wind-agent/memory/failures/2026-03-22-round-contract-worktree-drift.md`
+- `state/wind-agent/memory/decisions/2026-03-22-prepared-query-context-first-class-contract.md`
+- `state/wind-agent/memory/failures/2026-03-22-round-contract-worktree-drift.md`
 - `cross-project/patterns/2026-03-22-handoff-before-context-compaction.md`
 
 ## SQLite Index Shape
@@ -989,3 +989,4 @@ The first implementation should provide:
 - durable memory item files
 - SQLite metadata index
 - FTS5 full-text table
+

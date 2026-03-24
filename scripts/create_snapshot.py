@@ -101,7 +101,7 @@ def render_blockers(blocker_sections: dict[str, str]) -> str:
 
 def main() -> int:
     args = parse_args()
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = ROOT / "state" / args.project_id
     current_task_path = project_dir / "current" / "current-task.md"
     blockers_path = project_dir / "current" / "blockers.md"
     snapshot_seed_path = latest_snapshot(project_dir)

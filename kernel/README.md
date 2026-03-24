@@ -13,7 +13,7 @@ It owns:
 
 It does not own:
 
-- `projects/session-memory/` dogfood control state
+- `state/session-memory/` dogfood control state
 - repo-local smoke/eval harnesses
 - this repository's sample-specific history and fixtures
 
@@ -80,10 +80,10 @@ repo-governance-kernel --repo-root C:/path/to/host/repo bootstrap-repo --project
 This bootstrap path now creates the minimum host-governance surface needed for
 an honest first audit:
 
-- `projects/<project_id>/control/constitution.md`
-- `projects/<project_id>/control/pivot-log.md`
-- `projects/<project_id>/control/exception-ledger.md`
-- `projects/<project_id>/current/current-task.md`
+- `state/<project_id>/control/constitution.md`
+- `state/<project_id>/control/pivot-log.md`
+- `state/<project_id>/control/exception-ledger.md`
+- `state/<project_id>/current/current-task.md`
 - `.githooks/pre-commit`
 - `.githooks/pre-push`
 
@@ -172,3 +172,4 @@ repo-governance-kernel --repo-root C:/path/to/host/repo install-hooks --project-
 
 Repo-local compatibility entrypoints still exist under `scripts/`, but they are
 adapter surfaces rather than the canonical kernel implementation layer.
+

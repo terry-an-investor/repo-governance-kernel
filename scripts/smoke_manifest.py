@@ -24,7 +24,7 @@ class SmokeSpec:
 
     @property
     def fixture_paths(self) -> tuple[Path, ...]:
-        return tuple(ROOT / "projects" / project_id for project_id in self.fixture_project_ids)
+        return tuple(ROOT / "state" / project_id for project_id in self.fixture_project_ids)
 
     def to_dict(self) -> dict[str, object]:
         payload = asdict(self)

@@ -57,7 +57,7 @@ Core objects:
 - adjudications
 - transition events
 
-These are durable Markdown objects under `projects/<project_id>/memory/`.
+These are durable Markdown objects under `state/<project_id>/memory/`.
 
 ## Layer 2: Projected Control State
 
@@ -159,7 +159,7 @@ The architecture should increasingly separate:
   - transition registry
   - audit and enforcement runtime
 - sample-specific semantics
-  - `projects/session-memory/...`
+  - `state/session-memory/...`
   - self-hosted rounds and adjudications
   - local product history
   - fixture and smoke-specific sample data
@@ -197,7 +197,7 @@ session-memory/
 │   ├── audit_control_state.py
 │   ├── transition_specs.py
 │   └── ...
-├── projects/
+├── state/
 │   ├── session-memory/
 │   └── wind-agent/
 └── index/
@@ -217,3 +217,4 @@ The right next move is:
 - make task contracts executable gates
 - keep all new semantics registry-owned
 - separate kernel concerns from sample/dogfood concerns
+

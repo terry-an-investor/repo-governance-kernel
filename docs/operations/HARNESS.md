@@ -73,7 +73,7 @@ This is a harness failure, not a product-state success.
 
 Current disposable fixture smokes all mutate:
 
-- `projects/__*_smoke__/`
+- `state/__*_smoke__/`
 - the repo worktree view used by enforcement
 
 So they are not parallel-safe by default.
@@ -131,3 +131,4 @@ Harness defines what the repo is willing to accept as observed truth.
 
 Without that layer, even a good smoke script can still produce misleading
 confidence.
+

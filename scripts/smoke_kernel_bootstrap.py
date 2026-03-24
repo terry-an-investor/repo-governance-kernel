@@ -130,10 +130,10 @@ def assert_bootstrap_host(
     expected_paths = [
         fixture_root / ".githooks" / "pre-commit",
         fixture_root / ".githooks" / "pre-push",
-        fixture_root / "projects" / project_id / "control" / "constitution.md",
-        fixture_root / "projects" / project_id / "current" / "current-task.md",
-        fixture_root / "projects" / project_id / "control" / "pivot-log.md",
-        fixture_root / "projects" / project_id / "control" / "exception-ledger.md",
+        fixture_root / "state" / project_id / "control" / "constitution.md",
+        fixture_root / "state" / project_id / "current" / "current-task.md",
+        fixture_root / "state" / project_id / "control" / "pivot-log.md",
+        fixture_root / "state" / project_id / "control" / "exception-ledger.md",
     ]
     missing = [str(path) for path in expected_paths if not path.exists()]
     if missing:
@@ -147,7 +147,7 @@ def assert_bootstrap_host(
     if hooks_path != expected_hooks_path:
         raise SystemExit(f"unexpected hooksPath `{hooks_path}`; expected `{expected_hooks_path}`")
 
-    constitution_text = (fixture_root / "projects" / project_id / "control" / "constitution.md").read_text(
+    constitution_text = (fixture_root / "state" / project_id / "control" / "constitution.md").read_text(
         encoding="utf-8"
     )
     if "Audit Hooks" not in constitution_text:

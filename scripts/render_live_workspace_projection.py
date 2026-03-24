@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    current_task_path = ROOT / "projects" / args.project_id / "current" / "current-task.md"
+    current_task_path = ROOT / "state" / args.project_id / "current" / "current-task.md"
     current_task_sections = parse_h2_sections(read_text(current_task_path)) if current_task_path.exists() else {}
     anchor = extract_current_task_anchor(current_task_sections)
     if args.workspace_root:

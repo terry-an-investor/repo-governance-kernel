@@ -36,6 +36,7 @@ from kernel.round_control import (
     select_active_objective_record,
     select_open_round_record,
 )
+from kernel.runtime_paths import render_project_state_prefix
 
 
 def add_issue(
@@ -68,7 +69,7 @@ def normalize_repo_path(value: str | Path) -> str:
 
 def is_control_plane_path(project_id: str, path: str) -> bool:
     normalized = path.replace("\\", "/").lstrip("./")
-    prefix = f"projects/{project_id}/"
+    prefix = render_project_state_prefix(project_id)
     if not normalized.startswith(prefix):
         return False
     suffix = normalized[len(prefix) :]

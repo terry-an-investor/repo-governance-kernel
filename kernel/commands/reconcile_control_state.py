@@ -59,7 +59,7 @@ def main() -> int:
         actions.append(f"rebuild `{active_objective_path(args.project_id).relative_to(project_path.parent).as_posix()}` from durable objective `{active_objective_id}`")
 
     pivot_log_text = render_pivot_log_file(args.project_id)
-    actions.append(f"rebuild `projects/{args.project_id}/control/pivot-log.md` from durable pivot and objective records")
+    actions.append(f"rebuild `state/{args.project_id}/control/pivot-log.md` from durable pivot and objective records")
     exception_ledger_text = render_exception_ledger_file(args.project_id)
 
     active_round_text: str | None = None

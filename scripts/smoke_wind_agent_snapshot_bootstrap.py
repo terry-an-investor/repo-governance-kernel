@@ -157,7 +157,7 @@ def main() -> int:
             )
         )
 
-    report_path = FIXTURE_ROOT / "projects" / PROJECT_ID / "current" / "adoption-report.md"
+    report_path = FIXTURE_ROOT / "state" / PROJECT_ID / "current" / "adoption-report.md"
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
         "\n".join(

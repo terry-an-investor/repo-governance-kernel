@@ -13,6 +13,7 @@ from kernel.assemble_context import (
     render_live_workspace_projection,
 )
 from kernel.round_control import assert_anchor_maintenance_command_contract
+from kernel.runtime_paths import resolve_project_state_root
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,7 +29,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    current_task_path = ROOT / "projects" / args.project_id / "current" / "current-task.md"
+    current_task_path = resolve_project_state_root(args.project_id, ROOT) / "current" / "current-task.md"
     current_task_sections = parse_h2_sections(read_text(current_task_path)) if current_task_path.exists() else {}
     anchor = extract_current_task_anchor(current_task_sections)
     if args.workspace_root:

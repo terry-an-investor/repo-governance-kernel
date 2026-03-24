@@ -126,7 +126,7 @@ def refresh_current_state_section(
 
 def main() -> int:
     args = parse_args()
-    project_dir = ROOT / "projects" / args.project_id
+    project_dir = ROOT / "state" / args.project_id
     current_task_path = project_dir / "current" / "current-task.md"
     if not current_task_path.exists():
         raise SystemExit(f"missing current-task file: {current_task_path}")
