@@ -91,9 +91,9 @@ def write_external_target_fixture(path: Path) -> None:
 
 def main() -> int:
     if FIXTURE_ROOT.exists():
-        shutil.rmtree(FIXTURE_ROOT, onexc=on_rm_error)
+        shutil.rmtree(FIXTURE_ROOT, onerror=on_rm_error)
     if EXTERNAL_TARGET_ROOT.exists():
-        shutil.rmtree(EXTERNAL_TARGET_ROOT, onexc=on_rm_error)
+        shutil.rmtree(EXTERNAL_TARGET_ROOT, onerror=on_rm_error)
     if EXTERNAL_REPORT_PATH.exists():
         EXTERNAL_REPORT_PATH.unlink()
     if EXTERNAL_DRAFT_PATH.exists():

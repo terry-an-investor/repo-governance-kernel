@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 3d51dad2da24b25c9031d9ffff198bd994e0d007
+git_sha: 4255edef2b2f30d39ac720c7f4004f8e320ef32c
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
@@ -27,6 +27,12 @@ paths:
   - kernel/README.md
   - kernel/docs/TRANSITION_COMMANDS.md
   - .github/workflows
+  - scripts/smoke_fixture_lib.py
+  - scripts/smoke_assess_host_adoption.py
+  - scripts/smoke_brooks_semantic_research_snapshot_adoption.py
+  - scripts/smoke_wind_agent_snapshot_bootstrap.py
+  - scripts/smoke_wind_agent_snapshot_adoption.py
+  - scripts/smoke_phase1.py
 thread_ids: []
 evidence_refs: []
 tags:
@@ -34,7 +40,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:10:50+08:00
-updated_at: 2026-03-24T22:10:12+08:00
+updated_at: 2026-03-24T22:17:18+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -90,3 +96,5 @@ Round rewritten because The root-doc cleanup now fully migrates the remaining ev
 Round rewritten because The remaining evaluation-doc migration also touches one historical snapshot that still points at the retiring root path, so the round boundary must cover snapshots before the old files are removed.
 
 Round rewritten because The root-doc migration is now complete enough to retire the old root evaluation and auxiliary doc paths from the active round, so the round path set should collapse to the live docs tree instead of keeping stale retired roots.
+
+Round rewritten because GitHub Actions now fails inside phase-1 smoke on Python 3.11 compatibility, so the round boundary must cover the shared smoke fixture helper and the snapshot/adoption smokes that still use the unsupported shutil.rmtree onexc parameter.

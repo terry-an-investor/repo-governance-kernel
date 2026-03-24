@@ -61,7 +61,7 @@ def main() -> int:
     if not SOURCE_REPO.exists():
         raise SystemExit(f"wind-agent source repo not found: {SOURCE_REPO}")
     if FIXTURE_ROOT.exists():
-        shutil.rmtree(FIXTURE_ROOT, onexc=on_rm_error)
+        shutil.rmtree(FIXTURE_ROOT, onerror=on_rm_error)
 
     excluded_names, excluded_files = resolve_snapshot_exclusions(
         SOURCE_REPO,

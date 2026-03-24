@@ -90,7 +90,7 @@ def on_rm_error(func, path, exc_info) -> None:
 
 def reset_fixture_repo(fixture_dir: Path) -> None:
     if fixture_dir.exists():
-        shutil.rmtree(fixture_dir, onexc=on_rm_error)
+        shutil.rmtree(fixture_dir, onerror=on_rm_error)
 
 
 def init_fixture_repo(fixture_dir: Path, *, commit_message: str) -> None:
