@@ -119,6 +119,9 @@ autonomous rewrite engine after a verdict is recorded.
   - can compile bounded objective rewrite, task-contract rewrite/status,
     round-close, exception-contract, and phase-bootstrap plan families from
     adjudication durable truth
+  - can also compile bounded phase fallback plans that leave `execution`
+    through the existing `set-phase` primitive while rewriting open-round
+    contracts through declared owner-layer payload semantics
   - now treats plan target-resolution names, binding resolvers, and plan
     side-effect names as explicit registry-owned machine semantics
   - now routes mutable rewrite executor commands through one shared

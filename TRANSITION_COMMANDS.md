@@ -940,9 +940,16 @@ Current implementation status:
 - bounded phase-side-effect plans can compile `set-phase --auto-open-round`
   from the adjudication's existing round bootstrap fields instead of requiring
   one hand-authored low-level phase payload
+- bounded phase fallback plans can now also compile `set-phase --rewrite-open-round`
+  so adjudication can move an objective out of `execution` while rewriting the
+  still-open round contract through the same governed phase primitive instead of
+  inventing one phase-local private rewrite path
 - can rerun control audit after those follow-ups
 - can open a bounded round when structured round bootstrap fields exist in the
   adjudication record or are passed explicitly
+- can move one execution objective into `paused` or `exploration` through
+  adjudication when the follow-up stays inside explicit `set-phase` plus
+  bounded open-round rewrite semantics
 - treats an already-open aligned round as `noop` instead of reopening it
 - reports prose-only, unsupported, or underspecified follow-ups as blocked instead of
   pretending they were executed

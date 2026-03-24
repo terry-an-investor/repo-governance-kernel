@@ -457,6 +457,9 @@ Current implementation already does these things:
     round in adjudication objective context
   - can compile one bounded phase-side-effect bundle that enters `execution`
     and auto-opens one round from adjudication durable round bootstrap fields
+  - can also compile one bounded phase fallback bundle that leaves `execution`
+    for `paused` or `exploration` through `set-phase` while rewriting the
+    still-open round contract through the same governed phase primitive
   - executes explicit structured follow-up contracts from adjudication frontmatter `executor_followups`
     for a bounded subset of existing transition commands
   - can run one bounded multi-step `round-close-chain` bundle that closes a round through legal intermediate states

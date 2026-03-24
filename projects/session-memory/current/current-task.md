@@ -54,6 +54,10 @@ The immediate objective is:
 - `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded phase-side-effect compilation:
   - enter `execution` for one exploration objective through an adjudication plan contract
   - auto-open one bounded round from adjudication durable `round_*` bootstrap fields
+- `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded phase fallback compilation:
+  - leave `execution` for `paused` through an adjudication plan contract
+  - rewrite the still-open round through the same governed `set-phase` primitive
+  - keep compile/execute on registry-declared `set-phase` payload semantics instead of a phase-local private executor branch
 - `uv run python scripts/smoke_adjudication_followups.py` now also proves bounded objective rewrite compilation:
   - compile one adjudication objective rewrite plan into `record-soft-pivot`
   - preserve objective identity while rewriting the active objective line
@@ -322,6 +326,7 @@ The immediate objective is:
   - retire an active exception contract through a bounded exception plan contract
   - invalidate an active exception contract through a bounded exception plan contract
   - enter execution and open one bounded round through a bounded phase-side-effect plan contract
+  - leave execution and rewrite one still-open round through a bounded phase fallback plan contract
   - open a successor round from adjudication bootstrap fields
   - block one prose-only follow-up instead of guessing a durable rewrite
   - finish with clean control audit
@@ -416,8 +421,9 @@ The immediate objective is:
   exception contracts; broader mixed-object verdict plans still need clearer
   contracts before they should compile automatically.
 - Phase-side-effect planning now compiles execution bootstrap honestly, but it
-  still covers only one narrow bundle; broader pause/exploration fallback and
-  open-round rewrite combinations still remain outside the bounded automatic subset.
+  now also covers bounded execution fallback with open-round rewrite, but
+  broader multi-round replacement and hard-pivot-driven rewrite bundles still
+  remain outside the bounded automatic subset.
 - The new harness law now governs disposable fixture project leakage, but it
   still only checks declared fixture paths; richer contamination classes such as
   shared artifact collisions or index reuse policy remain outside the current suite runner.
@@ -449,9 +455,10 @@ The immediate objective is:
    drifting silently.
 3. Continue broadening bounded plan and bundle families only where the
    underlying command semantics are already registry-owned and auditable.
-4. Decide which additional resolver families deserve first-class machine
-   semantics before expanding beyond the current bounded automatic subset.
-5. Broaden bounded adjudication plan families only where underlying command
-   semantics are already registry-owned and auditable.
+4. Register the next bounded family around broader bundle admission and
+   multi-object adjudication surfaces without introducing private bundle
+   semantics.
+5. Decide which additional resolver families deserve first-class machine
+   semantics before expanding toward broader multi-round replacement behavior.
 6. Validate the product on more non-self-hosted repositories after the product
    positioning and owner-layer contracts stabilize.

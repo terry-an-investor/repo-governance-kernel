@@ -724,6 +724,7 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("set-phase", "reason", "reason", "scalar", required=True),
     CommandExecutorFieldSpec("set-phase", "evidence", "evidence", "list"),
     CommandExecutorFieldSpec("set-phase", "scope_review_note", "scope-review-note", "list"),
+    CommandExecutorFieldSpec("set-phase", "rewrite_open_round", "rewrite-open-round", "bool"),
     CommandExecutorFieldSpec("set-phase", "auto_open_round", "auto-open-round", "bool"),
     CommandExecutorFieldSpec("set-phase", "round_title", "round-title", "scalar"),
     CommandExecutorFieldSpec("set-phase", "round_summary", "round-summary", "scalar"),
@@ -734,6 +735,10 @@ COMMAND_EXECUTOR_FIELD_SPECS: tuple[CommandExecutorFieldSpec, ...] = (
     CommandExecutorFieldSpec("set-phase", "round_risk", "round-risk", "list"),
     CommandExecutorFieldSpec("set-phase", "round_blocker", "round-blocker", "list"),
     CommandExecutorFieldSpec("set-phase", "round_status_note", "round-status-note", "scalar"),
+    CommandExecutorFieldSpec("set-phase", "replace_round_scope_items", "replace-round-scope-items", "bool"),
+    CommandExecutorFieldSpec("set-phase", "replace_round_scope_paths", "replace-round-scope-paths", "bool"),
+    CommandExecutorFieldSpec("set-phase", "replace_round_risks", "replace-round-risks", "bool"),
+    CommandExecutorFieldSpec("set-phase", "replace_round_blockers", "replace-round-blockers", "bool"),
     CommandExecutorFieldSpec("activate-exception-contract", "title", "title", "scalar", required=True),
     CommandExecutorFieldSpec("activate-exception-contract", "objective_id", "objective-id", "scalar"),
     CommandExecutorFieldSpec("activate-exception-contract", "summary", "summary", "scalar", required=True),
@@ -937,6 +942,14 @@ ADJUDICATION_PLAN_SIDE_EFFECT_SPECS: tuple[AdjudicationPlanSideEffectSpec, ...] 
     AdjudicationPlanSideEffectSpec(
         "bootstrap_bounded_round",
         "Bootstrap one bounded execution round through governed round-open semantics.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "leave_execution_phase",
+        "Leave execution through the governed phase transition surface.",
+    ),
+    AdjudicationPlanSideEffectSpec(
+        "rewrite_open_rounds_for_phase_fallback",
+        "Rewrite still-open round contracts through the governed phase fallback surface.",
     ),
 )
 
@@ -1772,6 +1785,79 @@ ADJUDICATION_PLAN_SPECS: tuple[AdjudicationPlanSpec, ...] = (
                         "scope_review_note",
                         "contract_list",
                         ("scope_review_note",),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    AdjudicationPlanSpec(
+        plan_type="leave-execution-with-round-rewrite",
+        compiled_commands=("set-phase",),
+        requires_adjudication_fields=("reason", "phase"),
+        target_resolution="explicit_or_adjudication_objective",
+        side_effect_codes=("leave_execution_phase", "rewrite_open_rounds_for_phase_fallback"),
+        payload_templates=(
+            AdjudicationPayloadTemplateSpec(
+                command_name="set-phase",
+                static_bool_fields=(("rewrite_open_round", True),),
+                bindings=(
+                    AdjudicationPayloadBindingSpec("objective_id", "contract_or_meta_scalar", ("objective_id",)),
+                    AdjudicationPayloadBindingSpec("phase", "contract_scalar", ("phase",), required=True),
+                    AdjudicationPayloadBindingSpec("reason", "contract_scalar", ("reason",), required=True),
+                    AdjudicationPayloadBindingSpec("evidence", "contract_list", ("evidence",)),
+                    AdjudicationPayloadBindingSpec(
+                        "scope_review_note",
+                        "contract_list",
+                        ("scope_review_note",),
+                    ),
+                    AdjudicationPayloadBindingSpec("round_title", "contract_scalar", ("round_title",)),
+                    AdjudicationPayloadBindingSpec("round_summary", "contract_scalar", ("round_summary",)),
+                    AdjudicationPayloadBindingSpec(
+                        "round_scope_item",
+                        "contract_list",
+                        ("round_scope_item",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_scope_path",
+                        "contract_list",
+                        ("round_scope_path",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_deliverable",
+                        "contract_scalar",
+                        ("round_deliverable",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "round_validation_plan",
+                        "contract_scalar",
+                        ("round_validation_plan",),
+                    ),
+                    AdjudicationPayloadBindingSpec("round_risk", "contract_list", ("round_risk",)),
+                    AdjudicationPayloadBindingSpec("round_blocker", "contract_list", ("round_blocker",)),
+                    AdjudicationPayloadBindingSpec(
+                        "round_status_note",
+                        "contract_scalar",
+                        ("round_status_note",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "replace_round_scope_items",
+                        "contract_bool",
+                        ("replace_round_scope_items",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "replace_round_scope_paths",
+                        "contract_bool",
+                        ("replace_round_scope_paths",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "replace_round_risks",
+                        "contract_bool",
+                        ("replace_round_risks",),
+                    ),
+                    AdjudicationPayloadBindingSpec(
+                        "replace_round_blockers",
+                        "contract_bool",
+                        ("replace_round_blockers",),
                     ),
                 ),
             ),

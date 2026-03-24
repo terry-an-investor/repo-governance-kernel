@@ -28,6 +28,8 @@ FIXTURE_PROJECT_ID = "__adjudication_followups_smoke__"
 FIXTURE_PROJECT_DIR = ROOT / "projects" / FIXTURE_PROJECT_ID
 PHASE_BUNDLE_FIXTURE_PROJECT_ID = "__adjudication_phase_bundle_smoke__"
 PHASE_BUNDLE_FIXTURE_PROJECT_DIR = ROOT / "projects" / PHASE_BUNDLE_FIXTURE_PROJECT_ID
+PHASE_FALLBACK_FIXTURE_PROJECT_ID = "__adjudication_phase_fallback_smoke__"
+PHASE_FALLBACK_FIXTURE_PROJECT_DIR = ROOT / "projects" / PHASE_FALLBACK_FIXTURE_PROJECT_ID
 
 
 def write_fixture_files() -> None:
@@ -196,6 +198,89 @@ def write_phase_bundle_fixture_files() -> None:
         encoding="utf-8",
     )
     ledger_path = PHASE_BUNDLE_FIXTURE_PROJECT_DIR / "control" / "exception-ledger.md"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text(
+        "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
+
+
+def write_phase_fallback_fixture_files() -> None:
+    current_task_path = PHASE_FALLBACK_FIXTURE_PROJECT_DIR / "current" / "current-task.md"
+    current_task_path.parent.mkdir(parents=True, exist_ok=True)
+    current_task_path.write_text(
+        "\n".join(
+            [
+                "# Current Task",
+                "",
+                "## Goal",
+                "",
+                "Validate adjudication-driven phase fallback with bounded open-round rewrite on a disposable fixture project.",
+                "",
+                "## Current State",
+                "",
+                f"- Project: `{PHASE_FALLBACK_FIXTURE_PROJECT_ID}`",
+                "- Workspace id: `ws-adjudication-phase-fallback-smoke`",
+                f"- Workspace root: `{PHASE_FALLBACK_FIXTURE_PROJECT_DIR.as_posix()}`",
+                "- Branch: `master`",
+                "- HEAD anchor: `adjudication-phase-fallback-smoke`",
+                "",
+                "## Validated Facts",
+                "",
+                "- Fixture project is disposable and should be deleted after validation.",
+                "",
+                "## Active Risks",
+                "",
+                "- None recorded yet.",
+                "",
+                "## Next Steps",
+                "",
+                "- Use adjudication to leave execution and rewrite the still-open round through the bounded phase primitive.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    blockers_path = PHASE_FALLBACK_FIXTURE_PROJECT_DIR / "current" / "blockers.md"
+    blockers_path.parent.mkdir(parents=True, exist_ok=True)
+    blockers_path.write_text(
+        "# Blockers\n\n## Active\n\n- None recorded yet.\n\n## Waiting\n\n- None recorded yet.\n\n## Cleared\n\n- None recorded yet.\n",
+        encoding="utf-8",
+    )
+    constitution_path = PHASE_FALLBACK_FIXTURE_PROJECT_DIR / "control" / "constitution.md"
+    constitution_path.parent.mkdir(parents=True, exist_ok=True)
+    constitution_path.write_text(
+        "\n".join(
+            [
+                "# Constitution",
+                "",
+                "## Product Boundaries",
+                "",
+                "- This fixture exists only to validate adjudication-driven phase fallback bundles.",
+                "",
+                "## Architecture Invariants",
+                "",
+                "- Leaving execution should reuse existing set-phase and rewrite-open-round contracts.",
+                "",
+                "## Quality Bar",
+                "",
+                "- Adjudication must compile phase fallback from durable truth instead of hand-authored payload JSON.",
+                "",
+                "## Validation Rules",
+                "",
+                "- The fixture must leave execution and rewrite the still-open round through the bounded plan compiler path.",
+                "",
+                "## Forbidden Shortcuts",
+                "",
+                "- Do not preserve the fixture after validation.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    ledger_path = PHASE_FALLBACK_FIXTURE_PROJECT_DIR / "control" / "exception-ledger.md"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
     ledger_path.write_text(
         "# Exception Ledger\n\n## Active\n\n- None recorded yet.\n\n## Retired\n\n- None recorded yet.\n\n## Invalidated\n\n- None recorded yet.\n",
@@ -853,6 +938,162 @@ def main() -> None:
         if not execution_bootstrap_round_id:
             raise SystemExit("phase-side-effect plan opened a round without an id")
 
+        reset_fixture_repo(PHASE_FALLBACK_FIXTURE_PROJECT_DIR)
+        write_phase_fallback_fixture_files()
+        init_fixture_repo(PHASE_FALLBACK_FIXTURE_PROJECT_DIR, commit_message="Initialize adjudication phase-fallback fixture")
+
+        phase_fallback_objective_result = run_json(
+            "open_objective.py",
+            "--project-id",
+            PHASE_FALLBACK_FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable adjudication phase fallback objective",
+            "--problem",
+            "Validate that adjudication can leave execution while rewriting the still-open round through the bounded phase primitive.",
+            "--success-criterion",
+            "Adjudication can compile a bounded phase fallback plan into set-phase with rewrite-open-round.",
+            "--success-criterion",
+            "The same plan can rewrite the still-open round contract while the objective leaves execution.",
+            "--non-goal",
+            "Hand-author a low-level set-phase rewrite payload for the fixture.",
+            "--why-now",
+            "Phase fallback semantics should be consumable through the same owner-layer adjudication path as execution bootstrap.",
+            "--phase",
+            "execution",
+            "--path",
+            "current/current-task.md",
+        )
+        phase_fallback_objective_id = str(phase_fallback_objective_result["objective_id"])
+
+        phase_fallback_round_result = run_json(
+            "open_round.py",
+            "--project-id",
+            PHASE_FALLBACK_FIXTURE_PROJECT_ID,
+            "--title",
+            "Disposable phase fallback predecessor round",
+            "--scope-item",
+            "Prove that adjudication phase fallback can rewrite the still-open round through governed set-phase semantics.",
+            "--deliverable",
+            "A disposable round that will be rewritten by the phase fallback adjudication plan.",
+            "--validation-plan",
+            "Compile and execute the phase fallback plan, then inspect durable objective and round truth.",
+            "--scope-path",
+            "current/",
+            "--scope-path",
+            "control/",
+            "--scope-path",
+            "memory/",
+        )
+        phase_fallback_round_id = str(phase_fallback_round_result["round_id"])
+
+        leave_execution_plan = json.dumps(
+            {
+                "plan_type": "leave-execution-with-round-rewrite",
+                "phase": "paused",
+                "reason": "Adjudication pauses the fixture objective and rewrites the still-open round so the bounded contract stays honest outside active execution.",
+                "scope_review_note": [
+                    "The open round remains durable but its contract is rewritten to reflect paused execution."
+                ],
+                "round_title": "Disposable paused phase fallback round",
+                "round_summary": "Rewritten through adjudication-driven phase fallback.",
+                "round_scope_item": [
+                    "Preserve bounded round truth while objective execution is paused."
+                ],
+                "round_scope_path": [
+                    "current/",
+                    "control/",
+                ],
+                "round_deliverable": "A rewritten round contract aligned with paused execution.",
+                "round_validation_plan": "Inspect durable objective and round truth after the bounded phase fallback execution.",
+                "round_risk": [
+                    "Paused execution still requires an honest bounded round contract."
+                ],
+                "round_status_note": "Rewritten through the adjudication phase fallback plan bundle.",
+                "replace_round_scope_items": True,
+                "replace_round_scope_paths": True,
+                "replace_round_risks": True,
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+        phase_fallback_adjudication_result = run_json(
+            "adjudicate_control_state.py",
+            "--project-id",
+            PHASE_FALLBACK_FIXTURE_PROJECT_ID,
+            "--allow-clean",
+            "--title",
+            "Disposable phase fallback adjudication follow-up execution smoke",
+            "--question",
+            "Can adjudication compile leaving execution plus open-round rewrite into the bounded phase primitive?",
+            "--verdict",
+            "Pause the fixture objective and rewrite the still-open round through the bounded phase fallback plan compiler path.",
+            "--retain-id",
+            phase_fallback_objective_id,
+            "--executor-plan-json",
+            leave_execution_plan,
+            "--follow-up",
+            "rerun audit-control-state",
+        )
+        phase_fallback_compile_result = run_json(
+            "compile_adjudication_executor_plan.py",
+            "--project-id",
+            PHASE_FALLBACK_FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(phase_fallback_adjudication_result["adjudication_id"]),
+        )
+        if int(phase_fallback_compile_result["compiled_followup_count"]) != 1:
+            raise SystemExit("phase fallback plan compiler did not emit the expected set-phase bundle")
+        compiled_phase_fallback_payloads = phase_fallback_compile_result.get("compiled_followups") or []
+        if not compiled_phase_fallback_payloads:
+            raise SystemExit("phase fallback plan compiler emitted no payloads")
+        compiled_phase_fallback_payload = compiled_phase_fallback_payloads[0]
+        if compiled_phase_fallback_payload.get("command") != "set-phase":
+            raise SystemExit("phase fallback plan compiler did not compile through set-phase")
+        if compiled_phase_fallback_payload.get("phase") != "paused":
+            raise SystemExit("phase fallback plan compiler did not target the expected phase")
+        if not compiled_phase_fallback_payload.get("rewrite_open_round"):
+            raise SystemExit("phase fallback plan compiler did not request bounded open-round rewrite")
+
+        phase_fallback_execute_result = run_json(
+            "execute_adjudication_followups.py",
+            "--project-id",
+            PHASE_FALLBACK_FIXTURE_PROJECT_ID,
+            "--adjudication-id",
+            str(phase_fallback_adjudication_result["adjudication_id"]),
+        )
+        if phase_fallback_execute_result["blocked"]:
+            raise SystemExit(
+                f"phase fallback plan execution reported blocked steps: {phase_fallback_execute_result['blocked']}"
+            )
+
+        phase_fallback_objective_path = None
+        for candidate in (PHASE_FALLBACK_FIXTURE_PROJECT_DIR / "memory" / "objectives").glob("*.md"):
+            candidate_meta, _candidate_sections = load_objective_file(candidate)
+            if str(candidate_meta.get("id") or "").strip() == phase_fallback_objective_id:
+                phase_fallback_objective_path = candidate
+                if str(candidate_meta.get("phase") or "").strip() != "paused":
+                    raise SystemExit("phase fallback plan did not move the objective into paused")
+                break
+        if phase_fallback_objective_path is None:
+            raise SystemExit("phase-fallback objective durable file disappeared")
+
+        phase_fallback_round_path = locate_round_file(PHASE_FALLBACK_FIXTURE_PROJECT_ID, phase_fallback_round_id)
+        if phase_fallback_round_path is None:
+            raise SystemExit("phase fallback target round durable file disappeared")
+        phase_fallback_round_meta, phase_fallback_round_sections = load_round_file(phase_fallback_round_path)
+        if str(phase_fallback_round_meta.get("title") or "").strip() != "Disposable paused phase fallback round":
+            raise SystemExit("phase fallback plan did not rewrite the round title")
+        rewritten_scope_items = parse_bullet_list(phase_fallback_round_sections.get("Scope", ""))
+        if rewritten_scope_items != ["Preserve bounded round truth while objective execution is paused."]:
+            raise SystemExit("phase fallback plan did not replace the round scope items")
+        rewritten_scope_paths = [str(item).strip() for item in phase_fallback_round_meta.get("paths", []) if str(item).strip()]
+        if rewritten_scope_paths != ["current/", "control/"]:
+            raise SystemExit("phase fallback plan did not replace the round scope paths")
+
+        phase_fallback_audit = run_json("audit_control_state.py", "--project-id", PHASE_FALLBACK_FIXTURE_PROJECT_ID)
+        if phase_fallback_audit["summary"]["errors"] != 0:
+            raise SystemExit("phase fallback fixture audit reported errors")
+
         reset_fixture_repo(FIXTURE_PROJECT_DIR)
         write_fixture_files()
         init_fixture_repo(FIXTURE_PROJECT_DIR, commit_message="Initialize adjudication objective-rewrite fixture")
@@ -1014,6 +1255,8 @@ def main() -> None:
                     "invalidated_exception_contract_id": invalidated_exception_id,
                     "execution_bootstrap_objective_id": execution_bootstrap_objective_id,
                     "execution_bootstrap_round_id": execution_bootstrap_round_id,
+                    "phase_fallback_objective_id": phase_fallback_objective_id,
+                    "phase_fallback_round_id": phase_fallback_round_id,
                     "objective_rewrite_objective_id": objective_rewrite_objective_id,
                     "objective_rewrite_round_id": objective_rewrite_round_id,
                     "adjudication_id": str(adjudication_result["adjudication_id"]),
@@ -1021,6 +1264,7 @@ def main() -> None:
                     "applied": execute_result["applied"],
                     "invalidated_applied": invalidating_execute_result["applied"],
                     "execution_bootstrap_applied": execution_bootstrap_execute_result["applied"],
+                    "phase_fallback_applied": phase_fallback_execute_result["applied"],
                     "objective_rewrite_applied": objective_rewrite_execute_result["applied"],
                     "blocked": blocked_execute_result["blocked"],
                     "fixture_audit": final_boundary_audit["status"],
@@ -1032,6 +1276,7 @@ def main() -> None:
     finally:
         reset_fixture_repo(FIXTURE_PROJECT_DIR)
         reset_fixture_repo(PHASE_BUNDLE_FIXTURE_PROJECT_DIR)
+        reset_fixture_repo(PHASE_FALLBACK_FIXTURE_PROJECT_DIR)
 
 
 if __name__ == "__main__":
