@@ -60,6 +60,14 @@ an honest first audit:
 - `.githooks/pre-commit`
 - `.githooks/pre-push`
 
+The current validation path now covers both:
+
+- a brand-new disposable git repo
+- a frozen copied `wind-agent` host snapshot
+
+Both surfaces bootstrap and pass host-side `audit-control-state` without
+touching the live source repository.
+
 Install or refresh repo-local hooks:
 
 ```powershell

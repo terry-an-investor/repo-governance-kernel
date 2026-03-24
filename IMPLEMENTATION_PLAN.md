@@ -118,6 +118,7 @@ Needed outcomes:
 - real-host rollout proceeds in this order:
   - disposable fixture repo
   - frozen host snapshot
+    - first proof now exists through a copied `wind-agent` working-tree snapshot that bootstraps and passes host-side control audit without touching the live repo
   - shadow mode on a live host
   - hard-gated adoption on a lower-risk real repo
 
