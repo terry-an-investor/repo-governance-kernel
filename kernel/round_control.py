@@ -108,6 +108,20 @@ def safe_file_stem(value: str, *, max_length: int = 120) -> str:
     return f"{cleaned[:keep].rstrip('-')}-{digest}"
 
 
+def safe_file_name_for_dir(
+    directory: Path,
+    value: str,
+    *,
+    suffix: str = ".md",
+    default_max_stem_length: int = 120,
+    max_total_path_length: int = 240,
+) -> str:
+    directory_text = str(directory)
+    available_stem_length = max_total_path_length - len(directory_text) - len(suffix) - 1
+    bounded_stem_length = min(default_max_stem_length, max(24, available_stem_length))
+    return f"{safe_file_stem(value, max_length=bounded_stem_length)}{suffix}"
+
+
 def project_dir(project_id: str) -> Path:
     return ROOT / "projects" / project_id
 
@@ -2182,7 +2196,8 @@ def write_transition_event(
         evidence=evidence,
         target_ids=target_ids,
     )
-    event_path = transition_events_dir(project_id) / f"{safe_file_stem(file_stem)}.md"
+    event_root = transition_events_dir(project_id)
+    event_path = event_root / safe_file_name_for_dir(event_root, file_stem)
     event_path.parent.mkdir(parents=True, exist_ok=True)
     event_path.write_text(event_text, encoding="utf-8")
     return event_id, event_path

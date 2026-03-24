@@ -58,7 +58,7 @@ Do not promote beyond alpha until:
 Preview validation completed on 2026-03-24.
 
 - `uv run python scripts/smoke_kernel_bootstrap.py`
-  - source-tree bootstrap still passes `audit-control-state`, and an installed wheel can bootstrap and audit a second disposable host from an isolated environment
+  - source-tree bootstrap still passes `audit-control-state`, and an installed wheel can both bootstrap a second disposable host and complete one bounded external-target single assessment from an isolated environment without mutating the target repo
 - `uv run python scripts/smoke_wind_agent_snapshot_adoption.py`
   - frozen `wind-agent` host adoption produces a readable shadow-adoption report and isolates remaining blocked verdicts to host bootstrap/support noise
 - `uv run python scripts/smoke_brooks_semantic_research_snapshot_adoption.py`
@@ -83,5 +83,5 @@ Preview validation completed on 2026-03-24.
 ## Preview Residual Risks
 
 - frozen-host adoption proof remains honest preview evidence for adopted host snapshots rather than the whole live-host story
-- external-target shadow mode now has one smoke-proven owner-layer draft-plus-assessment path, one governed bundle-backed single-pass wrapper, and one bounded natural-language entry, but it is still not a stable general live-host mutation contract
+- external-target shadow mode now has one smoke-proven owner-layer draft-plus-assessment path, one governed bundle-backed single-pass wrapper, one bounded natural-language entry, and one installed-wheel package proof, but it is still not a stable general live-host mutation contract
 - host repo and package still share one source repository, so preview packaging hygiene can still regress if repo-local docs and package docs drift

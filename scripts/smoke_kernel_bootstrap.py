@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import stat
 import subprocess
 import sys
 import tomllib
@@ -12,19 +14,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-host"
 INSTALLED_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-host-installed"
+INSTALLED_EXTERNAL_TARGET_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-external-target-installed"
 INSTALL_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-package-install"
+INSTALLED_DRAFT_PATH = ROOT / "artifacts" / "fixtures" / "bootstrap-external-target-installed-draft.md"
+INSTALLED_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "bootstrap-external-target-installed-report.md"
 SOURCE_PROJECT_ID = "bootstrap-host"
 INSTALLED_PROJECT_ID = "bootstrap-host-installed"
 GIT_EXE = "C:\\Program Files\\Git\\cmd\\git.exe"
+SOURCE_CLI = [sys.executable, "-m", "kernel.cli"]
 
 
-def run(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+def run(
+    cmd: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     completed = subprocess.run(
         cmd,
         cwd=str(cwd),
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
     if completed.returncode != 0:
         raise SystemExit(
@@ -39,8 +51,22 @@ def run(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
                 ensure_ascii=True,
                 indent=2,
             )
-    )
+        )
     return completed
+
+
+def on_rm_error(func, path, exc_info) -> None:
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
+def cleanup_path(path: Path) -> None:
+    if not path.exists():
+        return
+    if path.is_dir():
+        shutil.rmtree(path, onerror=on_rm_error)
+        return
+    path.unlink()
 
 
 def project_version() -> str:
@@ -49,8 +75,7 @@ def project_version() -> str:
 
 
 def ensure_clean_dir(path: Path) -> None:
-    if path.exists():
-        shutil.rmtree(path)
+    cleanup_path(path)
     path.mkdir(parents=True, exist_ok=True)
 
 
@@ -60,7 +85,48 @@ def init_git_repo(path: Path) -> None:
     run([GIT_EXE, "config", "user.name", "Fixture Smoke"], cwd=path)
 
 
-def assert_bootstrap_host(fixture_root: Path, project_id: str, *, bootstrap_payload: dict[str, object]) -> dict[str, object]:
+def commit_all_changes(path: Path, message: str) -> None:
+    run([GIT_EXE, "add", "."], cwd=path)
+    # The first fixture baseline commit establishes HEAD after bootstrap.
+    run([GIT_EXE, "commit", "--no-verify", "-m", message], cwd=path)
+
+
+def cli_json(
+    cli_cmd: list[str],
+    *,
+    repo_root: Path,
+    command: str,
+    args: list[str],
+    cwd: Path,
+    env: dict[str, str] | None = None,
+) -> dict[str, object]:
+    completed = run(
+        [
+            *cli_cmd,
+            "--repo-root",
+            str(repo_root),
+            command,
+            *args,
+        ],
+        cwd=cwd,
+        env=env,
+    )
+    payload = completed.stdout.strip() or completed.stderr.strip()
+    try:
+        parsed = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"{command} returned invalid json: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise SystemExit(f"{command} returned non-object json")
+    return parsed
+
+
+def assert_bootstrap_host(
+    fixture_root: Path,
+    project_id: str,
+    *,
+    bootstrap_payload: dict[str, object],
+) -> dict[str, object]:
     expected_paths = [
         fixture_root / ".githooks" / "pre-commit",
         fixture_root / ".githooks" / "pre-push",
@@ -93,40 +159,35 @@ def assert_bootstrap_host(fixture_root: Path, project_id: str, *, bootstrap_payl
     }
 
 
-def bootstrap_and_audit(*, fixture_root: Path, project_id: str, python_executable: str) -> dict[str, object]:
+def bootstrap_and_audit(
+    *,
+    fixture_root: Path,
+    project_id: str,
+    cli_cmd: list[str],
+    env: dict[str, str] | None = None,
+    commit_after_bootstrap: bool = False,
+) -> dict[str, object]:
     ensure_clean_dir(fixture_root)
     init_git_repo(fixture_root)
 
-    bootstrap = run(
-        [
-            python_executable,
-            "-m",
-            "kernel.cli",
-            "--repo-root",
-            str(fixture_root),
-            "bootstrap-repo",
-            "--project-id",
-            project_id,
-        ],
+    bootstrap = cli_json(
+        cli_cmd,
+        repo_root=fixture_root,
+        command="bootstrap-repo",
+        args=["--project-id", project_id],
         cwd=ROOT,
+        env=env,
     )
-    bootstrap_payload = json.loads(bootstrap.stdout)
-    bootstrap_checks = assert_bootstrap_host(fixture_root, project_id, bootstrap_payload=bootstrap_payload)
+    bootstrap_checks = assert_bootstrap_host(fixture_root, project_id, bootstrap_payload=bootstrap)
 
-    audit = run(
-        [
-            python_executable,
-            "-m",
-            "kernel.cli",
-            "--repo-root",
-            str(fixture_root),
-            "audit-control-state",
-            "--project-id",
-            project_id,
-        ],
+    audit_payload = cli_json(
+        cli_cmd,
+        repo_root=fixture_root,
+        command="audit-control-state",
+        args=["--project-id", project_id],
         cwd=ROOT,
+        env=env,
     )
-    audit_payload = json.loads(audit.stdout)
     if audit_payload.get("status") == "blocked":
         raise SystemExit(
             json.dumps(
@@ -139,22 +200,176 @@ def bootstrap_and_audit(*, fixture_root: Path, project_id: str, python_executabl
             )
         )
 
+    if commit_after_bootstrap:
+        commit_all_changes(fixture_root, "Commit bootstrapped governance baseline")
+
     return {
         "project_id": project_id,
         "fixture_root": str(fixture_root),
         "bootstrap": bootstrap_checks["bootstrap"],
         "audit": audit_payload,
         "hooks_path": bootstrap_checks["hooks_path"],
+        "committed_bootstrap_baseline": commit_after_bootstrap,
     }
 
 
-def prepare_installed_python() -> tuple[str, str]:
+def write_external_target_fixture(path: Path) -> list[str]:
+    ensure_clean_dir(path)
+    init_git_repo(path)
+    (path / "README.md").write_text("external fixture\n", encoding="utf-8", newline="\n")
+    baseline_doc = path / "docs" / "baseline.md"
+    baseline_doc.parent.mkdir(parents=True, exist_ok=True)
+    baseline_doc.write_text("baseline\n", encoding="utf-8", newline="\n")
+    run([GIT_EXE, "add", "README.md", "docs/baseline.md"], cwd=path)
+    run([GIT_EXE, "commit", "-m", "Initial external fixture baseline"], cwd=path)
+
+    dirty_paths = [
+        "docs/baseline.md",
+        "docs/close_reading/README.md",
+        "docs/close_reading/theme_close_read.md",
+    ]
+    (path / "docs" / "baseline.md").write_text("baseline changed\n", encoding="utf-8", newline="\n")
+    (path / "docs" / "close_reading" / "README.md").parent.mkdir(parents=True, exist_ok=True)
+    (path / "docs" / "close_reading" / "README.md").write_text("close reading\n", encoding="utf-8", newline="\n")
+    (path / "docs" / "close_reading" / "theme_close_read.md").write_text("theme close read\n", encoding="utf-8", newline="\n")
+    return dirty_paths
+
+
+def refresh_anchor(
+    *,
+    cli_cmd: list[str],
+    repo_root: Path,
+    project_id: str,
+    workspace_root: Path,
+    env: dict[str, str] | None = None,
+) -> str:
+    completed = run(
+        [
+            *cli_cmd,
+            "--repo-root",
+            str(repo_root),
+            "refresh-current-task-anchor",
+            "--project-id",
+            project_id,
+            "--workspace-root",
+            str(workspace_root).replace("\\", "/"),
+        ],
+        cwd=ROOT,
+        env=env,
+    )
+    return completed.stdout.strip()
+
+
+def prepare_external_target_workflow(
+    *,
+    cli_cmd: list[str],
+    repo_root: Path,
+    project_id: str,
+    env: dict[str, str] | None = None,
+) -> dict[str, object]:
+    objective = cli_json(
+        cli_cmd,
+        repo_root=repo_root,
+        command="open-objective",
+        args=[
+            "--project-id",
+            project_id,
+            "--title",
+            "Installed package external-target assessment proof",
+            "--summary",
+            "Prove the installed package can assess one external repo in a bounded single pass.",
+            "--problem",
+            "The package-first smoke should prove more than bootstrap and audit.",
+            "--success-criterion",
+            "One installed wheel can bootstrap a host and complete one external-target single assessment.",
+            "--non-goal",
+            "Do not claim general live-host mutation.",
+            "--why-now",
+            "Alpha packaging needs one install-first proof for the single-assessment surface.",
+            "--phase",
+            "exploration",
+            "--path",
+            "README.md",
+        ],
+        cwd=ROOT,
+        env=env,
+    )
+
+    set_phase = cli_json(
+        cli_cmd,
+        repo_root=repo_root,
+        command="set-phase",
+        args=[
+            "--project-id",
+            project_id,
+            "--phase",
+            "execution",
+            "--reason",
+            "The installed package now needs one bounded round for external-target assessment proof.",
+            "--auto-open-round",
+            "--round-title",
+            "Prove installed package external-target single assessment",
+            "--round-scope-item",
+            "Complete one bounded installed-package external-target single assessment proof.",
+            "--round-scope-path",
+            "README.md",
+            "--round-deliverable",
+            "One installed-package external-target assessment report.",
+            "--round-validation-plan",
+            "Run assess-external-target-once from the installed package and inspect the report.",
+        ],
+        cwd=ROOT,
+        env=env,
+    )
+    round_id = str((set_phase.get("auto_open_round") or {}).get("round_id") or "").strip()
+    if not round_id:
+        raise SystemExit("set-phase auto-open-round did not return a round_id")
+
+    task_contract = cli_json(
+        cli_cmd,
+        repo_root=repo_root,
+        command="open-task-contract",
+        args=[
+            "--project-id",
+            project_id,
+            "--round-id",
+            round_id,
+            "--title",
+            "Run installed package external-target workflow",
+            "--intent",
+            "Use the installed package to run one governed external-target single assessment.",
+            "--path",
+            "README.md",
+            "--allowed-change",
+            "Run the bounded package-facing workflow and inspect its outputs.",
+            "--forbidden-change",
+            "Do not mutate the external target repo.",
+            "--completion-criterion",
+            "Installed package assessment finishes with an unblocked verdict.",
+        ],
+        cwd=ROOT,
+        env=env,
+    )
+
+    anchor_output = refresh_anchor(
+        cli_cmd=cli_cmd,
+        repo_root=repo_root,
+        project_id=project_id,
+        workspace_root=repo_root,
+        env=env,
+    )
+    return {
+        "objective": objective,
+        "set_phase": set_phase,
+        "task_contract": task_contract,
+        "refresh_anchor_stdout": anchor_output,
+    }
+
+
+def prepare_installed_cli() -> tuple[list[str], dict[str, str], str]:
     ensure_clean_dir(INSTALL_ROOT)
     venv_root = INSTALL_ROOT / ".venv"
     run(["uv", "venv", str(venv_root)], cwd=ROOT)
-    installed_python = venv_root / "Scripts" / "python.exe"
-    if not installed_python.exists():
-        raise SystemExit(f"expected installed python not found: {installed_python}")
 
     run(["uv", "build"], cwd=ROOT)
     version = project_version()
@@ -162,6 +377,9 @@ def prepare_installed_python() -> tuple[str, str]:
     if not wheel_path.exists():
         raise SystemExit(f"expected built wheel not found: {wheel_path}")
 
+    installed_python = venv_root / "Scripts" / "python.exe"
+    if not installed_python.exists():
+        raise SystemExit(f"expected installed python not found: {installed_python}")
     run(
         [
             "uv",
@@ -174,36 +392,186 @@ def prepare_installed_python() -> tuple[str, str]:
         ],
         cwd=ROOT,
     )
-    help_output = run([str(installed_python), "-m", "kernel.cli", "--help"], cwd=ROOT)
-    return str(installed_python), help_output.stdout
+
+    installed_cli: Path | None = None
+    for candidate in [
+        venv_root / "Scripts" / "repo-governance-kernel.exe",
+        venv_root / "Scripts" / "repo-governance-kernel",
+        venv_root / "Scripts" / "repo-governance-kernel.cmd",
+    ]:
+        if candidate.exists():
+            installed_cli = candidate
+            break
+    if installed_cli is None:
+        raise SystemExit(f"installed console entrypoint not found under {venv_root / 'Scripts'}")
+
+    installed_env = os.environ.copy()
+    installed_env["PATH"] = str(venv_root / "Scripts") + os.pathsep + installed_env.get("PATH", "")
+    help_output = run([str(installed_cli), "--help"], cwd=ROOT, env=installed_env).stdout
+    return [str(installed_cli)], installed_env, help_output
+
+
+def git_status_short(path: Path) -> str:
+    return run([GIT_EXE, "status", "--short"], cwd=path).stdout.strip()
+
+
+def git_head(path: Path) -> str:
+    return run([GIT_EXE, "rev-parse", "HEAD"], cwd=path).stdout.strip()
+
+
+def run_installed_external_assessment(
+    *,
+    cli_cmd: list[str],
+    env: dict[str, str],
+    governed_root: Path,
+    project_id: str,
+    external_target_root: Path,
+    expected_dirty_paths: list[str],
+) -> dict[str, object]:
+    cleanup_path(INSTALLED_DRAFT_PATH)
+    cleanup_path(INSTALLED_REPORT_PATH)
+
+    target_head_before = git_head(external_target_root)
+    target_status_before = git_status_short(external_target_root)
+    if not target_status_before:
+        raise SystemExit("installed external target fixture should be dirty before assessment")
+
+    workflow = cli_json(
+        cli_cmd,
+        repo_root=governed_root,
+        command="assess-external-target-once",
+        args=[
+            "--project-id",
+            project_id,
+            "--workspace-root",
+            str(external_target_root).replace("\\", "/"),
+            "--source-repo",
+            str(external_target_root).replace("\\", "/"),
+            "--draft-output",
+            str(INSTALLED_DRAFT_PATH),
+            "--report-output",
+            str(INSTALLED_REPORT_PATH),
+        ],
+        cwd=ROOT,
+        env=env,
+    )
+
+    if not INSTALLED_DRAFT_PATH.exists():
+        raise SystemExit(f"installed package draft output missing: {INSTALLED_DRAFT_PATH}")
+    if not INSTALLED_REPORT_PATH.exists():
+        raise SystemExit(f"installed package report output missing: {INSTALLED_REPORT_PATH}")
+
+    draft_text = INSTALLED_DRAFT_PATH.read_text(encoding="utf-8")
+    if "External Target Shadow Scope Draft" not in draft_text:
+        raise SystemExit("installed package draft output missing expected title")
+
+    report_text = INSTALLED_REPORT_PATH.read_text(encoding="utf-8")
+    if "Host Shadow Adoption Assessment Report" not in report_text:
+        raise SystemExit("installed package assessment report missing expected title")
+
+    assessment = workflow.get("assessment")
+    if not isinstance(assessment, dict):
+        raise SystemExit("installed package workflow missing assessment payload")
+    final_enforce = assessment.get("final_enforce")
+    if not isinstance(final_enforce, dict) or str(final_enforce.get("status")) != "ok":
+        raise SystemExit("installed package external-target workflow should finish with enforce-worktree ok")
+
+    assessment_contract = assessment.get("assessment_contract")
+    if not isinstance(assessment_contract, dict):
+        raise SystemExit("installed package workflow missing assessment contract")
+    if assessment_contract.get("mode") != "external-target-shadow":
+        raise SystemExit(f"unexpected installed assessment mode: {assessment_contract.get('mode')}")
+
+    actual_dirty_paths = sorted(str(item) for item in workflow["draft"]["dirty_paths"])
+    expected_sorted = sorted(expected_dirty_paths)
+    if actual_dirty_paths != expected_sorted:
+        raise SystemExit(f"unexpected installed draft dirty paths: {actual_dirty_paths}")
+
+    adopted_round_scope_paths = sorted(str(item) for item in workflow["adopted_round_scope_paths"])
+    adopted_task_paths = sorted(str(item) for item in workflow["adopted_task_paths"])
+    if adopted_round_scope_paths != expected_sorted:
+        raise SystemExit(f"installed workflow adopted unexpected round scope paths: {adopted_round_scope_paths}")
+    if adopted_task_paths != expected_sorted:
+        raise SystemExit(f"installed workflow adopted unexpected task paths: {adopted_task_paths}")
+
+    target_head_after = git_head(external_target_root)
+    target_status_after = git_status_short(external_target_root)
+    if target_head_after != target_head_before:
+        raise SystemExit("installed package assessment should not move the external target HEAD")
+    if target_status_after != target_status_before:
+        raise SystemExit("installed package assessment should not mutate the external target worktree")
+
+    return {
+        "workflow": workflow,
+        "draft_path": str(INSTALLED_DRAFT_PATH),
+        "report_path": str(INSTALLED_REPORT_PATH),
+        "target_head_before": target_head_before,
+        "target_head_after": target_head_after,
+        "target_status_before": target_status_before,
+        "target_status_after": target_status_after,
+    }
 
 
 def main() -> int:
-    source_host = bootstrap_and_audit(
-        fixture_root=SOURCE_FIXTURE_ROOT,
-        project_id=SOURCE_PROJECT_ID,
-        python_executable=sys.executable,
-    )
-    installed_python, installed_help = prepare_installed_python()
-    installed_host = bootstrap_and_audit(
-        fixture_root=INSTALLED_FIXTURE_ROOT,
-        project_id=INSTALLED_PROJECT_ID,
-        python_executable=installed_python,
-    )
-
-    print(
-        json.dumps(
-            {
-                "status": "ok",
-                "version": project_version(),
-                "source_bootstrap": source_host,
-                "installed_bootstrap": installed_host,
-                "installed_help_contains_bootstrap_repo": "bootstrap-repo" in installed_help,
-            },
-            ensure_ascii=True,
-            indent=2,
+    cleanup_targets = [
+        SOURCE_FIXTURE_ROOT,
+        INSTALLED_FIXTURE_ROOT,
+        INSTALLED_EXTERNAL_TARGET_ROOT,
+        INSTALL_ROOT,
+        INSTALLED_DRAFT_PATH,
+        INSTALLED_REPORT_PATH,
+    ]
+    result: dict[str, object] | None = None
+    try:
+        source_host = bootstrap_and_audit(
+            fixture_root=SOURCE_FIXTURE_ROOT,
+            project_id=SOURCE_PROJECT_ID,
+            cli_cmd=SOURCE_CLI,
         )
-    )
+
+        installed_cli, installed_env, installed_help = prepare_installed_cli()
+        if "bootstrap-repo" not in installed_help or "assess-external-target-once" not in installed_help:
+            raise SystemExit("installed package help is missing expected commands")
+
+        installed_host = bootstrap_and_audit(
+            fixture_root=INSTALLED_FIXTURE_ROOT,
+            project_id=INSTALLED_PROJECT_ID,
+            cli_cmd=installed_cli,
+            env=installed_env,
+            commit_after_bootstrap=True,
+        )
+
+        workflow_setup = prepare_external_target_workflow(
+            cli_cmd=installed_cli,
+            repo_root=INSTALLED_FIXTURE_ROOT,
+            project_id=INSTALLED_PROJECT_ID,
+            env=installed_env,
+        )
+        dirty_paths = write_external_target_fixture(INSTALLED_EXTERNAL_TARGET_ROOT)
+        installed_external_assessment = run_installed_external_assessment(
+            cli_cmd=installed_cli,
+            env=installed_env,
+            governed_root=INSTALLED_FIXTURE_ROOT,
+            project_id=INSTALLED_PROJECT_ID,
+            external_target_root=INSTALLED_EXTERNAL_TARGET_ROOT,
+            expected_dirty_paths=dirty_paths,
+        )
+
+        result = {
+            "status": "ok",
+            "version": project_version(),
+            "source_bootstrap": source_host,
+            "installed_cli": installed_cli[0],
+            "installed_help_contains_expected_commands": True,
+            "installed_bootstrap": installed_host,
+            "installed_external_target_setup": workflow_setup,
+            "installed_external_target_assessment": installed_external_assessment,
+        }
+    finally:
+        for path in cleanup_targets:
+            cleanup_path(path)
+
+    print(json.dumps(result, ensure_ascii=True, indent=2))
     return 0
 
 

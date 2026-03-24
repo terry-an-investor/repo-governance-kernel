@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 1247367251bd312354fa45329f09fe545c8fa866
+git_sha: e3f037ca785a31fa742af7d8d54d55734991afcb
 paths:
   - kernel
   - scripts/smoke_kernel_bootstrap.py
@@ -32,7 +32,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:10:50+08:00
-updated_at: 2026-03-24T21:23:24+08:00
+updated_at: 2026-03-24T21:38:14+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -41,21 +41,25 @@ superseded_by: []
 
 ## Summary
 
-A cleaner alpha single-assessment surface with distinct draft/report artifact semantics plus one install-first wheel smoke for bootstrap and audit.
+A tighter alpha single-assessment surface with distinct draft/report semantics, one install-first bootstrap-and-assess proof, and cleaner package/root docs.
 
 ## Scope
 
 - Split external-target scope drafting and shadow assessment reporting into distinct artifact owner semantics.
 - Add one package-first validation path that proves an installed wheel can bootstrap and audit a disposable governed host repo.
 - Clean up root markdown topology by keeping canonical kernel docs at the root and moving weakly-coupled auxiliary docs into docs/.
+- Split external-target drafting and shadow assessment reporting into distinct artifact owner semantics.
+- Extend the package-first validation path so an installed wheel can bootstrap a disposable governed host and complete one governed external-target single assessment against a disposable external repo.
+- Register the package-first smoke in the suite and tighten package-facing quickstart and release evidence around that same proof path.
+- Keep canonical root docs in place while moving weakly-coupled auxiliary markdown into docs/.
 
 ## Deliverable
 
-A cleaner alpha single-assessment surface with distinct draft/report artifact semantics, one install-first wheel smoke, and a less cluttered root doc topology.
+A cleaner alpha single-assessment surface with distinct artifact semantics, one install-first bootstrap-and-assess proof, one registered package smoke path, and aligned package-facing docs.
 
 ## Validation Plan
 
-Run the focused package-first smoke, product-doc audit, audit-control-state, and enforce-worktree after the artifact split and root-doc cleanup land.
+Run smoke_kernel_bootstrap, run_smoke_suite --smoke kernel_bootstrap, audit_product_docs, audit-control-state, and enforce-worktree after the package-facing proof path lands.
 
 ## Active Risks
 
@@ -74,3 +78,5 @@ Round rewritten because The install-first package smoke will be registered in th
 Round rewritten because Root markdown cleanup now includes creating a docs hierarchy and moving weakly-coupled auxiliary docs out of the repository root, so the round must cover the real doc-topology write set.
 
 Round rewritten because Root doc cleanup deletes the old auxiliary paths after migrating them into docs/, so the round must cover both the new docs tree and the retiring root files.
+
+Round rewritten because The a2 package-first slice now extends from installed-wheel bootstrap and audit to installed-wheel external-target single assessment proof plus package-facing smoke registration, so the round contract must describe the real proof path.

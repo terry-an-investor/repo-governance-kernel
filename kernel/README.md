@@ -32,6 +32,33 @@ It does not own:
 
 ## Invocation
 
+### Package-First Quickstart
+
+Build and install the current wheel into an isolated environment:
+
+```powershell
+uv build
+uv venv artifacts/preview-install/.venv
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a1-py3-none-any.whl
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
+```
+
+Bootstrap a governed host repo from the installed package:
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
+```
+
+Run the bounded installed-package external-target single assessment:
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/governed/host/repo assess-external-target-once --project-id my-repo --workspace-root C:/path/to/external/repo
+```
+
+The repository smoke at `scripts/smoke_kernel_bootstrap.py` now proves this
+package-first chain end to end: source-tree bootstrap, installed-wheel
+bootstrap, and installed-wheel external-target single assessment.
+
 Generic kernel commands can run through:
 
 ```powershell
@@ -60,10 +87,11 @@ an honest first audit:
 - `.githooks/pre-commit`
 - `.githooks/pre-push`
 
-The current validation path now covers both:
+The current validation path now covers:
 
 - a brand-new disposable git repo
 - the same bootstrap path from an installed wheel in an isolated environment
+- one installed-wheel governed external-target single assessment against a disposable external repo without mutating that target repo
 - a frozen copied `wind-agent` host snapshot
 
 Both surfaces bootstrap and pass host-side `audit-control-state` without
@@ -122,6 +150,7 @@ This wrapper is intentionally narrow:
 - it refreshes the current-task anchor and then runs `assess-host-adoption`
 - it now runs through one governed bundle instead of a private per-command script chain
 - it stays inside existing owner-layer commands instead of inventing freeform mutation authority
+- the installed-wheel smoke now proves this same workflow from the packaged console entrypoint, not only from the source tree
 
 Run the bounded natural-language entry for the same path:
 

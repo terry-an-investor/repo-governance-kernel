@@ -59,6 +59,14 @@ SMOKE_SPECS: tuple[SmokeSpec, ...] = (
         description="Validate guarded exception-path enforcement on a disposable fixture project.",
     ),
     SmokeSpec(
+        name="kernel_bootstrap",
+        script_name="smoke_kernel_bootstrap.py",
+        fixture_project_ids=(),
+        parallel_safe=False,
+        shared_resources=("dist_artifacts", "artifacts_fixture_roots"),
+        description="Validate source-tree bootstrap plus installed-wheel bootstrap and bounded external-target single assessment proof.",
+    ),
+    SmokeSpec(
         name="objective_line",
         script_name="smoke_objective_line.py",
         fixture_project_ids=("__objective_line_smoke__",),

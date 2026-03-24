@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 from pathlib import Path
 
+from kernel.commands.install_hooks import install_repo_hooks
 from kernel.round_control import render_exception_ledger_file, render_pivot_log_file
 from kernel.runtime_paths import resolve_repo_root
 
@@ -141,23 +141,7 @@ def main() -> int:
 
     hook_result: dict[str, object] | None = None
     if not args.skip_hooks:
-        completed = subprocess.run(
-            [
-                "repo-governance-kernel",
-                "--repo-root",
-                str(root),
-                "install-hooks",
-                "--project-id",
-                args.project_id,
-            ],
-            cwd=str(root),
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if completed.returncode != 0:
-            raise SystemExit(completed.stderr.strip() or completed.stdout.strip() or "failed to install hooks")
-        hook_result = json.loads(completed.stdout)
+        hook_result = install_repo_hooks(root, args.project_id)
 
     print(
         json.dumps(

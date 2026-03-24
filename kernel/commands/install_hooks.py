@@ -35,9 +35,7 @@ def write_hook(path: Path, text: str) -> None:
     path.chmod(0o755)
 
 
-def main() -> int:
-    args = parse_args()
-    root = resolve_repo_root()
+def install_repo_hooks(root: Path, project_id: str) -> dict[str, object]:
     git_dir = root / ".git"
     if not git_dir.exists():
         raise SystemExit(f"git repository not found at {root}")
@@ -45,27 +43,30 @@ def main() -> int:
     hooks_dir = root / ".githooks"
     hooks_dir.mkdir(parents=True, exist_ok=True)
     repo_root = str(root).replace("\\", "/")
-    write_hook(hooks_dir / "pre-commit", PRE_COMMIT_TEXT.format(project_id=args.project_id, repo_root=repo_root))
-    write_hook(hooks_dir / "pre-push", PRE_PUSH_TEXT.format(project_id=args.project_id, repo_root=repo_root))
+    write_hook(hooks_dir / "pre-commit", PRE_COMMIT_TEXT.format(project_id=project_id, repo_root=repo_root))
+    write_hook(hooks_dir / "pre-push", PRE_PUSH_TEXT.format(project_id=project_id, repo_root=repo_root))
 
     subprocess.run(
         ["git", "config", "core.hooksPath", str(hooks_dir)],
         cwd=str(root),
         check=True,
     )
+    return {
+        "status": "ok",
+        "repo_root": str(root),
+        "project_id": project_id,
+        "hooks_path": str(hooks_dir),
+        "installed_hooks": ["pre-commit", "pre-push"],
+    }
+
+
+def main() -> int:
+    args = parse_args()
+    root = resolve_repo_root()
+    result = install_repo_hooks(root, args.project_id)
 
     print(
-        json.dumps(
-            {
-                "status": "ok",
-                "repo_root": str(root),
-                "project_id": args.project_id,
-                "hooks_path": str(hooks_dir),
-                "installed_hooks": ["pre-commit", "pre-push"],
-            },
-            ensure_ascii=True,
-            indent=2,
-        )
+        json.dumps(result, ensure_ascii=True, indent=2)
     )
     return 0
 

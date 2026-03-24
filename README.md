@@ -43,7 +43,7 @@ The current preview already provides:
   - run one bounded single-assessment flow without mutating the target repo
 - one bounded natural-language entry that compiles a narrow supported request
   into the same governed external-target assessment bundle
-- package bootstrap proof from both the source tree and an installed wheel
+- package bootstrap proof from the source tree plus one installed-wheel external-target single assessment proof
 
 ## Quickstart
 
