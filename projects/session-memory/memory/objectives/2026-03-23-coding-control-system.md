@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 06d9df9240bb711603afec0ab2952081167c0027
+git_sha: 9cdc809328eafae0e30f96cd0213adce2eccb690
 paths:
   - CONTROL_SYSTEM.md
   - DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-24T09:07:16+08:00
-phase: execution
+updated_at: 2026-03-24T11:03:50+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-execution
+paused
 
 ## Active Risks
 
@@ -124,3 +124,5 @@ Phase changed from `paused` to `execution` because Open a bounded governance rou
 Phase changed from `execution` to `paused` because Registry-owned write-target and side-effect semantics governance round is closed; objective returns to paused until the next executable-semantics slice opens.
 
 Phase changed from `paused` to `execution` because Open a bounded governance round to lift rewrite-open-round field semantics into registry-owned owner-layer contracts.
+
+Phase changed from `execution` to `paused` because Task-contract lifecycle and consumption slice is committed and its ratification round is closed, so the active objective should not remain in execution without an open round.
