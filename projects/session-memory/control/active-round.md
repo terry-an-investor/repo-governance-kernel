@@ -8,15 +8,15 @@
 
 - Split external-target scope drafting and shadow assessment reporting into distinct artifact owner semantics.
 - Add one package-first validation path that proves an installed wheel can bootstrap and audit a disposable governed host repo.
-- Refresh package-facing docs and release notes so the a2 single-assessment validation story matches the implemented surface.
+- Clean up root markdown topology by keeping canonical kernel docs at the root and moving weakly-coupled auxiliary docs into docs/.
 
 ## Deliverable
 
-A cleaner alpha single-assessment surface with distinct draft/report artifact semantics plus one install-first wheel smoke for bootstrap and audit.
+A cleaner alpha single-assessment surface with distinct draft/report artifact semantics, one install-first wheel smoke, and a less cluttered root doc topology.
 
 ## Validation Plan
 
-Run the focused package-first smoke, audit-control-state, and enforce-worktree on the real repo after the artifact split and smoke path land.
+Run the focused package-first smoke, product-doc audit, audit-control-state, and enforce-worktree after the artifact split and root-doc cleanup land.
 
 ## Active Risks
 

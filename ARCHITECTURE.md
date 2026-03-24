@@ -178,6 +178,10 @@ session-memory/
 ├── STATE_MACHINE.md
 ├── TRANSITION_COMMANDS.md
 ├── IMPLEMENTATION_PLAN.md
+├── docs/
+│   ├── evaluation/
+│   ├── history/
+│   └── operations/
 ├── kernel/
 │   ├── transition_specs.py
 │   ├── round_control.py

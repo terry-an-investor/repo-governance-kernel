@@ -9,13 +9,13 @@ workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
 git_sha: 0d603f3e2ed77feed60c71812169593f982cbaad
 paths:
-  - 2026-03-22-notes.md
+  - docs/history/2026-03-22-notes.md
   - DESIGN_PRINCIPLES.md
   - ARCHITECTURE.md
 thread_ids: []
 evidence_refs:
   - type: note
-    ref: C:/Users/terryzzb/Desktop/session-memory/2026-03-22-notes.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/history/2026-03-22-notes.md
 tags:
   - scope
   - project-scoped
@@ -52,7 +52,7 @@ pass.
 
 ## Evidence
 
-- `2026-03-22-notes.md` explicitly concluded that a coding-first,
+- `docs/history/2026-03-22-notes.md` explicitly concluded that a coding-first,
   project-scoped variant was appropriate at that stage.
 
 ## Consequences

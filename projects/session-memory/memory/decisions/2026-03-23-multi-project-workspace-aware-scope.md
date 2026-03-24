@@ -16,7 +16,7 @@ paths:
 thread_ids: []
 evidence_refs:
   - type: note
-    ref: C:/Users/terryzzb/Desktop/session-memory/2026-03-22-notes.md
+    ref: C:/Users/terryzzb/Desktop/session-memory/docs/history/2026-03-22-notes.md
   - type: doc
     ref: C:/Users/terryzzb/Desktop/session-memory/DESIGN_PRINCIPLES.md
   - type: doc

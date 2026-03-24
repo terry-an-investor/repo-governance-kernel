@@ -10,6 +10,8 @@ not part of the package contract.
 Preview release notes are in [`RELEASE.md`](./RELEASE.md).
 Package-facing usage and support-boundary notes are in
 [`kernel/README.md`](./kernel/README.md).
+Auxiliary repo docs that do not need to stay at the root now live under
+[`docs/`](./docs/README.md).
 
 The current preview now includes a kernel-owned shadow host adoption assessment
 surface for governed external repos. It is still an alpha observation/reporting
