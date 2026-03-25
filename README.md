@@ -82,6 +82,28 @@ uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --for
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
+### Inspect the current config resolution
+
+The `a4` line is adding one shared config runtime for `repo_root` and
+`project_id`.
+
+Current precedence:
+
+- `repo_root`: flag -> environment -> cwd discovery -> user config -> package default
+- `project_id`: flag -> environment -> local override -> project config -> user config
+
+Config file locations:
+
+- user config: `%USERPROFILE%/.repo-governance-kernel/config.json`
+- project config: `<repo_root>/.repo-governance-kernel/project.json`
+- local override: `<repo_root>/.repo-governance-kernel/local.json`
+
+Inspect the resolved surface:
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe describe-config
+```
+
 ### Initialize one fresh host repo from the package
 
 Preconditions:
@@ -142,6 +164,16 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
   enforce-worktree `
   --project-id my-repo `
   --workspace-root C:/path/to/host/repo
+```
+
+After the `a4` config files exist, package-facing commands can also resolve
+`project_id` from config instead of only from an explicit flag. The bounded
+audit path is the first public consumer of that runtime:
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
+  --repo-root C:/path/to/host/repo `
+  audit-control-state
 ```
 
 ### Run one external-target assessment

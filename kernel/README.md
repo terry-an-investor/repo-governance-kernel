@@ -52,6 +52,35 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/governed/host/repo assess-external-target-once --project-id my-repo --workspace-root C:/path/to/external/repo
 ```
 
+### Inspect shared config resolution
+
+`a4` starts one shared config runtime for `repo_root` and `project_id`.
+
+Current precedence:
+
+- `repo_root`: flag -> environment -> cwd discovery -> user config -> package default
+- `project_id`: flag -> environment -> local override -> project config -> user config
+
+Config file locations:
+
+- user config: `%USERPROFILE%/.repo-governance-kernel/config.json`
+- project config: `<repo_root>/.repo-governance-kernel/project.json`
+- local override: `<repo_root>/.repo-governance-kernel/local.json`
+
+Machine-readable inspection surface:
+
+```powershell
+repo-governance-kernel describe-config
+```
+
+The first public-alpha consumer path now wired to this runtime is
+`audit-control-state`. When `project_id` is present in config, the installed
+entrypoint can resolve it without an explicit flag:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/host/repo audit-control-state
+```
+
 The repo smoke at `scripts/smoke_kernel_bootstrap.py` proves this path end to
 end: source-tree bootstrap, installed-wheel bootstrap, and installed-wheel
 external-target single assessment.
@@ -87,6 +116,9 @@ What matters is not the command count, but the boundary:
 Implemented lower-level owner-layer commands such as `assess-host-adoption`,
 `draft-external-target-shadow-scope`, and `execute-adjudication-followups`
 remain available, but they are not the frozen public alpha promise.
+
+`describe-config` is now a package-facing inspection command for the active
+`a4` line, but it is not part of the frozen `0.1.0a3` public alpha contract.
 
 ## Common Commands
 

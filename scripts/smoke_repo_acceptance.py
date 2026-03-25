@@ -54,6 +54,7 @@ def main() -> None:
     wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
     smoke_suite_result = run_smoke_suite(
         "adjudication_followups",
+        "config_runtime",
         "exception_contracts",
         "guarded_exception_enforcement",
         "repo_onboarding",
@@ -145,6 +146,7 @@ def main() -> None:
                 },
                 "smoke_suite": smoke_suite_result["status"],
                 "adjudication_followups": smoke_results["adjudication_followups"],
+                "config_runtime": smoke_results["config_runtime"],
                 "exception_contracts": smoke_results["exception_contracts"],
                 "guarded_exception_enforcement": smoke_results["guarded_exception_enforcement"],
                 "repo_onboarding": smoke_results["repo_onboarding"],

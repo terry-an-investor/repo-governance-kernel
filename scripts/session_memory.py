@@ -23,6 +23,7 @@ KERNEL_COMMANDS = {
     "compile-adjudication-executor-plan",
     "compile-role-context",
     "create-snapshot",
+    "describe-config",
     "open-objective",
     "open-round",
     "open-task-contract",

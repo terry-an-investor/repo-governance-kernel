@@ -179,6 +179,21 @@ This command is the lowest owner-layer bootstrap surface:
 - it does not open the first objective, round, or task contract by itself
 - it exists so higher-level onboarding can compose one honest first control line without re-implementing bootstrap privately
 
+### `describe-config`
+
+Describe the currently resolved `repo_root` and `project_id` config surface.
+
+This package-facing inspection command exists so:
+
+- installed-package users can see where `repo_root` and `project_id` came from
+- docs and smoke can share one machine-readable config precedence contract
+- public commands do not have to keep explaining config layering only through prose
+
+Current precedence is:
+
+- `repo_root`: flag -> environment -> cwd discovery -> user config -> package default
+- `project_id`: flag -> environment -> local override -> project config -> user config
+
 ### `render-live-workspace`
 
 Render a non-durable view of live git/worktree state.

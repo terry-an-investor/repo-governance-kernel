@@ -331,6 +331,7 @@ SUPPORTED_PROJECTION_OWNER_LABELS = {
 }
 
 SUPPORTED_ARTIFACT_OWNER_LABELS = {
+    "artifact:config-runtime-description",
     "artifact:live-workspace-projection",
     "artifact:external-target-shadow-scope-draft",
     "artifact:shadow-adoption-report",
@@ -356,6 +357,7 @@ WRITE_TARGET_SPECS: tuple[WriteTargetSpec, ...] = (
     WriteTargetSpec("current:current-task", "current", "durable", ("current:current-task",)),
     WriteTargetSpec("support:repo-hooks", "support", "projection", ("support:repo-hooks",)),
     WriteTargetSpec("support:repo-bootstrap", "support", "projection", ("support:repo-bootstrap",)),
+    WriteTargetSpec("artifact:config-runtime-description", "artifact", "artifact", ("artifact:config-runtime-description",)),
     WriteTargetSpec("artifact:live-workspace-projection", "artifact", "artifact", ("artifact:live-workspace-projection",)),
     WriteTargetSpec(
         "artifact:external-target-shadow-scope-draft",
@@ -415,6 +417,11 @@ TRANSITION_SIDE_EFFECT_SPECS: tuple[TransitionSideEffectSpec, ...] = (
         ("current:current-task",),
         durable_owners=("current:current-task",),
         live_inspection_owners=("workspace:git-status",),
+    ),
+    TransitionSideEffectSpec(
+        "render_config_runtime_description",
+        ("artifact:config-runtime-description",),
+        artifact_owners=("artifact:config-runtime-description",),
     ),
     TransitionSideEffectSpec(
         "render_live_workspace_projection",
@@ -1516,6 +1523,7 @@ GUARD_SPECS: tuple[GuardSpec, ...] = (
         "no pivot id was supplied, so no pivot lookup was required",
     ),
     GuardSpec("git_repository_available", "the target repo root exists and contains one `.git` directory"),
+    GuardSpec("config_resolution_available", "config runtime can resolve one repo_root/project_id surface"),
     GuardSpec(
         "bootstrap_target_has_no_durable_history",
         "the project id has no durable objective, round, or task-contract history before onboarding bootstraps its first governed line",
@@ -1873,6 +1881,17 @@ TRANSITION_COMMAND_SPECS: tuple[TransitionCommandSpec, ...] = (
         side_effect_codes=("invalidate_exception_contract", "refresh_exception_ledger_projection"),
         durable_owners=("memory:exception-contract",),
         projection_owners=("control:exception-ledger",),
+    ),
+    TransitionCommandSpec(
+        "describe-config",
+        "anchor-maintenance",
+        implementation_status="implemented",
+        required_inputs=("repo_root",),
+        guard_codes=("config_resolution_available",),
+        write_targets=("artifact:config-runtime-description",),
+        side_effect_codes=("render_config_runtime_description",),
+        artifact_owners=("artifact:config-runtime-description",),
+        emits_transition_event=False,
     ),
     TransitionCommandSpec(
         "bootstrap-repo",

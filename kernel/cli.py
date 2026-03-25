@@ -2,9 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+from pathlib import Path
+
+from kernel.config_runtime import CONFIG_RESOLUTION_ENV_VAR, PROJECT_ID_ENV_VAR, resolve_runtime_config
 from kernel.runtime_paths import REPO_ROOT_ENV_VAR, resolve_repo_root
 
 
@@ -26,6 +30,7 @@ COMMAND_MODULES = {
     "compile-adjudication-executor-plan": "kernel.commands.compile_adjudication_executor_plan",
     "compile-role-context": "kernel.commands.compile_role_context",
     "create-snapshot": "kernel.commands.create_snapshot",
+    "describe-config": "kernel.commands.describe_config",
     "describe-public-alpha-surface": "kernel.commands.describe_public_alpha_surface",
     "draft-external-target-shadow-scope": "kernel.commands.draft_external_target_shadow_scope",
     "enforce-worktree": "kernel.commands.enforce_worktree",
@@ -54,6 +59,26 @@ COMMAND_MODULES = {
     "update-task-contract-status": "kernel.commands.update_task_contract_status",
 }
 
+PROJECT_AWARE_PUBLIC_COMMANDS = {
+    "audit-control-state",
+    "enforce-worktree",
+    "bootstrap-repo",
+    "onboard-repo",
+    "onboard-repo-from-intent",
+    "assess-external-target-once",
+    "assess-external-target-from-intent",
+}
+
+
+def _extract_option_value(args: list[str], option: str) -> str:
+    for index, value in enumerate(args):
+        normalized = value.strip()
+        if normalized == option and index + 1 < len(args):
+            return args[index + 1].strip()
+        if normalized.startswith(f"{option}="):
+            return normalized.split("=", 1)[1].strip()
+    return ""
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Unified CLI for the reusable governance kernel.")
@@ -64,11 +89,26 @@ def main() -> int:
 
     env = os.environ.copy()
     repo_root = parsed.repo_root.strip()
-    if repo_root:
-        env[REPO_ROOT_ENV_VAR] = repo_root
+    explicit_project_id = _extract_option_value(parsed.args, "--project-id")
+    resolved_config = resolve_runtime_config(
+        explicit_repo_root=repo_root,
+        explicit_project_id=explicit_project_id,
+        cwd=Path.cwd(),
+        env=env,
+    )
+    resolved_repo_root = str(resolved_config["resolved"]["repo_root"]).strip()
+    resolved_project_id = str(resolved_config["resolved"]["project_id"]).strip()
+    if resolved_repo_root:
+        env[REPO_ROOT_ENV_VAR] = resolved_repo_root
+    if resolved_project_id:
+        env[PROJECT_ID_ENV_VAR] = resolved_project_id
+    env[CONFIG_RESOLUTION_ENV_VAR] = json.dumps(resolved_config, ensure_ascii=True)
 
     module_name = COMMAND_MODULES[parsed.command]
-    cmd = [sys.executable, "-m", module_name, *parsed.args]
+    injected_args: list[str] = []
+    if parsed.command in PROJECT_AWARE_PUBLIC_COMMANDS and not explicit_project_id and resolved_project_id:
+        injected_args.extend(["--project-id", resolved_project_id])
+    cmd = [sys.executable, "-m", module_name, *injected_args, *parsed.args]
     completed = subprocess.run(cmd, cwd=str(ROOT), check=False, env=env)
     return completed.returncode
 

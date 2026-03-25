@@ -60,6 +60,8 @@ Primary outcomes:
 - stronger install-first proof that does not assume knowledge of this source repo
 - stronger source-repo push gating so repo acceptance smoke regressions are
   caught locally before GitHub Actions
+- one package-facing `describe-config` surface plus the first public command
+  consumer of shared `project_id` resolution
 
 This means `0.1.0a4` is a config-layering and installability release, not a
 monitoring, server, or general autonomous rewrite release.
