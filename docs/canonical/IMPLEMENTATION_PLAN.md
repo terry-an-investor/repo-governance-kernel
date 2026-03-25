@@ -109,7 +109,7 @@ Success standard:
 
 Current status:
 
-- in progress on source head
+- landed in the current preview line
 - the package-facing onboarding and one-time external-target assessment flows
   now converge on one shared public result envelope across direct and
   intent-wrapper entrypoints

@@ -1,27 +1,26 @@
 # Repo Governance Kernel Public Alpha Surface
 
 Date: 2026-03-25
-Scope: current `0.1.0a4` public alpha package surface
+Scope: current `0.1.0a5` public alpha package surface
 
 ## Goal
 
 Define the smallest public package contract that users and agents should depend
-on directly during the current `0.1.0a4` alpha line.
+on directly during the current `0.1.0a5` alpha line.
 
 This document exists because "implemented command" and "frozen public alpha
 surface" are not the same thing.
 
-The current preview release is `0.1.0a4`.
+The current preview release is `0.1.0a5`.
 
 The direct package command contract remains the same entrypoint set first
 frozen in `0.1.0a3`, but the live public preview release identity is now
-`0.1.0a4`.
+`0.1.0a5`.
 
-On source head, the next planned `0.1.0a5` line keeps this same command set but
-starts standardizing the result contract for the highest-frequency product
-flows. The command list is stable across `a4` and planned `a5`; the main
-source-head change is the shared success/blocked payload envelope for those
-flows.
+The command list is still stable across `a4` and `a5`. What changed in `a5` is
+the package-facing result contract for the highest-frequency product flows:
+shared success and blocked payload categories across the direct and
+intent-wrapper entrypoints.
 
 The product remains a repo governance kernel as defined in
 [`PRODUCT.md`](./PRODUCT.md). Its automation scope remains `bounded
@@ -31,7 +30,7 @@ autonomous rewrite engine`.
 ## Public Alpha Commands
 
 These are the intended direct entrypoints for users and agent callers during
-the current `0.1.0a4` line:
+the current `0.1.0a5` line:
 
 - `audit-control-state`
 - `enforce-worktree`
@@ -49,8 +48,7 @@ Why these and not more:
 - they have a clearer package-facing meaning than the lower-level owner-layer
   primitives they compose
 
-For the upcoming `a5` line on source head, the productization focus for these
-same commands is:
+The `a5` productization focus for these same commands is:
 
 - shared top-level result categories across direct and intent-wrapper entrypoints
 - explicit machine-readable blocked payloads when the one-task workflow cannot finish cleanly

@@ -6,14 +6,13 @@ Use it when you want the package-facing view of the project: what the package
 owns, how to install it, and which commands already form the supported alpha
 surface.
 
-The current preview release is `0.1.0a4`.
+The current preview release is `0.1.0a5`.
 
-Its release theme is explicit config layering and installability polish on top
-of the same public alpha entrypoint set first frozen in `0.1.0a3`.
+Its release theme is one-task productization on top of the same public alpha
+entrypoint set first frozen in `0.1.0a3`.
 
-The next planned release line is `0.1.0a5`: compress the highest-frequency
-flows into clearer one-task product surfaces and stabilize more of their
-machine-readable result contracts.
+The next planned release line is `0.1.0b0`: freeze the first beta compatibility
+contract once the package-facing surface and validation matrix stop drifting.
 
 It owns:
 
@@ -36,7 +35,7 @@ It does not own:
 ```powershell
 uv build
 uv venv artifacts/preview-install/.venv
-uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
@@ -60,7 +59,7 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C
 
 ### Inspect shared config resolution
 
-The current `a4` preview ships one shared config runtime for `repo_root` and
+The current `a5` preview keeps one shared config runtime for `repo_root` and
 `project_id`.
 
 Current precedence:
@@ -94,7 +93,7 @@ external-target single assessment.
 
 ## Alpha Surface
 
-The current `0.1.0a4` public alpha surface is:
+The current `0.1.0a5` public alpha surface is:
 
 - `audit-control-state`
 - `enforce-worktree`
@@ -125,7 +124,7 @@ Implemented lower-level owner-layer commands such as `assess-host-adoption`,
 remain available, but they are not the frozen public alpha promise.
 
 `describe-config` is now a package-facing inspection command for the current
-`a4` preview line, but it is not part of the current public alpha command
+`a5` preview line, but it is not part of the current public alpha command
 contract.
 
 ## Common Commands
@@ -174,9 +173,10 @@ This onboarding path exists to remove the manual bootstrap plus authoring gap:
 
 The `onboard-repo` result is now shaped as an agent-facing contract:
 
-- `onboarding_contract`
-- `compiled_onboarding`
-- `created_control_state`
+- `result_contract`
+- `flow_contract`
+- `execution`
+- `outcome`
 - `postconditions`
 - `next_actions`
 

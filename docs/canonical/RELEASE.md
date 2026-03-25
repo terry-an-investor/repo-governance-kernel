@@ -8,8 +8,8 @@ Scope: alpha release preparation for the reusable kernel
 Current target:
 
 - package name: `repo-governance-kernel`
-- current released version: `0.1.0a4`
-- next target version: `0.1.0a5`
+- current released version: `0.1.0a5`
+- next target version: `0.1.0b0`
 - release level: alpha / internal preview
 
 ## What Ships
@@ -47,43 +47,35 @@ Known reasons:
 
 ## Current Release Theme
 
-The current preview cut is `0.1.0a4`.
-
-Its purpose was not to broaden the kernel. Its purpose was to make external
-installation and runtime configuration more predictable while keeping the same
-public alpha command set first frozen in `0.1.0a3`.
-
-Delivered outcomes:
-
-- explicit user/project/local config layering for `repo_root` and `project_id`
-- one package-facing `describe-config` surface with source attribution
-- the first public command consumer of shared `project_id` resolution
-- stronger install-first proof that does not assume prior knowledge of this
-  source repo
-- stronger source-repo push gating so repo acceptance smoke regressions are
-  caught locally before GitHub Actions
-
-This means `0.1.0a4` is a config-layering and installability release, not a
-monitoring, server, provider-selection, or general autonomous rewrite release.
-
-## Next Release Theme
-
-The next planned cut is `0.1.0a5`.
+The current preview cut is `0.1.0a5`.
 
 Its purpose is to make the highest-frequency package flows feel like one-task
-product surfaces instead of command archaeology.
+product surfaces instead of command archaeology, while keeping the same public
+alpha command set first frozen in `0.1.0a3`.
 
-Primary outcomes:
-
-- keep compressing common flows into bounded one-command entrypoints
-- stabilize JSON result contracts for those entrypoints
-- make blocked-state explanations easier for agents to consume directly
-
-Source-head progress already landed for the planned `0.1.0a5` cut:
+Delivered outcomes:
 
 - `onboard-repo` and `onboard-repo-from-intent` now share one public result envelope
 - `assess-external-target-once` and `assess-external-target-from-intent` now share the same top-level result categories
 - blocked outcomes for those flows now stay machine-readable instead of falling back to plain string failures
+- package-facing docs and machine-readable descriptors now expose `0.1.0a5` as
+  the live preview release identity for those one-task surfaces
+
+This means `0.1.0a5` is a one-task productization release, not a monitoring,
+server, provider-selection, or general autonomous rewrite release.
+
+## Next Release Theme
+
+The next planned cut is `0.1.0b0`.
+
+Its purpose is to freeze the first beta compatibility promise once the
+package-facing surface and validation matrix stop drifting.
+
+Primary outcomes:
+
+- freeze public command and result contracts
+- keep package docs and machine-readable descriptors mutually consistent
+- prove the beta matrix across install, onboarding, assessment, gating, and CI
 
 ## Promotion Bar
 
@@ -122,7 +114,7 @@ Recommended cut order:
 
 ## Preview Evidence
 
-Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
+Preview validation completed on 2026-03-25 for the `0.1.0a5` cut.
 
 - `uv run python scripts/smoke_config_runtime.py`
   - focused config runtime proof now covers user config, project config, local
@@ -132,9 +124,16 @@ Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
   - the renamed source-repo acceptance smoke now passes under Python 3.11 and
     includes the focused config runtime proof in the same repo-owned gate
 - `uv run python scripts/audit_product_docs.py`
-  - package-facing and canonical docs stay aligned on the `0.1.0a4` release
+  - package-facing and canonical docs stay aligned on the `0.1.0a5` release
     boundary and clearly separate the current release identity from the older
     `0.1.0a3` freeze point for the unchanged command set
+- `uv run python scripts/smoke_repo_onboarding.py`
+  - direct and intent onboarding now return the shared public result contract
+    and explicit blocked payloads for unsupported or already-governed cases
+- `uv run python scripts/smoke_assess_host_adoption.py`
+  - direct and intent one-time external-target assessment now return the same
+    top-level result categories and explicit blocked payloads for unsupported
+    or no-dirty-path cases
 
 - `uv run python scripts/smoke_kernel_bootstrap.py`
   - source-tree bootstrap still passes `audit-control-state`, and an installed
@@ -159,13 +158,13 @@ Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
   - bounded natural-language entry compiles one supported intent into the same governed bundle-backed flow
 - `uv build`
   - produced:
-    - `dist/repo_governance_kernel-0.1.0a4.tar.gz`
-    - `dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl`
+    - `dist/repo_governance_kernel-0.1.0a5.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl`
 - installed-package check
-  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl`
+  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl`
   - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
   - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
-  - installed `describe-public-alpha-surface` returns the current `0.1.0a4`
+  - installed `describe-public-alpha-surface` returns the current `0.1.0a5`
     public release identity plus the `0.1.0a3` freeze lineage for the unchanged
     command set and repo-owned agent wrapper metadata
   - installed `describe-config` reports resolved `repo_root` and `project_id` with source attribution, and installed `audit-control-state` can resolve `project_id` from `<repo_root>/.repo-governance-kernel/project.json` without an explicit flag

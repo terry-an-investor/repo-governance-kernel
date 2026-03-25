@@ -11,13 +11,12 @@ This source repository contains both:
 - the reusable package under [`kernel/`](./kernel/)
 - the host-local dogfood sample under [`state/session-memory/`](./state/session-memory/)
 
-The current preview release is `0.1.0a4`. The automation scope is
+The current preview release is `0.1.0a5`. The automation scope is
 `bounded registry-owned execution`. The autonomy boundary is
 `not a general autonomous rewrite engine`.
 
-The next planned release line is `0.1.0a5`: compress the highest-frequency
-flows into clearer one-task product surfaces and more stable machine-readable
-result contracts.
+The next planned release line is `0.1.0b0`: freeze the first beta contract
+after the package-facing surface and validation matrix stop drifting.
 
 ## What You Can Do Today
 
@@ -79,13 +78,13 @@ uv run python scripts/smoke_kernel_bootstrap.py
 ```powershell
 uv build
 uv venv artifacts/preview-install/.venv
-uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
 ### Inspect the current config resolution
 
-The current `a4` preview adds one shared config runtime for `repo_root` and
+The current `a5` preview keeps one shared config runtime for `repo_root` and
 `project_id`.
 
 Current precedence:
@@ -130,9 +129,10 @@ That one command bootstraps governance and opens the first bounded control line:
 
 The returned JSON is agent-facing. The important fields are:
 
-- `onboarding_contract`
-- `compiled_onboarding`
-- `created_control_state`
+- `result_contract`
+- `flow_contract`
+- `execution`
+- `outcome`
 - `postconditions`
 - `next_actions`
 
@@ -167,7 +167,7 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
   --workspace-root C:/path/to/host/repo
 ```
 
-With the `a4` config files in place, package-facing commands can also resolve
+With the `a5` config files in place, package-facing commands can also resolve
 `project_id` from config instead of only from an explicit flag. The bounded
 audit path is the first public consumer of that runtime:
 
@@ -213,12 +213,12 @@ These remain host-local and are not part of the package contract:
 
 - [`kernel/README.md`](./kernel/README.md): full package-facing command reference beyond the minimal install/init path above
 - [`skills/use-repo-governance-kernel/SKILL.md`](./skills/use-repo-governance-kernel/SKILL.md): repo-owned agent wrapper for bounded onboarding and assessment
-- [`docs/canonical/PUBLIC_ALPHA_SURFACE.md`](./docs/canonical/PUBLIC_ALPHA_SURFACE.md): current `0.1.0a4` public package contract, with the same entrypoint set first frozen in `0.1.0a3`
+- [`docs/canonical/PUBLIC_ALPHA_SURFACE.md`](./docs/canonical/PUBLIC_ALPHA_SURFACE.md): current `0.1.0a5` public package contract, with the same entrypoint set first frozen in `0.1.0a3`
 - [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): release status and validation evidence
   - includes the explicit publication checklist and the repo-owned `verify_release_publication.py` verifier
 - [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): product definition and positioning
 - [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md): durable truth, projections, audit, and enforcement
 - [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md): command, bundle, and intent surface
-- [`docs/canonical/IMPLEMENTATION_PLAN.md`](./docs/canonical/IMPLEMENTATION_PLAN.md): current roadmap from `0.1.0a4` toward beta freeze
+- [`docs/canonical/IMPLEMENTATION_PLAN.md`](./docs/canonical/IMPLEMENTATION_PLAN.md): current roadmap from `0.1.0a5` toward beta freeze
 - [`docs/README.md`](./docs/README.md): full docs index
 
