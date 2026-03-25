@@ -14,6 +14,7 @@ from kernel.public_flow_contracts import (
     PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
     PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
     public_flow_candidate_subcontract_required_fields,
+    public_flow_next_stable_subcontract_required_fields,
     public_flow_payload_subcontract,
     public_flow_required_top_level_fields,
     public_flow_subcontract_required_fields,
@@ -88,6 +89,26 @@ def assert_required_public_flow_candidate_subcontract(
     ]
     if missing_fields:
         raise SystemExit(f"{context} candidate {subcontract_name} is missing fields: {missing_fields}")
+    return subcontract
+
+
+def assert_required_public_flow_next_stable_subcontract(
+    payload: dict[str, object],
+    *,
+    entrypoint: str,
+    subcontract_name: str,
+    context: str,
+) -> dict[str, object]:
+    subcontract = public_flow_payload_subcontract(payload, subcontract_name)
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"{context} is missing next-stable {subcontract_name}")
+    missing_fields = [
+        field
+        for field in public_flow_next_stable_subcontract_required_fields(entrypoint, subcontract_name)
+        if field not in subcontract
+    ]
+    if missing_fields:
+        raise SystemExit(f"{context} next-stable {subcontract_name} is missing fields: {missing_fields}")
     return subcontract
 
 
@@ -427,7 +448,7 @@ def main() -> int:
         subcontract_name="flow_contract",
         context="external assessment intent wrapper",
     )
-    assert_required_public_flow_candidate_subcontract(
+    assert_required_public_flow_next_stable_subcontract(
         external_intent,
         entrypoint="assess-external-target-from-intent",
         subcontract_name="execution",
@@ -439,7 +460,7 @@ def main() -> int:
         subcontract_name="outcome",
         context="external assessment intent wrapper",
     )
-    assert_required_public_flow_candidate_subcontract(
+    assert_required_public_flow_next_stable_subcontract(
         external_intent,
         entrypoint="assess-external-target-from-intent",
         subcontract_name="postconditions",
@@ -454,7 +475,7 @@ def main() -> int:
         raise SystemExit("workflow assessment round scope should match the adopted rewrite scope")
     if workflow_assessment["task_contract_paths"] != external_workflow["adopted_task_paths"]:
         raise SystemExit("workflow assessment task scope should match the adopted rewrite scope")
-    execution = assert_required_public_flow_candidate_subcontract(
+    execution = assert_required_public_flow_next_stable_subcontract(
         external_intent,
         entrypoint="assess-external-target-from-intent",
         subcontract_name="execution",

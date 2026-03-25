@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: a47358d96bde31269421b6cc5815b713daba7e8f
+git_sha: 204802ce4f1822967cb5a957116471141e697a89
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T17:23:11+08:00
-phase: paused
+updated_at: 2026-03-25T17:30:52+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -188,3 +188,5 @@ Phase changed from `execution` to `paused` because the bounded b1 evidence-layer
 Phase changed from `paused` to `execution` because The b1 candidate subcontract work is validated but still uncommitted, so one short ratification round is needed to land the code and doc changes into git honestly.
 
 Phase changed from `execution` to `paused` because the short ratification round is closed, so the objective should return to paused until the next beta-hardening slice opens
+
+Phase changed from `paused` to `execution` because Open a bounded b1 hardening slice to promote the minimum honest stable public response kernels.

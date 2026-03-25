@@ -84,8 +84,11 @@ authority expansion.
 Primary outcomes:
 
 - tighten package docs and examples around the beta contract
-- decide whether any evidence-layer response objects deserve promotion into the
-  stable public contract
+- carry the already selected source-line `b1` next-stable subcontracts for
+  `execution` and `postconditions` through release validation and publication
+- keep the deeper `compiled_bundle`, `created_control_state`, and assessment
+  `outcome` projections explicit as `b1-target` candidates instead of
+  over-freezing them
 - keep CI and installed-package proof aligned with the beta surface
 
 ## Promotion Bar
@@ -165,6 +168,7 @@ Beta validation completed on 2026-03-25 for the `0.1.0b0` cut.
   remain implemented but are not part of the compatibility promise
 - the package and dogfood sample still live in one repository, so docs and
   packaging hygiene still need active discipline
-- evidence-layer response objects such as `execution`, `outcome`, and
-  `postconditions` remain intentionally richer than the frozen minimum
+- deeper evidence-layer response projections such as onboarding
+  `execution.compiled_bundle`, onboarding `outcome.created_control_state`, and
+  assessment `outcome` remain intentionally richer than the released minimum
   contract, so callers should not treat them as fully stable yet

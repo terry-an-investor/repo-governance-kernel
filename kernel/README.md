@@ -12,8 +12,9 @@ Its release theme is the first formal beta compatibility promise for the
 package-facing command and flow contract.
 
 The current source line is now hardening that beta promise toward `0.1.0b1`
-by recording explicit candidate subcontracts for the smallest reusable kernels
-inside the evidence-layer response objects.
+by promoting `execution` and `postconditions` into an explicit next-stable
+subcontract layer while keeping deeper evidence projections as explicit
+`b1-target` candidates.
 
 It owns:
 
@@ -182,9 +183,15 @@ The `onboard-repo` result is now shaped as an agent-facing contract:
 That means an agent can read the returned ids, scope paths, validation status,
 and immediate follow-up commands without scraping prose.
 
-The same machine-readable public surface now also records `b1-target`
-candidate subcontracts for the smallest reusable kernels inside those
-evidence-layer objects, instead of leaving that shape implicit in smoke code.
+The same machine-readable public surface now records three owner-layer
+contract layers instead of leaving response shape implicit in smoke code:
+
+- the released `b0` stable contract
+- the source-line `b1` next-stable subcontracts for `execution` and
+  `postconditions`
+- the remaining `b1-target` candidates for deeper evidence projections such as
+  onboarding `compiled_bundle`, onboarding `created_control_state`, and
+  assessment `outcome`
 
 Run the same onboarding path from one bounded intent surface:
 

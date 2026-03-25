@@ -19,8 +19,9 @@ This is the first beta line: freeze the public command and flow contract before
 any broader product expansion.
 
 The current source line is now hardening that beta promise toward `0.1.0b1` by
-recording explicit candidate subcontracts for the smallest reusable
-evidence-layer response kernels. The released package remains `0.1.0b0`.
+promoting `execution` and `postconditions` into an explicit next-stable
+subcontract layer while keeping deeper evidence projections as explicit
+`b1-target` candidates. The released package remains `0.1.0b0`.
 
 ## What You Can Do Today
 
@@ -140,9 +141,15 @@ The returned JSON is agent-facing. The important fields are:
 - `postconditions`
 - `next_actions`
 
-`describe-public-surface` now also exposes which smaller kernels inside
-`execution`, `outcome`, and `postconditions` are current `b1-target`
-promotion candidates, so agents can stop inferring them from smoke code.
+`describe-public-surface` now separates three layers so agents can stop
+inferring response shape from smoke code:
+
+- the released `b0` stable contract
+- the source-line `b1` next-stable subcontracts for `execution` and
+  `postconditions`
+- the remaining `b1-target` candidates for deeper evidence projections such as
+  onboarding `compiled_bundle`, onboarding `created_control_state`, and
+  assessment `outcome`
 
 ### Let an agent say the same thing once
 

@@ -14,6 +14,7 @@ from kernel.public_flow_contracts import (
     PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
     PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
     public_flow_candidate_subcontract_required_fields,
+    public_flow_next_stable_subcontract_required_fields,
     public_flow_payload_subcontract,
     public_flow_required_top_level_fields,
     public_flow_subcontract_required_fields,
@@ -86,6 +87,26 @@ def assert_required_public_flow_candidate_subcontract(
     ]
     if missing_fields:
         raise SystemExit(f"{context} candidate {subcontract_name} is missing fields: {missing_fields}")
+    return subcontract
+
+
+def assert_required_public_flow_next_stable_subcontract(
+    payload: dict[str, object],
+    *,
+    entrypoint: str,
+    subcontract_name: str,
+    context: str,
+) -> dict[str, object]:
+    subcontract = public_flow_payload_subcontract(payload, subcontract_name)
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"{context} is missing next-stable {subcontract_name}")
+    missing_fields = [
+        field
+        for field in public_flow_next_stable_subcontract_required_fields(entrypoint, subcontract_name)
+        if field not in subcontract
+    ]
+    if missing_fields:
+        raise SystemExit(f"{context} next-stable {subcontract_name} is missing fields: {missing_fields}")
     return subcontract
 
 
@@ -215,7 +236,7 @@ def assert_onboarding_result(
     if str(contract.get("bundle_name") or "") != "onboard-repo":
         raise SystemExit("unexpected onboarding bundle_name")
 
-    execution = assert_required_public_flow_candidate_subcontract(
+    execution = assert_required_public_flow_next_stable_subcontract(
         onboarding,
         entrypoint=expected_entrypoint,
         subcontract_name="execution",
@@ -261,7 +282,7 @@ def assert_onboarding_result(
         if not str(control_state.get(field) or "").strip():
             raise SystemExit(f"onboard-repo result is missing outcome.created_control_state.{field}")
 
-    postconditions = assert_required_public_flow_candidate_subcontract(
+    postconditions = assert_required_public_flow_next_stable_subcontract(
         onboarding,
         entrypoint=expected_entrypoint,
         subcontract_name="postconditions",

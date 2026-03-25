@@ -163,11 +163,14 @@ Success standard:
 Current status:
 
 - in progress in the current source line
-- the owner layer now records `b1-target` candidate subcontracts for the
-  smallest repeated kernels inside `execution`, `outcome`, and
-  `postconditions`
-- the current work is still intentionally narrower than freezing those whole
-  evidence objects into the released stable promise
+- the owner layer now records a source-line `b1` next-stable subcontract set
+  for `execution` and `postconditions` across onboarding and one-time
+  external-target assessment
+- the owner layer still keeps the deeper `compiled_bundle`,
+  `created_control_state`, and assessment `outcome` projections as explicit
+  `b1-target` candidates instead of freezing those whole evidence objects
+- the current work is still intentionally narrower than changing released
+  package version truth before the actual `0.1.0b1` cut
 
 ## Cross-Version Priorities
 

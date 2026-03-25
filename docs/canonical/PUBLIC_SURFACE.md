@@ -99,36 +99,48 @@ This `0.1.0b0` promise is intentionally narrow. It freezes the public command
 surface plus the minimum public flow contract, not every detail-rich evidence
 object that may appear inside richer responses.
 
-## `0.1.0b1` Hardening Candidates In The Current Source Line
+## `0.1.0b1` Next-Stable Subcontracts In The Current Source Line
 
-The current source tree is now recording the next honest promotion targets for
-the beta line without claiming that they are already part of the released
-`0.1.0b0` stable promise.
+The current source tree now records one explicit next-stable layer for the
+planned `0.1.0b1` cut without claiming that `0.1.0b1` is already released.
+
+Why this layer exists:
+
+- `execution` and `postconditions` are already repeated across direct and
+  intent-wrapper entrypoints
+- agents and smokes already consume those repeated kernels as bounded,
+  product-facing interpretation objects
+- the owner layer should mark that promotion explicitly before the actual beta
+  cut changes package version truth
+
+Current next-stable promotion set:
+
+- onboarding:
+  - `execution`
+  - `postconditions`
+- external-target assessment:
+  - `execution`
+  - `postconditions`
+
+These entries are more than loose candidates. They are the current source-line
+minimum stable target for `0.1.0b1`.
+
+## Remaining `0.1.0b1` Hardening Candidates In The Current Source Line
+
+The current source tree still records deeper evidence projections separately so
+the next cut does not accidentally freeze more than the smallest honest kernel.
 
 These `b1-target` candidate subcontracts are also exported through
 `describe-public-surface`.
 
-Why this intermediate layer exists:
-
-- agents already consume repeated kernels inside `execution`, `outcome`, and
-  `postconditions`
-- those kernels are more stable than the full evidence objects that contain
-  them
-- the owner layer should name those promotion targets explicitly before they
-  are frozen into the next release promise
-
 Current candidate promotion targets:
 
 - onboarding:
-  - `execution`
   - `execution.compiled_bundle`
   - `outcome`
   - `outcome.created_control_state`
-  - `postconditions`
 - external-target assessment:
-  - `execution`
   - `outcome`
-  - `postconditions`
 
 These candidate entries do not widen authority and do not freeze full evidence
 payloads. They only record the smallest repeated kernels that the current
@@ -182,5 +194,6 @@ wrappers can consume one shared owner-layer truth instead of carrying slightly
 different prose lists. The descriptor now carries both:
 
 - the released `b0` stable contract
-- the current `b1-target` candidate subcontract catalog for evidence-layer
-  hardening
+- the current source-line `b1` next-stable subcontract set
+- the remaining `b1-target` candidate subcontract catalog for deeper
+  evidence-layer hardening

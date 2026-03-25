@@ -8,6 +8,7 @@ PUBLIC_FLOW_RESULT_SCHEMA = "repo-governance-kernel.public-flow-result"
 PUBLIC_FLOW_RESULT_VERSION = "1"
 PUBLIC_FLOW_AUTOMATION_SCOPE = "bounded-registry-owned-execution"
 PUBLIC_FLOW_BETA_STATUS = "b0"
+PUBLIC_FLOW_NEXT_STABLE_STATUS = "b1"
 PUBLIC_FLOW_BETA_HARDENING_CANDIDATE_STATUS = "b1-target"
 
 PUBLIC_FLOW_RESULT_CONTRACT_FIELDS = (
@@ -146,12 +147,19 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
                 "required_fields": PUBLIC_FLOW_ONBOARDING_CONTRACT_FIELDS,
             },
         },
-        "candidate_subcontracts": {
+        "next_stable_subcontracts": {
             "execution": {
                 "required_when_status": ("ok",),
                 "optional_when_status": ("blocked",),
                 "required_fields": PUBLIC_FLOW_EXECUTION_FIELDS,
             },
+            "postconditions": {
+                "required_when_status": ("ok",),
+                "optional_when_status": ("blocked",),
+                "required_fields": PUBLIC_FLOW_POSTCONDITION_STATUS_FIELDS,
+            },
+        },
+        "candidate_subcontracts": {
             "execution.compiled_bundle": {
                 "required_when_status": ("ok",),
                 "optional_when_status": (),
@@ -166,11 +174,6 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
                 "required_when_status": ("ok",),
                 "optional_when_status": (),
                 "required_fields": PUBLIC_FLOW_ONBOARDING_CREATED_CONTROL_STATE_FIELDS,
-            },
-            "postconditions": {
-                "required_when_status": ("ok",),
-                "optional_when_status": ("blocked",),
-                "required_fields": PUBLIC_FLOW_POSTCONDITION_STATUS_FIELDS,
             },
         },
     },
@@ -215,12 +218,19 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
                 "required_fields": PUBLIC_FLOW_ONBOARDING_INTENT_COMPILATION_FIELDS,
             },
         },
-        "candidate_subcontracts": {
+        "next_stable_subcontracts": {
             "execution": {
                 "required_when_status": ("ok",),
                 "optional_when_status": ("blocked",),
                 "required_fields": PUBLIC_FLOW_EXECUTION_FIELDS,
             },
+            "postconditions": {
+                "required_when_status": ("ok",),
+                "optional_when_status": ("blocked",),
+                "required_fields": PUBLIC_FLOW_POSTCONDITION_STATUS_FIELDS,
+            },
+        },
+        "candidate_subcontracts": {
             "execution.compiled_bundle": {
                 "required_when_status": ("ok",),
                 "optional_when_status": (),
@@ -235,11 +245,6 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
                 "required_when_status": ("ok",),
                 "optional_when_status": (),
                 "required_fields": PUBLIC_FLOW_ONBOARDING_CREATED_CONTROL_STATE_FIELDS,
-            },
-            "postconditions": {
-                "required_when_status": ("ok",),
-                "optional_when_status": ("blocked",),
-                "required_fields": PUBLIC_FLOW_POSTCONDITION_STATUS_FIELDS,
             },
         },
     },
@@ -281,21 +286,23 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
                 "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_CONTRACT_FIELDS,
             },
         },
-        "candidate_subcontracts": {
+        "next_stable_subcontracts": {
             "execution": {
                 "required_when_status": ("ok",),
                 "optional_when_status": ("blocked",),
                 "required_fields": PUBLIC_FLOW_EXECUTION_FIELDS,
             },
-            "outcome": {
-                "required_when_status": ("ok",),
-                "optional_when_status": ("blocked",),
-                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_OUTCOME_FIELDS,
-            },
             "postconditions": {
                 "required_when_status": ("ok",),
                 "optional_when_status": ("blocked",),
                 "required_fields": PUBLIC_FLOW_POSTCONDITION_STATUS_FIELDS,
+            },
+        },
+        "candidate_subcontracts": {
+            "outcome": {
+                "required_when_status": ("ok",),
+                "optional_when_status": ("blocked",),
+                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_OUTCOME_FIELDS,
             },
         },
     },
@@ -341,21 +348,23 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
                 "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_INTENT_COMPILATION_FIELDS,
             },
         },
-        "candidate_subcontracts": {
+        "next_stable_subcontracts": {
             "execution": {
                 "required_when_status": ("ok",),
                 "optional_when_status": ("blocked",),
                 "required_fields": PUBLIC_FLOW_EXECUTION_FIELDS,
             },
-            "outcome": {
-                "required_when_status": ("ok",),
-                "optional_when_status": ("blocked",),
-                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_OUTCOME_FIELDS,
-            },
             "postconditions": {
                 "required_when_status": ("ok",),
                 "optional_when_status": ("blocked",),
                 "required_fields": PUBLIC_FLOW_POSTCONDITION_STATUS_FIELDS,
+            },
+        },
+        "candidate_subcontracts": {
+            "outcome": {
+                "required_when_status": ("ok",),
+                "optional_when_status": ("blocked",),
+                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_OUTCOME_FIELDS,
             },
         },
     },
@@ -455,6 +464,36 @@ def public_flow_subcontract_optional_statuses(entrypoint: str, subcontract_name:
     return statuses
 
 
+def public_flow_next_stable_subcontract_required_fields(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
+    subcontract = _public_flow_subcontract_spec(entrypoint, subcontract_name, catalog_name="next_stable_subcontracts")
+    fields = subcontract.get("required_fields")
+    if not isinstance(fields, tuple):
+        raise SystemExit(
+            f"public flow next stable subcontract `{subcontract_name}` for `{entrypoint}` is missing required_fields"
+        )
+    return fields
+
+
+def public_flow_next_stable_subcontract_required_statuses(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
+    subcontract = _public_flow_subcontract_spec(entrypoint, subcontract_name, catalog_name="next_stable_subcontracts")
+    statuses = subcontract.get("required_when_status")
+    if not isinstance(statuses, tuple):
+        raise SystemExit(
+            f"public flow next stable subcontract `{subcontract_name}` for `{entrypoint}` is missing required_when_status"
+        )
+    return statuses
+
+
+def public_flow_next_stable_subcontract_optional_statuses(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
+    subcontract = _public_flow_subcontract_spec(entrypoint, subcontract_name, catalog_name="next_stable_subcontracts")
+    statuses = subcontract.get("optional_when_status")
+    if not isinstance(statuses, tuple):
+        raise SystemExit(
+            f"public flow next stable subcontract `{subcontract_name}` for `{entrypoint}` is missing optional_when_status"
+        )
+    return statuses
+
+
 def public_flow_candidate_subcontract_required_fields(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
     subcontract = _public_flow_subcontract_spec(entrypoint, subcontract_name, catalog_name="candidate_subcontracts")
     fields = subcontract.get("required_fields")
@@ -518,6 +557,18 @@ def describe_public_flow_contract_catalog() -> dict[str, object]:
                 }
                 for name in dict(contract.get("stable_subcontracts") or {}).keys()
             },
+            "next_stable_subcontracts": {
+                name: {
+                    "required_when_status": list(
+                        public_flow_next_stable_subcontract_required_statuses(entrypoint, name)
+                    ),
+                    "optional_when_status": list(
+                        public_flow_next_stable_subcontract_optional_statuses(entrypoint, name)
+                    ),
+                    "required_fields": list(public_flow_next_stable_subcontract_required_fields(entrypoint, name)),
+                }
+                for name in dict(contract.get("next_stable_subcontracts") or {}).keys()
+            },
             "candidate_subcontracts": {
                 name: {
                     "required_when_status": list(public_flow_candidate_subcontract_required_statuses(entrypoint, name)),
@@ -529,6 +580,7 @@ def describe_public_flow_contract_catalog() -> dict[str, object]:
         }
     return {
         "status": PUBLIC_FLOW_BETA_STATUS,
+        "next_stable_status": PUBLIC_FLOW_NEXT_STABLE_STATUS,
         "candidate_status": PUBLIC_FLOW_BETA_HARDENING_CANDIDATE_STATUS,
         "result_contract_schema": PUBLIC_FLOW_RESULT_SCHEMA,
         "result_contract_version": PUBLIC_FLOW_RESULT_VERSION,
@@ -537,10 +589,11 @@ def describe_public_flow_contract_catalog() -> dict[str, object]:
         "entrypoints": entrypoints,
         "notes": [
             "this catalog describes the current b0 stable field contract for the four public flow entrypoints",
+            "next_stable_subcontracts describe the minimum nested field contract that the current source line has promoted for the planned b1 cut without claiming that b1 is already released",
             "required_top_level_fields are the fields callers may depend on by entrypoint and top-level status",
             "optional_top_level_fields are fields that may appear for richer detail but are not yet the minimum stable promise",
             "stable_subcontracts describe the minimum stable nested field contract for public flow subobjects that callers may read directly",
-            "candidate_subcontracts describe the current b1 hardening targets for repeated evidence-layer response kernels in the source tree; they are explicit owner-layer promotion candidates, not part of the released b0 stable promise",
+            "candidate_subcontracts describe the remaining b1 hardening targets for repeated evidence-layer response kernels in the source tree after the current next-stable promotion set; they are explicit owner-layer promotion candidates, not part of the released b0 stable promise",
         ],
     }
 

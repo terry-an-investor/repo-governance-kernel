@@ -6,7 +6,8 @@ from dataclasses import asdict, dataclass
 from kernel.public_flow_contracts import describe_public_flow_contract_catalog
 
 
-PUBLIC_SURFACE_TARGET_VERSION = "0.1.0b0"
+PUBLIC_SURFACE_RELEASED_VERSION = "0.1.0b0"
+PUBLIC_SURFACE_SOURCE_LINE_TARGET_VERSION = "0.1.0b1"
 PUBLIC_SURFACE_FROZEN_SINCE_VERSION = "0.1.0b0"
 
 
@@ -123,7 +124,9 @@ def _host_local_surfaces() -> tuple[str, ...]:
 
 def describe_public_surface() -> dict[str, object]:
     return {
-        "target_version": PUBLIC_SURFACE_TARGET_VERSION,
+        "target_version": PUBLIC_SURFACE_RELEASED_VERSION,
+        "released_version": PUBLIC_SURFACE_RELEASED_VERSION,
+        "source_line_target_version": PUBLIC_SURFACE_SOURCE_LINE_TARGET_VERSION,
         "frozen_since_version": PUBLIC_SURFACE_FROZEN_SINCE_VERSION,
         "status": "public-beta-b0",
         "public_commands": [asdict(entry) for entry in _public_commands()],
@@ -135,7 +138,8 @@ def describe_public_surface() -> dict[str, object]:
             "public commands are the intended direct beta entrypoints for users and agent callers in the 0.1.0b0 line",
             "the current public beta release version is 0.1.0b0 and the frozen surface now includes package-facing inspection commands as well as the bounded workflow commands",
             "the current b0 stable public flow contract exports both top-level result fields and the minimum stable nested subcontracts for flow_contract and intent_compilation",
-            "the same descriptor now also records b1-target candidate subcontracts for repeated evidence-layer response kernels so agents and smokes can stop inferring them from payload examples",
+            "the same descriptor now also records the source-line b1 next-stable subcontract set for execution and postconditions without pretending that b1 is already released",
+            "the remaining b1-target candidate subcontracts keep the deeper evidence projections explicit so agents and smokes can stop inferring them from payload examples",
             "package-internal commands remain implemented owner-layer surfaces but are not the frozen public beta compatibility promise",
             "repo-owned agent wrappers package the same bounded surfaces without widening authority",
             "host-local surfaces remain evidence or adapter layers rather than package contract",
