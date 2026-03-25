@@ -159,6 +159,57 @@ def assert_bootstrap_host(
     }
 
 
+def write_project_config(repo_root: Path, project_id: str) -> Path:
+    config_path = repo_root / ".repo-governance-kernel" / "project.json"
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(
+        json.dumps({"project_id": project_id}, ensure_ascii=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return config_path
+
+
+def assert_config_runtime_resolution(
+    *,
+    repo_root: Path,
+    project_id: str,
+    cli_cmd: list[str],
+    env: dict[str, str] | None = None,
+) -> dict[str, object]:
+    config_path = write_project_config(repo_root, project_id)
+    describe_payload = cli_json(
+        cli_cmd,
+        repo_root=repo_root,
+        command="describe-config",
+        args=[],
+        cwd=ROOT,
+        env=env,
+    )
+    if str(describe_payload["sources"]["project_id"]) != "project_config":
+        raise SystemExit("describe-config did not resolve project_id from project config")
+    if str(describe_payload["resolved"]["project_id"]) != project_id:
+        raise SystemExit("describe-config resolved the wrong project_id from project config")
+
+    audit_payload = cli_json(
+        cli_cmd,
+        repo_root=repo_root,
+        command="audit-control-state",
+        args=[],
+        cwd=ROOT,
+        env=env,
+    )
+    if str(audit_payload.get("status") or "") == "blocked":
+        raise SystemExit("audit-control-state stayed blocked when project_id should resolve from config")
+    if str(audit_payload.get("project_id") or "") != project_id:
+        raise SystemExit("audit-control-state resolved the wrong config-derived project_id")
+
+    return {
+        "config_path": str(config_path),
+        "describe_config": describe_payload,
+        "audit_from_project_config": audit_payload,
+    }
+
+
 def bootstrap_and_audit(
     *,
     fixture_root: Path,
@@ -494,6 +545,13 @@ def main() -> int:
             env=installed_env,
             commit_after_bootstrap=True,
         )
+        installed_config_runtime = assert_config_runtime_resolution(
+            repo_root=INSTALLED_FIXTURE_ROOT,
+            project_id=INSTALLED_PROJECT_ID,
+            cli_cmd=installed_cli,
+            env=installed_env,
+        )
+        commit_all_changes(INSTALLED_FIXTURE_ROOT, "Commit config runtime fixture")
 
         workflow_setup = onboard_governed_host(
             cli_cmd=installed_cli,
@@ -518,6 +576,7 @@ def main() -> int:
             "installed_cli": installed_cli[0],
             "installed_help_contains_expected_commands": True,
             "installed_public_alpha_surface": public_alpha_summary,
+            "installed_config_runtime": installed_config_runtime,
             "installed_bootstrap": installed_host,
             "installed_onboarding": workflow_setup,
             "installed_external_target_assessment": installed_external_assessment,

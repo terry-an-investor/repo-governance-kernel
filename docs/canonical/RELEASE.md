@@ -106,6 +106,7 @@ Preview validation completed on 2026-03-25.
   - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
   - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
   - installed `describe-public-alpha-surface` returns the frozen `0.1.0a3` public command set and repo-owned agent wrapper metadata
+  - installed `describe-config` reports resolved `repo_root` and `project_id` with source attribution, and installed `audit-control-state` can resolve `project_id` from `<repo_root>/.repo-governance-kernel/project.json` without an explicit flag
 
 ## Preview Residual Risks
 
