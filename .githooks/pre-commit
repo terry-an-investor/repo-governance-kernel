@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 set -eu
 
-uv run python scripts/enforce_worktree.py --project-id session-memory
+uv run python scripts/enforce_worktree.py --project-id repo-governance-kernel

@@ -1,15 +1,15 @@
-# Session Memory Architecture
+# Repo Governance Kernel Architecture
 
 Date: 2026-03-24
 Scope: repo governance kernel
 
 Host-repo note: this file now describes how the host repository integrates the
-reusable kernel with its self-hosted sample data. Kernel-specific architecture
+reusable kernel with its self-hosted control state. Kernel-specific architecture
 notes live under `kernel/docs/`.
 
 ## Goal
 
-`session-memory` is a repo governance kernel.
+`repo-governance-kernel` is a repo governance kernel.
 
 See [`PRODUCT.md`](./PRODUCT.md) for the canonical product definition.
 
@@ -27,8 +27,8 @@ The architectural split should be:
 
 - kernel
   - reusable governance semantics and enforcement runtime
-- sample
-  - this repository's dogfood/example control objects, docs, and sample history
+- repo-owned control state
+  - this repository's own control objects, docs, and local history
 
 The kernel itself has five layers:
 
@@ -158,20 +158,20 @@ The architecture should increasingly separate:
   - state domains
   - transition registry
   - audit and enforcement runtime
-- sample-specific semantics
-  - `state/session-memory/...`
+- repo-owned control-state semantics
+  - `state/repo-governance-kernel/...`
   - self-hosted rounds and adjudications
   - local product history
-  - fixture and smoke-specific sample data
+  - fixture and smoke-specific local data
 
-Without that split, self-hosting noise gets mistaken for kernel complexity.
+Without that split, repo-local noise gets mistaken for kernel complexity.
 
 ## File Layout
 
-The current repository still contains both kernel and sample surfaces:
+The current repository still contains both kernel and repo-owned control surfaces:
 
 ```text
-session-memory/
+repo-governance-kernel/
 ├── README.md
 ├── AGENTS.md
 ├── docs/
@@ -198,8 +198,7 @@ session-memory/
 │   ├── transition_specs.py
 │   └── ...
 ├── state/
-│   ├── session-memory/
-│   └── wind-agent/
+│   └── repo-governance-kernel/
 └── index/
 ```
 
@@ -216,5 +215,5 @@ The right next move is:
 - make enforcement harder
 - make task contracts executable gates
 - keep all new semantics registry-owned
-- separate kernel concerns from sample/dogfood concerns
+- separate kernel concerns from repo-owned control-state concerns
 

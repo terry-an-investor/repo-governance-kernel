@@ -1,6 +1,6 @@
 ---
-id: product-session-memory
-product_name: session-memory
+id: product-repo-governance-kernel
+product_name: repo-governance-kernel
 product_category: "repo governance kernel"
 product_approach: "control-first on top of a memory substrate"
 positioning_phrase: "repo governance kernel"
@@ -20,21 +20,19 @@ canonical_semantics_surfaces:
   - scripts/audit_product_docs.py
   - kernel/audit_control_state.py
 ---
-# Session Memory Product
+# Repo Governance Kernel Product
 
 Date: 2026-03-24
 Scope: Canonical product definition for the repository
 
 Host-repo note: this file defines the product and positioning of the
-`session-memory` repository as a host plus dogfood sample. Reusable kernel
-implementation and kernel-specific definition now live under `kernel/`.
-
-The host sample is now intentionally downgraded: it is dogfood and example
-evidence for the kernel, not the primary product center.
+`repo-governance-kernel` source repository. Reusable kernel implementation and
+kernel-specific definition live under `kernel/`, while repo-owned control state
+stays under `state/repo-governance-kernel/`.
 
 ## Product Definition
 
-`session-memory` is a repo governance kernel.
+`repo-governance-kernel` is a repo governance kernel.
 
 Its job is not to write code for a repository. Its job is to make repository
 development pass through explicit control objects, legal transitions, audit,
@@ -105,14 +103,14 @@ Today the product already provides:
 - control audit and worktree enforcement
 - assembled and role-specific contexts that surface active control state
 - bounded adjudication follow-up execution for the explicit safe subset
-- multi-project operation with `session-memory` and `wind-agent`
-- host-repo bootstrap for disposable repos and frozen copied host snapshots
+- repo-owned control state for the source repository itself
+- host-repo bootstrap for disposable repos
 - frozen-host adoption evidence that advances a host from "missing round
   authority" blocking to real scope/task enforcement blocking
 - one smoke-proven external-target shadow path that turns observed dirty paths
   into adopted scope and then runs one governed single assessment without
   mutating the target repo
-- a real dogfood/example sample that keeps the kernel pressure-tested on a live
+- a self-hosted control line that keeps the kernel pressure-tested on a live
   repository
 
 ## Product Boundaries
@@ -159,8 +157,8 @@ prompt folklore.
 Current stage: `kernelization phase`
 
 This stage is about narrowing the repository into a reusable governance kernel
-with one self-hosted sample, instead of broadening it into a larger autonomous
-system.
+with one repo-owned control line, instead of broadening it into a larger
+autonomous system.
 
 ## Roadmap
 
@@ -173,8 +171,7 @@ Near-term product milestones:
   owner-layer blockers
 - continue lifting private semantics into the transition registry and governed
   runtime
-- separate reusable kernel surfaces from `session-memory` dogfood/sample
-  surfaces
+- separate reusable kernel surfaces from repo-owned control-state surfaces
 - strengthen package-facing proof for the current single-pass live-host shadow
   assessment path without widening it into a general live-host mutation
   contract

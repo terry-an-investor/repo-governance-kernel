@@ -1,18 +1,15 @@
-# Session Memory Control System
+# Repo Governance Kernel Control System
 
 Date: 2026-03-24
 Scope: repo governance kernel
 
-Host-repo note: this document explains the control model as used by the host
-repository and its dogfood sample. Reusable kernel implementation authority is
-owned by `kernel/`.
-
-That host sample is now a dogfood/example surface rather than the primary
-product owner of the kernel.
+Host-repo note: this document explains the control model as used by the source
+repository and its repo-owned control state. Reusable kernel implementation
+authority is owned by `kernel/`.
 
 ## Goal
 
-`session-memory` is a repo governance kernel.
+`repo-governance-kernel` is a repo governance kernel.
 
 See [`PRODUCT.md`](./PRODUCT.md) for the canonical product definition.
 
@@ -254,11 +251,11 @@ The repo should converge toward two explicitly different things:
   - control semantics
   - transition registry
   - audit and enforcement runtime
-- dogfood/sample project
-  - `state/session-memory/...`
-  - self-hosted rounds, adjudications, and sample history
+- repo-owned control state
+  - `state/repo-governance-kernel/...`
+  - self-hosted rounds, adjudications, and local history
 
-Without that split, self-hosting noise will keep appearing as kernel
+Without that split, repo-local noise will keep appearing as kernel
 requirements.
 
 ## Design Consequence
@@ -271,5 +268,5 @@ It is:
 - make enforcement the hard gate for promotion and closure
 - continue eliminating private semantics
 - keep all new execution surfaces registry-owned
-- separate kernel concerns from sample-specific repo history
+- separate kernel concerns from repo-local history
 

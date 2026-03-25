@@ -90,7 +90,7 @@ def build_query(args: argparse.Namespace) -> tuple[str, list[str]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Query the session-memory SQLite index.")
+    parser = argparse.ArgumentParser(description="Query the repo-governance-kernel SQLite index.")
     parser.add_argument("--project-id")
     parser.add_argument("--workspace-id")
     parser.add_argument("--type", dest="item_type")

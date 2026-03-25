@@ -10,9 +10,9 @@ from smoke_fixture_lib import parse_last_json_object
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
-WIND_ARTIFACT_PATH = ROOT / "artifacts" / "wind-agent" / "session-context-smoke.md"
-SELF_ARTIFACT_PATH = ROOT / "artifacts" / "session-memory" / "session-context-smoke.md"
-ROLE_ARTIFACT_PATH = ROOT / "artifacts" / "session-memory" / "reviewer-context-smoke.md"
+PROJECT_ID = "repo-governance-kernel"
+SELF_ARTIFACT_PATH = ROOT / "artifacts" / "repo-governance-kernel" / "session-context-smoke.md"
+ROLE_ARTIFACT_PATH = ROOT / "artifacts" / "repo-governance-kernel" / "reviewer-context-smoke.md"
 
 
 def run_json(script_name: str, *args: str) -> dict:
@@ -50,8 +50,7 @@ def run_smoke_suite(*smoke_names: str) -> dict:
 
 
 def main() -> None:
-    session_memory_audit = run_json("audit_control_state.py", "--project-id", "session-memory")
-    wind_agent_audit = run_json("audit_control_state.py", "--project-id", "wind-agent")
+    repo_audit = run_json("audit_control_state.py", "--project-id", PROJECT_ID)
     smoke_suite_result = run_smoke_suite(
         "adjudication_followups",
         "config_runtime",
@@ -67,19 +66,10 @@ def main() -> None:
     smoke_results = {str(item["name"]): item["result"] for item in smoke_suite_result.get("smokes", []) if isinstance(item, dict)}
     build_result = run_json("build_index.py")
     check_result = run_json("check_index.py")
-    query_result = run_json(
-        "query_index.py",
-        "--project-id",
-        "wind-agent",
-        "--text",
-        "contract",
-        "--limit",
-        "10",
-    )
     self_query_result = run_json(
         "query_index.py",
         "--project-id",
-        "session-memory",
+        PROJECT_ID,
         "--text",
         "workspace",
         "--limit",
@@ -88,21 +78,14 @@ def main() -> None:
     run_plain(
         "assemble_context.py",
         "--project-id",
-        "wind-agent",
-        "--output",
-        str(WIND_ARTIFACT_PATH),
-    )
-    run_plain(
-        "assemble_context.py",
-        "--project-id",
-        "session-memory",
+        PROJECT_ID,
         "--output",
         str(SELF_ARTIFACT_PATH),
     )
     run_plain(
         "compile_role_context.py",
         "--project-id",
-        "session-memory",
+        PROJECT_ID,
         "--role",
         "reviewer",
         "--output",
@@ -117,32 +100,25 @@ def main() -> None:
         raise SystemExit("memory_links is empty")
     if check_result["memory_links"] < 1:
         raise SystemExit("check memory_links is empty")
-    if query_result["count"] < 1:
-        raise SystemExit("wind-agent query returned no rows")
     if self_query_result["count"] < 1:
-        raise SystemExit("session-memory query returned no rows")
-    if not WIND_ARTIFACT_PATH.exists():
-        raise SystemExit("wind-agent assemble output missing")
+        raise SystemExit("repo-governance-kernel query returned no rows")
     if not SELF_ARTIFACT_PATH.exists():
-        raise SystemExit("session-memory assemble output missing")
+        raise SystemExit("repo-governance-kernel assemble output missing")
     if not ROLE_ARTIFACT_PATH.exists():
-        raise SystemExit("session-memory reviewer context output missing")
+        raise SystemExit("repo-governance-kernel reviewer context output missing")
     role_context_text = ROLE_ARTIFACT_PATH.read_text(encoding="utf-8")
     if "## Current Control Status" not in role_context_text:
-        raise SystemExit("session-memory reviewer context missing control status section")
+        raise SystemExit("repo-governance-kernel reviewer context missing control status section")
     if "## Current Control Violations" not in role_context_text:
-        raise SystemExit("session-memory reviewer context missing control violations section")
-    if session_memory_audit["summary"]["errors"] != 0:
-        raise SystemExit("session-memory control audit reported errors")
-    if wind_agent_audit["summary"]["errors"] != 0:
-        raise SystemExit("wind-agent control audit reported errors")
+        raise SystemExit("repo-governance-kernel reviewer context missing control violations section")
+    if repo_audit["summary"]["errors"] != 0:
+        raise SystemExit("repo-governance-kernel control audit reported errors")
 
     print(
         json.dumps(
             {
                 "audit": {
-                    "session-memory": session_memory_audit["status"],
-                    "wind-agent": wind_agent_audit["status"],
+                    PROJECT_ID: repo_audit["status"],
                 },
                 "smoke_suite": smoke_suite_result["status"],
                 "adjudication_followups": smoke_results["adjudication_followups"],
@@ -163,13 +139,11 @@ def main() -> None:
                     "memory_fts": check_result["memory_fts"],
                 },
                 "query": {
-                    "wind-agent": query_result["count"],
-                    "session-memory": self_query_result["count"],
+                    PROJECT_ID: self_query_result["count"],
                 },
                 "artifacts": {
-                    "wind-agent": str(WIND_ARTIFACT_PATH),
-                    "session-memory": str(SELF_ARTIFACT_PATH),
-                    "session-memory-reviewer": str(ROLE_ARTIFACT_PATH),
+                    PROJECT_ID: str(SELF_ARTIFACT_PATH),
+                    f"{PROJECT_ID}-reviewer": str(ROLE_ARTIFACT_PATH),
                 },
             },
             ensure_ascii=True,

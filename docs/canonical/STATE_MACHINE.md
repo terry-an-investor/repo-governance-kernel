@@ -1,4 +1,4 @@
-# Session Memory State Machine
+# Repo Governance Kernel State Machine
 
 Date: 2026-03-24
 Scope: Control-state transitions for the repo governance kernel

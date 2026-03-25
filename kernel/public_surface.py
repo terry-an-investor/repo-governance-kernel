@@ -115,7 +115,7 @@ def _repo_owned_agent_wrappers() -> tuple[dict[str, object], ...]:
 def _host_local_surfaces() -> tuple[str, ...]:
     return (
         "scripts/",
-        "state/session-memory/",
+        "state/repo-governance-kernel/",
         ".githooks/",
         ".github/workflows/",
         "repo-local smoke and evaluation harnesses",

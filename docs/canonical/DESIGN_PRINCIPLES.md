@@ -1,4 +1,4 @@
-# Session Memory Design Principles
+# Repo Governance Kernel Design Principles
 
 Date: 2026-03-24
 Scope: repo governance kernel
@@ -121,16 +121,16 @@ That means:
 - git hooks and CI should reuse the same owner-layer commands
 - live blocking should outrank smoke optimism
 
-### 9. Kernel and sample must be distinguishable
+### 9. Kernel and repo-local state must be distinguishable
 
 Self-hosting is useful, but self-hosting also inflates complexity.
 
 The repo therefore needs a clear conceptual split between:
 
 - reusable governance kernel
-- `session-memory` as the dogfood/sample project
+- repo-owned control state and repo-local evidence
 
-Without that split, sample complexity looks like kernel necessity.
+Without that split, repo-local complexity looks like kernel necessity.
 
 ### 10. Start narrow and reusable
 
@@ -154,4 +154,4 @@ The preferred direction is:
 - let memory remain substrate and evidence support
 - continue promoting semantics into the registry
 - strengthen enforcement before broadening automation
-- separate kernel concerns from sample-specific dogfood history
+- separate kernel concerns from repo-local history

@@ -29,7 +29,7 @@ package contract.
 
 The host repository continues to own:
 
-- `state/session-memory/` dogfood sample state
+- `state/repo-governance-kernel/` repo-owned control state
 - `scripts/` compatibility and adapter entrypoints
 - `.githooks/`
 - `.github/workflows/`
@@ -161,7 +161,7 @@ Beta validation completed on 2026-03-25 for the `0.1.0b1` local cut.
 
 - the beta contract is intentionally narrow; lower-level owner-layer commands
   remain implemented but are not part of the compatibility promise
-- the package and dogfood sample still live in one repository, so docs and
+- the package and repo-owned control state still live in one repository, so docs and
   packaging hygiene still need active discipline
 - deeper evidence-layer response projections such as onboarding
   `execution.compiled_bundle`, onboarding `outcome.created_control_state`, and

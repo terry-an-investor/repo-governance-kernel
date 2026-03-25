@@ -25,9 +25,9 @@ It owns:
 
 It does not own:
 
-- `state/session-memory/` dogfood control state
+- `state/repo-governance-kernel/` repo-owned control state
 - repo-local smoke and evaluation harnesses
-- this repository's sample-specific history
+- this repository's repo-local history
 
 ## Start Here
 
@@ -131,13 +131,13 @@ remain available, but they are not the frozen public beta promise.
 Generic kernel commands can run through:
 
 ```powershell
-uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli audit-control-state --project-id repo-governance-kernel
 ```
 
 Installed entrypoint target:
 
 ```powershell
-repo-governance-kernel audit-control-state --project-id session-memory
+repo-governance-kernel audit-control-state --project-id repo-governance-kernel
 ```
 
 Bootstrap a new host repo:
@@ -232,23 +232,9 @@ The current release proof covers:
 - one focused governed bundle proof showing `execute-adjudication-followups`
   plus `round-close-chain` still fails closed until the attached task contract
   is resolved
-- a frozen copied `wind-agent` host snapshot
 
 Both bootstrap surfaces pass host-side `audit-control-state` without touching
 the live source repository.
-
-The frozen `wind-agent` path also proves:
-
-- `enforce-worktree` is expected to remain `blocked` until one explicit adopted
-  round honestly covers the dirty host paths
-- the kernel now writes one host-side adoption report that explains this blocked
-  state and the next control actions instead of leaving only raw JSON
-- after opening one host-side objective, adopted round, and task contract,
-  host-side `audit-control-state` remains `ok`
-- after that adoption step, `enforce-worktree` no longer fails for missing
-  round authority; remaining `blocked` results now come from real scope law such
-  as `dirty_paths_outside_scope_round` and
-  `dirty_paths_outside_active_task_contracts`
 
 ## Assessment Commands
 

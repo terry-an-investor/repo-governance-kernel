@@ -9,7 +9,7 @@ audit, and enforcement before progress is accepted.
 This source repository contains both:
 
 - the reusable package under [`kernel/`](./kernel/)
-- the host-local dogfood sample under [`state/session-memory/`](./state/session-memory/)
+- the repo-owned control state under [`state/repo-governance-kernel/`](./state/repo-governance-kernel/)
 
 The current beta release is `0.1.0b1`. The automation scope is
 `bounded registry-owned execution`. The autonomy boundary is
@@ -65,11 +65,11 @@ repo acceptance smoke that CI uses, so top-level integration regressions are
 blocked locally before push instead of being discovered first on GitHub
 Actions.
 
-### Verify the host sample
+### Verify the repo-owned control state
 
 ```powershell
-uv run python -m kernel.cli audit-control-state --project-id session-memory
-uv run python -m kernel.cli enforce-worktree --project-id session-memory
+uv run python -m kernel.cli audit-control-state --project-id repo-governance-kernel
+uv run python -m kernel.cli enforce-worktree --project-id repo-governance-kernel
 ```
 
 ### Prove the packaged path
@@ -195,9 +195,9 @@ artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe `
 
 ```powershell
 uv run python -m kernel.cli `
-  --repo-root C:/Users/terryzzb/Desktop/session-memory `
+  --repo-root C:/path/to/repo-governance-kernel-source `
   assess-external-target-once `
-  --project-id session-memory `
+  --project-id repo-governance-kernel `
   --workspace-root C:/Users/terryzzb/Desktop/git_repos/buffet
 ```
 
@@ -217,7 +217,7 @@ The reusable package surface lives under [`kernel/`](./kernel/).
 
 These remain host-local and are not part of the package contract:
 
-- [`state/session-memory/`](./state/session-memory/)
+- [`state/repo-governance-kernel/`](./state/repo-governance-kernel/)
 - [`scripts/`](./scripts/)
 - [`.githooks/`](./.githooks/)
 - [`.github/workflows/`](./.github/workflows/)

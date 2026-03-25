@@ -23,7 +23,7 @@ def main() -> None:
         evidence_count = conn.execute("SELECT COUNT(*) FROM memory_evidence_refs").fetchone()[0]
         link_count = conn.execute("SELECT COUNT(*) FROM memory_links").fetchone()[0]
         fts_count = conn.execute("SELECT COUNT(*) FROM memory_fts").fetchone()[0]
-        sample_evidence = conn.execute(
+        evidence_preview = conn.execute(
             """
             SELECT memory_id, evidence_type, ref
             FROM memory_evidence_refs
@@ -42,7 +42,7 @@ def main() -> None:
                 "memory_evidence_refs": evidence_count,
                 "memory_links": link_count,
                 "memory_fts": fts_count,
-                "sample_evidence": sample_evidence,
+                "evidence_preview": evidence_preview,
             },
             ensure_ascii=True,
             indent=2,

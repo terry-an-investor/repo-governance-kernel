@@ -225,15 +225,15 @@ Keep moving these surfaces into the registry/runtime owner layer:
 
 No new executor-local or compiler-local private authority should be added.
 
-### 5. Separate kernel from sample
+### 5. Separate kernel from repo-owned control state
 
 Make the conceptual split increasingly real:
 
 - kernel
   - reusable governance semantics and runtime
-- sample
-  - `state/session-memory/...`
-  - dogfood/example rounds, adjudications, and sample history
+- repo-owned control state
+  - `state/repo-governance-kernel/...`
+  - this repository's own rounds, adjudications, and local history
 
 This can begin as documentation and module-boundary cleanup before it becomes a
 physical repo split.
@@ -244,7 +244,7 @@ Needed outcomes:
 
 - package metadata and console entrypoint exist
 - kernel docs explain release boundary and support surface
-- host repo docs stop treating the sample as the product center
+- host repo docs stop treating dogfood state as the product center
 
 ### 7. Prove install-first host bootstrap on low-risk fixtures
 
@@ -255,11 +255,6 @@ Needed outcomes:
 - fixture validation proves the install path and host-side control audit before higher-risk host rollout
 - real-host rollout proceeds in this order:
   - disposable fixture repo
-  - frozen host snapshot
-    - first proof now exists through a copied `wind-agent` working-tree snapshot that bootstraps and passes host-side control audit without touching the live repo
-    - frozen-host enforcement now also returns the honest blocked verdict before adoption:
-      - dirty worktree plus no adopted round means the host is not yet allowed to proceed
-      - adoption should therefore continue through explicit objective/round capture before live shadow mode
   - shadow mode on a live host
   - hard-gated adoption on a lower-risk real repo
 
@@ -290,5 +285,5 @@ Kernelization is only considered real when:
 - enforcement stays clean on the real project after the round closes
 - newly added execution semantics are registry-owned, audit-visible, and
   smoke-proven
-- sample-specific complexity is distinguishable from reusable kernel semantics
+- repo-local complexity is distinguishable from reusable kernel semantics
 

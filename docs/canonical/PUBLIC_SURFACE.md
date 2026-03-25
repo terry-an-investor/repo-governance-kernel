@@ -157,7 +157,7 @@ authority.
 The following remain out of the public beta package contract:
 
 - `scripts/`
-- `state/session-memory/`
+- `state/repo-governance-kernel/`
 - `.githooks/`
 - `.github/workflows/`
 - repo-local smoke and evaluation harnesses

@@ -17,7 +17,7 @@ It owns:
 It does not own:
 
 - one specific repository's product narrative
-- dogfood sample history
+- dogfood repo history
 - repo-local smoke or evaluation workflows
 
 ## Core Objects

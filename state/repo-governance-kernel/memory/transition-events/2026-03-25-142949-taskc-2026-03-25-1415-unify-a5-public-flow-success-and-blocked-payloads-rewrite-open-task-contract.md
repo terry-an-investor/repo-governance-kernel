@@ -1,0 +1,60 @@
+---
+id: trans-2026-03-25-142949-rewrite-open-task-contract-rewrote-task-contract-taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads
+type: transition-event
+title: "Rewrote task contract taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads"
+status: recorded
+project_id: repo-governance-kernel
+workspace_id: ws-1490b759
+workspace_root: C:/Users/terryzzb/Desktop/session-memory
+branch: master
+git_sha: 5900e057f83b733d1c02d997617ef95f94646552
+paths:
+  - taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads
+  - round-2026-03-25-1414-stabilize-public-flow-result-contracts-for-a5
+  - obj-2026-03-23-0002
+thread_ids: []
+evidence_refs: []
+tags:
+  - transition-event
+  - rewrite-open-task-contract
+confidence: high
+created_at: 2026-03-25T14:29:49+08:00
+updated_at: 2026-03-25T14:29:49+08:00
+supersedes: []
+superseded_by: []
+---
+
+## Summary
+
+Rewrote task contract taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads
+
+## Command
+
+rewrite-open-task-contract
+
+## Previous State
+
+task contract `taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads` remained `active` with fields paths pending rewrite
+
+## Next State
+
+task contract `taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads` still remains `active` after rewriting paths
+
+## Guards
+
+- task contract `taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads` exists and remains open
+- task-contract rewrite reason is explicit
+- rewritten task contract still has intent, path scope, allowed changes, forbidden changes, and completion criteria
+- task-contract identity is preserved while contract content is rewritten
+- task scope paths stay inside the round scope
+- task-contract rewrite produces at least one material contract change
+
+## Side Effects
+
+- updated durable task contract `repo-governance-kernel/memory/task-contracts/2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads.md`
+
+## Evidence
+
+- The a5 implementation extracted one shared public-flow contract owner layer that must be covered by the active task contract.
+- paths
+

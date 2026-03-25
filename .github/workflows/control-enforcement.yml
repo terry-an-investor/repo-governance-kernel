@@ -22,10 +22,10 @@ jobs:
         run: python -m pip install uv
 
       - name: Enforce worktree
-        run: uv run python -m kernel.cli --repo-root "${{ github.workspace }}" enforce-worktree --project-id session-memory --workspace-root "${{ github.workspace }}"
+        run: uv run python -m kernel.cli --repo-root "${{ github.workspace }}" enforce-worktree --project-id repo-governance-kernel --workspace-root "${{ github.workspace }}"
 
       - name: Audit control state
-        run: uv run python -m kernel.cli --repo-root "${{ github.workspace }}" audit-control-state --project-id session-memory
+        run: uv run python -m kernel.cli --repo-root "${{ github.workspace }}" audit-control-state --project-id repo-governance-kernel
 
       - name: Audit product docs
         run: uv run python -m kernel.cli --repo-root "${{ github.workspace }}" audit-product-docs

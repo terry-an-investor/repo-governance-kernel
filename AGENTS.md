@@ -1,4 +1,4 @@
-# Session Memory Local Rules
+# Repo Governance Kernel Local Rules
 
 These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 
@@ -9,7 +9,7 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 - For broad restructures, land changes in this order:
   1. update canonical docs
   2. create new target paths
-  3. migrate real sample files
+  3. migrate real control-state files
   4. delete obsolete paths last
 
 ## 2. Migration Safety
@@ -29,7 +29,7 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 ## 4. Implementation Order
 
 - Do not start embeddings before file workflow and indexing are proven useful.
-- Pressure-test schema changes on real sample files before adding new machinery.
+- Pressure-test schema changes on real control-state files before adding new machinery.
 - Prefer the smallest working indexing and recall path before broader features.
 
 ## 5. Tooling
@@ -71,7 +71,7 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
 - This close-out inspection must explicitly consider:
   - control-state drift or schema drift
   - guard or transition holes
-  - sample-file pollution or fidelity regressions
+  - fixture or control-state pollution regressions
   - validation gaps between claimed behavior and observed behavior
 - Do not wait for the user to ask "what is still wrong"; surface the current
   problems proactively in the round close-out.

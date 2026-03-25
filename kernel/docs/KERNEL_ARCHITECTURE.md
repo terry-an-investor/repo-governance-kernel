@@ -29,6 +29,6 @@ The host repository may still provide:
 - repo-local CLI wrappers under `scripts/`
 - git hooks
 - CI glue
-- sample data and dogfood control objects
+- repo-local fixtures and dogfood control objects
 
 Those are adapter surfaces, not the canonical kernel implementation layer.

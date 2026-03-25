@@ -1,4 +1,4 @@
-# Session Memory Transition Commands
+# Repo Governance Kernel Transition Commands
 
 Date: 2026-03-24
 Scope: Canonical transition command surface for the repo governance kernel

@@ -1,4 +1,4 @@
-# Session Memory Harness
+# Repo Governance Kernel Harness
 
 Date: 2026-03-23
 Scope: Smoke-suite execution law for the coding control system

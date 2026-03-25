@@ -44,7 +44,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def default_source_repo(project_id: str) -> Path:
-    if project_id == "session-memory":
+    if project_id == "repo-governance-kernel":
         return ROOT
     return (ROOT.parent / project_id).resolve()
 

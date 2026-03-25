@@ -1,4 +1,4 @@
-# Session Memory Schema
+# Repo Governance Kernel Schema
 
 Date: 2026-03-22
 Scope: Multi-project coding-agent memory and control
@@ -35,7 +35,7 @@ Memory is also split by scope:
 ## Top-Level Layout
 
 ```text
-session-memory/
+repo-governance-kernel/
 ├── state/
 │   ├── <project_id>/
 │   │   ├── control/
@@ -103,7 +103,7 @@ execution contracts, because conflict resolution is different from projection.
 The minimum identity split is:
 
 - `project_id`
-  - semantic project identity such as `wind-agent`
+  - semantic project identity such as `repo-governance-kernel` or `example-repo`
 - `workspace_id`
   - concrete local workspace or worktree identity
 - `workspace_root`
@@ -126,9 +126,9 @@ id: mem-2026-03-22-0001
 type: decision
 title: Prepared query context must be a first-class consumer contract
 status: active
-project_id: wind-agent
+project_id: example-repo
 workspace_id: ws-8c2176c3
-workspace_root: C:/Users/terryzzb/Desktop/wind-agent
+workspace_root: C:/Users/terryzzb/Desktop/example-repo
 branch: master
 git_sha: 765c444c9dcd04ba09c58cd7e637ccd7a4669cca
 paths:
@@ -400,9 +400,9 @@ id: mem-2026-03-22-0001
 type: decision
 title: Prepared query context must be a first-class consumer contract
 status: active
-project_id: wind-agent
+project_id: example-repo
 workspace_id: ws-8c2176c3
-workspace_root: C:/Users/terryzzb/Desktop/wind-agent
+workspace_root: C:/Users/terryzzb/Desktop/example-repo
 branch: master
 git_sha: 765c444c9dcd04ba09c58cd7e637ccd7a4669cca
 paths:
@@ -453,9 +453,9 @@ id: mem-2026-03-22-0002
 type: failure
 title: Active round contract drifted behind the real worktree
 status: active
-project_id: wind-agent
+project_id: example-repo
 workspace_id: ws-8c2176c3
-workspace_root: C:/Users/terryzzb/Desktop/wind-agent
+workspace_root: C:/Users/terryzzb/Desktop/example-repo
 branch: master
 git_sha: 765c444c9dcd04ba09c58cd7e637ccd7a4669cca
 paths:
@@ -771,9 +771,9 @@ Suggested frontmatter:
 id: snap-2026-03-22-2030-mainline
 type: handoff
 title: Mainline handoff after owner-layer review
-project_id: wind-agent
+project_id: example-repo
 workspace_id: ws-8c2176c3
-workspace_root: C:/Users/terryzzb/Desktop/wind-agent
+workspace_root: C:/Users/terryzzb/Desktop/example-repo
 branch: master
 git_sha: 765c444c9dcd04ba09c58cd7e637ccd7a4669cca
 paths:
@@ -883,8 +883,8 @@ cross-project/<type>s/YYYY-MM-DD-<slug>.md
 
 Examples:
 
-- `state/wind-agent/memory/decisions/2026-03-22-prepared-query-context-first-class-contract.md`
-- `state/wind-agent/memory/failures/2026-03-22-round-contract-worktree-drift.md`
+- `state/example-repo/memory/decisions/2026-03-22-owner-contract.md`
+- `state/example-repo/memory/failures/2026-03-22-round-scope-drift.md`
 - `cross-project/patterns/2026-03-22-handoff-before-context-compaction.md`
 
 ## SQLite Index Shape
