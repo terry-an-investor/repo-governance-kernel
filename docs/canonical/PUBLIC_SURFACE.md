@@ -1,37 +1,37 @@
-# Repo Governance Kernel Public Alpha Surface
+# Repo Governance Kernel Public Surface
 
 Date: 2026-03-25
-Scope: current `0.1.0a5` public alpha package surface
+Scope: current `0.1.0b0` public beta package surface
 
 ## Goal
 
 Define the smallest public package contract that users and agents should depend
-on directly during the current `0.1.0a5` alpha line.
+on directly during the current `0.1.0b0` beta line.
 
-This document exists because "implemented command" and "frozen public alpha
+This document exists because "implemented command" and "frozen public beta
 surface" are not the same thing.
 
-The current preview release is `0.1.0a5`.
+The current beta release is `0.1.0b0`.
 
-The direct package command contract remains the same entrypoint set first
-frozen in `0.1.0a3`, but the live public preview release identity is now
-`0.1.0a5`.
+This is the first release that makes a beta compatibility promise about:
 
-The command list is still stable across `a4` and `a5`. What changed in `a5` is
-the package-facing result contract for the highest-frequency product flows:
-shared success and blocked payload categories across the direct and
-intent-wrapper entrypoints.
+- which package-facing commands are stable
+- which public flow fields are stable
+- which nested public flow subobjects are stable
+- which implemented owner-layer commands remain explicitly out of scope
 
 The product remains a repo governance kernel as defined in
 [`PRODUCT.md`](./PRODUCT.md). Its automation scope remains `bounded
 registry-owned execution`. Its autonomy boundary remains `not a general
 autonomous rewrite engine`.
 
-## Public Alpha Commands
+## Public Beta Commands
 
 These are the intended direct entrypoints for users and agent callers during
-the current `0.1.0a5` line:
+the current `0.1.0b0` line:
 
+- `describe-config`
+- `describe-public-surface`
 - `audit-control-state`
 - `enforce-worktree`
 - `bootstrap-repo`
@@ -42,37 +42,32 @@ the current `0.1.0a5` line:
 
 Why these and not more:
 
-- they cover install-first bootstrap, first control-line onboarding, and one
-  bounded external-target assessment
+- they cover package-facing inspection, install-first bootstrap, first
+  control-line onboarding, and one bounded external-target assessment
 - they already represent the package's highest-frequency product tasks
 - they have a clearer package-facing meaning than the lower-level owner-layer
   primitives they compose
 
-The `a5` productization focus for these same commands is:
+## `0.1.0b0` Stable Public Flow Contract
 
-- shared top-level result categories across direct and intent-wrapper entrypoints
-- explicit machine-readable blocked payloads when the one-task workflow cannot finish cleanly
-
-## `0.1.0b0` Candidate Public Flow Contract
-
-The current `b0` freeze work starts from the four highest-frequency public flow
-entrypoints:
+The stable beta flow contract currently covers the four highest-frequency public
+workflow entrypoints:
 
 - `onboard-repo`
 - `onboard-repo-from-intent`
 - `assess-external-target-once`
 - `assess-external-target-from-intent`
 
-The owner-layer source of truth for their candidate stable field contract now
+The owner-layer source of truth for their stable field contract now
 lives in:
 
 - `kernel/public_flow_contracts.py`
 
 and is exported through:
 
-- `describe-public-alpha-surface`
+- `describe-public-surface`
 
-Current candidate freeze boundary:
+Current stable boundary:
 
 - `result_contract` always carries one stable schema/version/entrypoint record
 - each of the four entrypoints now has one owner-layer list of required
@@ -98,17 +93,16 @@ Current stable nested subcontract boundary:
   - which top-level statuses require each subobject
   - which nested fields are stable when that subobject is present
 - `execution`, `outcome`, and `postconditions` remain outside the minimum
-  stable beta candidate contract in this slice
+  stable beta contract in this release
 
-This is intentionally a `b0` candidate contract, not a finished beta promise
-yet. The remaining freeze work is to decide whether any evidence-layer objects
-such as `execution`, `outcome`, or `postconditions` should graduate into the
-minimum stable contract before `0.1.0b0`.
+This `0.1.0b0` promise is intentionally narrow. It freezes the public command
+surface plus the minimum public flow contract, not every detail-rich evidence
+object that may appear inside richer responses.
 
 ## Package-Internal But Implemented
 
 These commands remain real owner-layer surfaces, but they are not the frozen
-public alpha promise:
+public beta promise:
 
 - `assess-host-adoption`
 - `draft-external-target-shadow-scope`
@@ -131,7 +125,7 @@ authority.
 
 ## Host-Local And Internal Surfaces
 
-The following remain out of the public alpha package contract:
+The following remain out of the public beta package contract:
 
 - `scripts/`
 - `state/session-memory/`
@@ -144,9 +138,9 @@ automation triggers, but they are not part of the user-facing package promise.
 
 ## Machine-Readable Descriptor
 
-The public alpha surface is also exported through:
+The public beta surface is also exported through:
 
-- `describe-public-alpha-surface`
+- `describe-public-surface`
 
 That command exists so package docs, installed-package proof, and agent
 wrappers can consume one shared owner-layer truth instead of carrying slightly

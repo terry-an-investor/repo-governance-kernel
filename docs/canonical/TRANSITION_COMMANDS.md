@@ -40,11 +40,11 @@ That means:
 
 The kernel should stay centered on a small set of first-class commands.
 
-The current `0.1.0a5` public alpha entrypoints are documented separately in:
+The current `0.1.0b0` public beta entrypoints are documented separately in:
 
-- [`PUBLIC_ALPHA_SURFACE.md`](./PUBLIC_ALPHA_SURFACE.md)
+- [`PUBLIC_SURFACE.md`](./PUBLIC_SURFACE.md)
 
-That public-alpha contract is intentionally narrower than the full implemented
+That public-beta contract is intentionally narrower than the full implemented
 owner-layer command surface below.
 
 ### Objective-Line Commands

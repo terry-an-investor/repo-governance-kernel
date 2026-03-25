@@ -7,7 +7,7 @@ from pathlib import Path
 PUBLIC_FLOW_RESULT_SCHEMA = "repo-governance-kernel.public-flow-result"
 PUBLIC_FLOW_RESULT_VERSION = "1"
 PUBLIC_FLOW_AUTOMATION_SCOPE = "bounded-registry-owned-execution"
-PUBLIC_FLOW_BETA_CANDIDATE_STATUS = "b0-candidate"
+PUBLIC_FLOW_BETA_STATUS = "b0"
 
 PUBLIC_FLOW_RESULT_CONTRACT_FIELDS = (
     "schema",
@@ -369,14 +369,14 @@ def describe_public_flow_contract_catalog() -> dict[str, object]:
             },
         }
     return {
-        "status": PUBLIC_FLOW_BETA_CANDIDATE_STATUS,
+        "status": PUBLIC_FLOW_BETA_STATUS,
         "result_contract_schema": PUBLIC_FLOW_RESULT_SCHEMA,
         "result_contract_version": PUBLIC_FLOW_RESULT_VERSION,
         "result_contract_required_fields": list(PUBLIC_FLOW_RESULT_CONTRACT_FIELDS),
         "blocked_detail_required_fields": list(PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS),
         "entrypoints": entrypoints,
         "notes": [
-            "this catalog describes the current b0 candidate stable field contract for the four public flow entrypoints",
+            "this catalog describes the current b0 stable field contract for the four public flow entrypoints",
             "required_top_level_fields are the fields callers may depend on by entrypoint and top-level status",
             "optional_top_level_fields are fields that may appear for richer detail but are not yet the minimum stable promise",
             "stable_subcontracts describe the minimum stable nested field contract for public flow subobjects that callers may read directly",

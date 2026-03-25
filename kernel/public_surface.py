@@ -6,84 +6,96 @@ from dataclasses import asdict, dataclass
 from kernel.public_flow_contracts import describe_public_flow_contract_catalog
 
 
-PUBLIC_ALPHA_TARGET_VERSION = "0.1.0a5"
-PUBLIC_ALPHA_FROZEN_SINCE_VERSION = "0.1.0a3"
+PUBLIC_SURFACE_TARGET_VERSION = "0.1.0b0"
+PUBLIC_SURFACE_FROZEN_SINCE_VERSION = "0.1.0b0"
 
 
 @dataclass(frozen=True)
-class PublicAlphaEntry:
+class PublicSurfaceEntry:
     name: str
     kind: str
     stability: str
     summary: str
 
 
-def _public_commands() -> tuple[PublicAlphaEntry, ...]:
+def _public_commands() -> tuple[PublicSurfaceEntry, ...]:
     return (
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
+            name="describe-config",
+            kind="command",
+            stability="public-beta",
+            summary="Explain resolved repo_root and project_id config sources.",
+        ),
+        PublicSurfaceEntry(
+            name="describe-public-surface",
+            kind="command",
+            stability="public-beta",
+            summary="Expose the machine-readable public beta package contract.",
+        ),
+        PublicSurfaceEntry(
             name="audit-control-state",
             kind="command",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Audit governed control truth without mutation.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="enforce-worktree",
             kind="command",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Check that the live worktree still matches active control truth.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="bootstrap-repo",
             kind="command",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Bootstrap the minimum governed host surface in one git repo.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="onboard-repo",
             kind="bundle",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Open the first honest control line for a governed host repo.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="onboard-repo-from-intent",
             kind="intent-wrapper",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Compile one bounded repo-initialization request into onboard-repo.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="assess-external-target-once",
             kind="bundle",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Run one bounded external-target assessment through governed commands.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="assess-external-target-from-intent",
             kind="intent-wrapper",
-            stability="public-alpha",
+            stability="public-beta",
             summary="Compile one bounded external-target assessment request into the governed workflow.",
         ),
     )
 
 
-def _package_internal_commands() -> tuple[PublicAlphaEntry, ...]:
+def _package_internal_commands() -> tuple[PublicSurfaceEntry, ...]:
     return (
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="assess-host-adoption",
             kind="command",
             stability="package-internal",
-            summary="Lower-level shadow assessment primitive consumed by higher-level workflows.",
+            summary="Lower-level shadow assessment primitive consumed by higher-level public workflows.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="draft-external-target-shadow-scope",
             kind="command",
             stability="package-internal",
             summary="Lower-level drafting primitive for external-target shadow setup.",
         ),
-        PublicAlphaEntry(
+        PublicSurfaceEntry(
             name="execute-adjudication-followups",
             kind="command",
             stability="package-internal",
-            summary="Owner-layer adjudication executor, not part of the frozen public alpha promise.",
+            summary="Owner-layer adjudication executor, not part of the frozen public beta promise.",
         ),
     )
 
@@ -109,21 +121,21 @@ def _host_local_surfaces() -> tuple[str, ...]:
     )
 
 
-def describe_public_alpha_surface() -> dict[str, object]:
+def describe_public_surface() -> dict[str, object]:
     return {
-        "target_version": PUBLIC_ALPHA_TARGET_VERSION,
-        "frozen_since_version": PUBLIC_ALPHA_FROZEN_SINCE_VERSION,
-        "status": "public-alpha-unchanged-since-a3",
-        "public_alpha_commands": [asdict(entry) for entry in _public_commands()],
+        "target_version": PUBLIC_SURFACE_TARGET_VERSION,
+        "frozen_since_version": PUBLIC_SURFACE_FROZEN_SINCE_VERSION,
+        "status": "public-beta-b0",
+        "public_commands": [asdict(entry) for entry in _public_commands()],
         "package_internal_commands": [asdict(entry) for entry in _package_internal_commands()],
         "repo_owned_agent_wrappers": list(_repo_owned_agent_wrappers()),
         "host_local_surfaces": list(_host_local_surfaces()),
         "stable_public_flow_results": describe_public_flow_contract_catalog(),
         "contract_notes": [
-            "public-alpha commands are the intended direct entrypoints for users and agent callers in the current preview release",
-            "the current public-alpha release version is 0.1.0a5 even though this command set has remained unchanged since 0.1.0a3",
-            "the current b0 candidate stable public flow contract exports both top-level result fields and the minimum stable nested subcontracts for flow_contract and intent_compilation",
-            "package-internal commands remain implemented owner-layer surfaces but are not the frozen public alpha compatibility promise",
+            "public commands are the intended direct beta entrypoints for users and agent callers in the 0.1.0b0 line",
+            "the current public beta release version is 0.1.0b0 and the frozen surface now includes package-facing inspection commands as well as the bounded workflow commands",
+            "the current b0 stable public flow contract exports both top-level result fields and the minimum stable nested subcontracts for flow_contract and intent_compilation",
+            "package-internal commands remain implemented owner-layer surfaces but are not the frozen public beta compatibility promise",
             "repo-owned agent wrappers package the same bounded surfaces without widening authority",
             "host-local surfaces remain evidence or adapter layers rather than package contract",
         ],

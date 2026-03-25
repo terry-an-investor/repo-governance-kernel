@@ -3,16 +3,13 @@
 This directory is the reusable package surface for `repo-governance-kernel`.
 
 Use it when you want the package-facing view of the project: what the package
-owns, how to install it, and which commands already form the supported alpha
+owns, how to install it, and which commands already form the supported beta
 surface.
 
-The current preview release is `0.1.0a5`.
+The current beta release is `0.1.0b0`.
 
-Its release theme is one-task productization on top of the same public alpha
-entrypoint set first frozen in `0.1.0a3`.
-
-The next planned release line is `0.1.0b0`: freeze the first beta compatibility
-contract once the package-facing surface and validation matrix stop drifting.
+Its release theme is the first formal beta compatibility promise for the
+package-facing command and flow contract.
 
 It owns:
 
@@ -34,9 +31,9 @@ It does not own:
 
 ```powershell
 uv build
-uv venv artifacts/preview-install/.venv
-uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl
-artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
+uv venv artifacts/beta-install/.venv
+uv pip install --python artifacts/beta-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0b0-py3-none-any.whl
+artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
 ### Bootstrap a governed host repo
@@ -59,7 +56,7 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C
 
 ### Inspect shared config resolution
 
-The current `a5` preview keeps one shared config runtime for `repo_root` and
+The current beta line keeps one shared config runtime for `repo_root` and
 `project_id`.
 
 Current precedence:
@@ -79,7 +76,7 @@ Machine-readable inspection surface:
 repo-governance-kernel describe-config
 ```
 
-The first public-alpha consumer path now wired to this runtime is
+The first public-beta consumer path now wired to this runtime is
 `audit-control-state`. When `project_id` is present in config, the installed
 entrypoint can resolve it without an explicit flag:
 
@@ -91,10 +88,12 @@ The repo smoke at `scripts/smoke_kernel_bootstrap.py` proves this path end to
 end: source-tree bootstrap, installed-wheel bootstrap, and installed-wheel
 external-target single assessment.
 
-## Alpha Surface
+## Public Surface
 
-The current `0.1.0a5` public alpha surface is:
+The current `0.1.0b0` public beta surface is:
 
+- `describe-config`
+- `describe-public-surface`
 - `audit-control-state`
 - `enforce-worktree`
 - `bootstrap-repo`
@@ -106,7 +105,7 @@ The current `0.1.0a5` public alpha surface is:
 Machine-readable descriptor:
 
 ```powershell
-repo-governance-kernel describe-public-alpha-surface
+repo-governance-kernel describe-public-surface
 ```
 
 The descriptor exists so installed-package proof, docs, and agent wrappers can
@@ -121,11 +120,7 @@ What matters is not the command count, but the boundary:
 
 Implemented lower-level owner-layer commands such as `assess-host-adoption`,
 `draft-external-target-shadow-scope`, and `execute-adjudication-followups`
-remain available, but they are not the frozen public alpha promise.
-
-`describe-config` is now a package-facing inspection command for the current
-`a5` preview line, but it is not part of the current public alpha command
-contract.
+remain available, but they are not the frozen public beta promise.
 
 ## Common Commands
 
@@ -208,10 +203,10 @@ That skill is intentionally narrow:
   `assess-external-target-once`, and `assess-external-target-from-intent`
 - it does not claim monitoring, server behavior, or freeform mutation authority
 
-The canonical public-alpha contract is documented in:
+The canonical public beta contract is documented in:
 
-- [`docs/canonical/PUBLIC_ALPHA_SURFACE.md`](../docs/canonical/PUBLIC_ALPHA_SURFACE.md)
-- [`kernel/docs/PUBLIC_ALPHA_SURFACE.md`](./docs/PUBLIC_ALPHA_SURFACE.md)
+- [`docs/canonical/PUBLIC_SURFACE.md`](../docs/canonical/PUBLIC_SURFACE.md)
+- [`kernel/docs/PUBLIC_SURFACE.md`](./docs/PUBLIC_SURFACE.md)
 
 ## Validation Evidence
 

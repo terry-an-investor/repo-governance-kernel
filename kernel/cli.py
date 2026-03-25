@@ -31,7 +31,7 @@ COMMAND_MODULES = {
     "compile-role-context": "kernel.commands.compile_role_context",
     "create-snapshot": "kernel.commands.create_snapshot",
     "describe-config": "kernel.commands.describe_config",
-    "describe-public-alpha-surface": "kernel.commands.describe_public_alpha_surface",
+    "describe-public-surface": "kernel.commands.describe_public_surface",
     "draft-external-target-shadow-scope": "kernel.commands.draft_external_target_shadow_scope",
     "enforce-worktree": "kernel.commands.enforce_worktree",
     "execute-adjudication-followups": "kernel.commands.execute_adjudication_followups",

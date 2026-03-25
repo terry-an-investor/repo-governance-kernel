@@ -1,27 +1,28 @@
 # Release Plan
 
 Date: 2026-03-25
-Scope: alpha release preparation for the reusable kernel
+Scope: beta release preparation and publication for the reusable kernel
 
 ## Release Target
 
 Current target:
 
 - package name: `repo-governance-kernel`
-- current released version: `0.1.0a5`
-- next target version: `0.1.0b0`
-- release level: alpha / internal preview
+- current released version: `0.1.0b0`
+- previous released version: `0.1.0a5`
+- next target version: `0.1.0b1`
+- release level: beta
 
 ## What Ships
 
-The alpha package should ship:
+The beta package ships:
 
 - `kernel/`
 - `kernel/commands/`
 - `kernel/docs/`
 - `repo-governance-kernel` console entrypoint
 
-It should not claim that repo-local smoke/eval workflows are part of the
+It does not claim that repo-local smoke/eval workflows are part of the
 package contract.
 
 ## What Stays Host-Local
@@ -34,147 +35,136 @@ The host repository continues to own:
 - `.github/workflows/`
 - repo-local smoke/eval harnesses
 
-## Alpha Caveats
+## Beta Boundary
 
-This alpha is not yet a stable compatibility promise.
+This beta is the first stable compatibility promise for the bounded package
+surface.
 
-Known reasons:
+What is frozen in `0.1.0b0`:
 
-- public command/API stability is not frozen
-- host repo and package still live in one repository
-- kernel-only smoke coverage is still thinner than host-repo smoke coverage
-- the alpha command surface is still intentionally narrow and does not promise general autonomous rewrite
+- the public command set documented in [`PUBLIC_SURFACE.md`](./PUBLIC_SURFACE.md)
+- the machine-readable `describe-public-surface` descriptor
+- the stable public flow result contract for:
+  - `onboard-repo`
+  - `onboard-repo-from-intent`
+  - `assess-external-target-once`
+  - `assess-external-target-from-intent`
+- the stable nested public subcontracts for:
+  - `flow_contract`
+  - `intent_compilation`
+
+What is still explicitly out of scope:
+
+- continuous monitoring of external repositories
+- background server behavior
+- general autonomous rewrite
+- stable nested shapes for `execution`, `outcome`, or `postconditions`
+- lower-level owner-layer commands not listed in the public surface
 
 ## Current Release Theme
 
-The current preview cut is `0.1.0a5`.
+The current beta cut is `0.1.0b0`.
 
-Its purpose is to make the highest-frequency package flows feel like one-task
-product surfaces instead of command archaeology, while keeping the same public
-alpha command set first frozen in `0.1.0a3`.
+Its purpose is to stop treating the package-facing surface as a moving preview
+target and instead publish one formal beta identity with:
 
-Delivered outcomes:
-
-- `onboard-repo` and `onboard-repo-from-intent` now share one public result envelope
-- `assess-external-target-once` and `assess-external-target-from-intent` now share the same top-level result categories
-- blocked outcomes for those flows now stay machine-readable instead of falling back to plain string failures
-- package-facing docs and machine-readable descriptors now expose `0.1.0a5` as
-  the live preview release identity for those one-task surfaces
-
-This means `0.1.0a5` is a one-task productization release, not a monitoring,
-server, provider-selection, or general autonomous rewrite release.
+- aligned version truth across code, docs, and descriptors
+- formal public-surface naming instead of alpha-preview naming
+- frozen public command membership
+- frozen public flow and subcontract truth
+- repeatable package-install, onboarding, assessment, and gating validation
 
 ## Next Release Theme
 
-The next planned cut is `0.1.0b0`.
+The next planned cut is `0.1.0b1`.
 
-Its purpose is to freeze the first beta compatibility promise once the
-package-facing surface and validation matrix stop drifting.
+Its purpose is beta hardening after the first compatibility promise, not a new
+authority expansion.
 
 Primary outcomes:
 
-- freeze public command and result contracts
-- keep package docs and machine-readable descriptors mutually consistent
-- prove the beta matrix across install, onboarding, assessment, gating, and CI
+- tighten package docs and examples around the beta contract
+- decide whether any evidence-layer response objects deserve promotion into the
+  stable public contract
+- keep CI and installed-package proof aligned with the beta surface
 
 ## Promotion Bar
 
-Do not promote beyond alpha until:
+Do not promote beyond beta until:
 
-- kernel-only validation is explicit and repeatable
-- public command contract is frozen
-- package-facing docs include quickstart and support boundary
-- host/sample adapters no longer look like canonical kernel ownership
+- public surface naming no longer carries stale alpha-preview semantics
+- beta validation remains explicit and repeatable
+- publication verification proves branch, tag, release object, and assets
+- host-local adapter surfaces are visibly separate from package contract
 
 ## Publication Checklist
 
 Treat a release as incomplete until all of the following are true:
 
-1. the release commit is on `origin/master`
-2. the annotated version tag exists on origin and dereferences to the intended release commit
-3. the GitHub Release object exists for that tag
-4. the GitHub Release object carries the intended wheel and sdist assets
+1. the intended release commit exists locally
+2. the annotated version tag exists locally and dereferences to the intended release commit
+3. the release close-out commit is also landed locally and control-state returns to a clean paused state
+4. `audit-control-state` and `enforce-worktree` both return `ok` after local close-out
+5. `origin/master` contains the intended local branch head
+6. the annotated version tag exists on origin and dereferences to the intended release commit
+7. the GitHub Release object exists for that tag
+8. the GitHub Release object carries the intended wheel and sdist assets
 
 The repo-owned publication verifier for this checklist is:
 
 - `uv run python scripts/verify_release_publication.py --repo terry-an-investor/repo-governance-kernel --version <version> --expected-sha <release-commit-sha> --asset repo_governance_kernel-<version>-py3-none-any.whl --asset repo_governance_kernel-<version>.tar.gz`
 
-Use `--require-branch-head` during the release cut itself when `origin/master`
-should still equal the release commit. Omit it later when auditing an older
-release after newer commits have already advanced `master`.
+Use `--require-branch-head` only when the remote branch head is expected to
+still equal the release commit itself. Omit it after a local close-out commit
+has advanced `master` beyond the tagged release commit.
 
 Recommended cut order:
 
-1. land the release commit locally
+1. land the beta release commit locally
 2. `git tag -a v<version> <release-commit-sha> -m "repo-governance-kernel <version>"` locally against that exact release commit
 3. close the release task/round locally, refresh the current-task anchor, and return the objective phase to `paused` if no open round remains
 4. rerun `audit-control-state` and `enforce-worktree` and require both to return `ok` before any remote push
 5. `git push origin master`
 6. `git push origin v<version>`
 7. `gh release create v<version> dist/repo_governance_kernel-<version>.tar.gz dist/repo_governance_kernel-<version>-py3-none-any.whl --repo terry-an-investor/repo-governance-kernel --title "repo-governance-kernel <version>"`
-8. run `verify_release_publication.py --require-branch-head` against the same version and release commit before calling the cut complete
+8. run `verify_release_publication.py` against the same version and tagged release commit before calling the cut complete
 
-## Preview Evidence
+## Beta Evidence
 
-Preview validation completed on 2026-03-25 for the `0.1.0a5` cut.
+Beta validation completed on 2026-03-25 for the `0.1.0b0` cut.
 
-- `uv run python scripts/smoke_config_runtime.py`
-  - focused config runtime proof now covers user config, project config, local
-    override, environment override, and explicit-flag precedence for
-    `repo_root` and `project_id`
-- `uv run python scripts/smoke_repo_acceptance.py`
-  - the renamed source-repo acceptance smoke now passes under Python 3.11 and
-    includes the focused config runtime proof in the same repo-owned gate
 - `uv run python scripts/audit_product_docs.py`
-  - package-facing and canonical docs stay aligned on the `0.1.0a5` release
-    boundary and clearly separate the current release identity from the older
-    `0.1.0a3` freeze point for the unchanged command set
+  - package-facing and canonical docs agree on the formal beta identity and
+    keep package contract separate from host-local surfaces
 - `uv run python scripts/smoke_repo_onboarding.py`
-  - direct and intent onboarding now return the shared public result contract
-    and explicit blocked payloads for unsupported or already-governed cases
+  - direct and intent onboarding now satisfy the stable public flow contract,
+    including the stable `flow_contract` and `intent_compilation` subcontracts
 - `uv run python scripts/smoke_assess_host_adoption.py`
-  - direct and intent one-time external-target assessment now return the same
-    top-level result categories and explicit blocked payloads for unsupported
-    or no-dirty-path cases
-
+  - direct and intent one-time external-target assessment now satisfy the same
+    stable public flow and subcontract truth
 - `uv run python scripts/smoke_kernel_bootstrap.py`
   - source-tree bootstrap still passes `audit-control-state`, and an installed
-    wheel can both bootstrap a second disposable host and complete one bounded
-    external-target single assessment from an isolated environment without
-    mutating the target repo
+    wheel can bootstrap a disposable host, resolve package config, expose the
+    machine-readable beta public surface, and complete one bounded external
+    assessment without mutating the target repo
 - `uv run python scripts/smoke_task_contract_hard_gate.py`
-  - unresolved task contracts block direct round promotion until the task contract is resolved
+  - unresolved task contracts still block direct round promotion until the task
+    contract is resolved
 - `uv run python scripts/smoke_task_contract_bundle_gate.py`
-  - `execute-adjudication-followups` plus the governed `round-close-chain` bundle still fails closed on unresolved task contracts and succeeds only after task resolution
-- `uv run python scripts/smoke_wind_agent_snapshot_adoption.py`
-  - frozen `wind-agent` host adoption produces a readable shadow-adoption report and isolates remaining blocked verdicts to host bootstrap/support noise
-- `uv run python scripts/smoke_brooks_semantic_research_snapshot_adoption.py`
-  - frozen `brooks-semantic-research` host adoption produces a readable shadow-adoption report and isolates remaining blocked verdicts to host bootstrap/support noise
-- `uv run python -m kernel.cli --repo-root <governed-host> assess-host-adoption --project-id <project>`
-  - owner-layer shadow adoption assessment writes a readable report from governed host control state plus live workspace inspection
-- `uv run python -m kernel.cli --repo-root <governed-host> draft-external-target-shadow-scope --project-id <project> --workspace-root <external-repo>`
-  - owner-layer external-target drafting writes a readable scope draft from the observed dirty paths before the real assessment command runs, and that draft artifact is now distinct from the later shadow-adoption report
-- `uv run python -m kernel.cli --repo-root <governed-host> assess-external-target-once --project-id <project> --workspace-root <external-repo>`
-  - bounded workflow wrapper now compiles into one governed bundle-backed external-target assessment flow
-- `uv run python -m kernel.cli --repo-root <governed-host> assess-external-target-from-intent --project-id <project> --request \"Assess C:/path/to/external/repo current changes, set scope first, then give me the verdict.\"`
-  - bounded natural-language entry compiles one supported intent into the same governed bundle-backed flow
+  - governed bundle promotion still fails closed on unresolved task contracts
+- `uv run python scripts/smoke_repo_acceptance.py`
+  - the repo-owned acceptance path still passes under the same release truth
 - `uv build`
   - produced:
-    - `dist/repo_governance_kernel-0.1.0a5.tar.gz`
-    - `dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl`
-- installed-package check
-  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a5-py3-none-any.whl`
-  - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
-  - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
-  - installed `describe-public-alpha-surface` returns the current `0.1.0a5`
-    public release identity plus the `0.1.0a3` freeze lineage for the unchanged
-    command set and repo-owned agent wrapper metadata
-  - installed `describe-config` reports resolved `repo_root` and `project_id` with source attribution, and installed `audit-control-state` can resolve `project_id` from `<repo_root>/.repo-governance-kernel/project.json` without an explicit flag
+    - `dist/repo_governance_kernel-0.1.0b0.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0b0-py3-none-any.whl`
 
-## Preview Residual Risks
+## Beta Residual Risks
 
-- the package-facing command surface is still alpha and intentionally narrow; broader adjudication plan families and mutation authority are not a compatibility promise yet
-- frozen-host adoption proof remains honest preview evidence for adopted host snapshots rather than the whole live-host story
-- external-target shadow mode now has one smoke-proven owner-layer draft-plus-assessment path, one governed bundle-backed single-pass wrapper, one bounded natural-language entry, and one installed-wheel package proof, but it is still not a stable general live-host mutation contract
-- host repo and package still share one source repository, so preview packaging hygiene can still regress if repo-local docs and package docs drift
-
+- the beta contract is intentionally narrow; lower-level owner-layer commands
+  remain implemented but are not part of the compatibility promise
+- the package and dogfood sample still live in one repository, so docs and
+  packaging hygiene still need active discipline
+- evidence-layer response objects such as `execution`, `outcome`, and
+  `postconditions` remain intentionally richer than the frozen minimum
+  contract, so callers should not treat them as fully stable yet

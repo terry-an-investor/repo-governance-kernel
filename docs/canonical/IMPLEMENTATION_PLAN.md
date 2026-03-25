@@ -1,7 +1,7 @@
 # Repo Governance Kernel Implementation Plan
 
 Date: 2026-03-25
-Scope: versioned alpha roadmap for the repo governance kernel
+Scope: versioned roadmap for the repo governance kernel after the first beta cut
 
 ## Goal
 
@@ -134,6 +134,32 @@ Success standard:
 - the project can make a defensible beta promise about what surfaces are stable
   and what remains explicitly out of scope
 
+Current status:
+
+- landed in the current beta line
+- the public surface is now exported through `describe-public-surface`
+- the stable public flow contract now freezes both top-level flow fields and
+  the stable `flow_contract` / `intent_compilation` subcontracts
+
+### `0.1.0b1` — Beta Hardening
+
+Primary outcome:
+
+- harden the first beta promise without expanding product authority
+
+Needed work:
+
+- decide whether any evidence-layer response objects deserve promotion into the
+  stable contract
+- keep package docs, installed-package proof, and CI validation aligned with
+  the `0.1.0b0` beta surface
+- tighten examples and release tooling around the new public-surface naming
+
+Success standard:
+
+- the beta line stays coherent and boring under repeated install, onboarding,
+  assessment, and publication checks
+
 ## Cross-Version Priorities
 
 ### 1. Stabilize the kernel surface
@@ -237,9 +263,9 @@ The following should stay out of scope for this phase:
 
 ## Immediate Order
 
-1. compress the highest-frequency workflows into clearer one-task product surfaces for `0.1.0a5`
-2. stabilize machine-readable result contracts and blocked-state explanations for those flows
-3. freeze the beta contract only after the public surface and validation matrix stop drifting
+1. keep the `0.1.0b0` beta command and flow contract aligned across code, docs, and release tooling
+2. decide whether any evidence-layer response objects should stay intentionally unstable or graduate into the stable contract in `0.1.0b1`
+3. continue hardening installation, validation, and publication proof without widening product authority
 
 ## Validation Standard
 

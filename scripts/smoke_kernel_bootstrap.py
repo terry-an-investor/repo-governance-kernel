@@ -312,8 +312,10 @@ def onboard_governed_host(
     return onboarding
 
 
-def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]:
+def assert_public_surface(payload: dict[str, object]) -> dict[str, object]:
     expected_commands = {
+        "describe-config",
+        "describe-public-surface",
         "audit-control-state",
         "enforce-worktree",
         "bootstrap-repo",
@@ -322,9 +324,9 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
         "assess-external-target-once",
         "assess-external-target-from-intent",
     }
-    public_commands = payload.get("public_alpha_commands")
+    public_commands = payload.get("public_commands")
     if not isinstance(public_commands, list):
-        raise SystemExit("describe-public-alpha-surface is missing public_alpha_commands")
+        raise SystemExit("describe-public-surface is missing public_commands")
     observed_commands = {
         str(item.get("name") or "").strip()
         for item in public_commands
@@ -334,7 +336,7 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
         raise SystemExit(
             json.dumps(
                 {
-                    "message": "unexpected public alpha command set",
+                    "message": "unexpected public beta command set",
                     "expected": sorted(expected_commands),
                     "observed": sorted(observed_commands),
                 },
@@ -348,17 +350,23 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
         isinstance(item, dict) and str(item.get("name") or "").strip() == "use-repo-governance-kernel"
         for item in repo_wrappers
     ):
-        raise SystemExit("describe-public-alpha-surface is missing the repo-owned agent wrapper")
+        raise SystemExit("describe-public-surface is missing the repo-owned agent wrapper")
 
     stable_public_flow_results = payload.get("stable_public_flow_results")
     if not isinstance(stable_public_flow_results, dict):
-        raise SystemExit("describe-public-alpha-surface is missing stable_public_flow_results")
-    if str(stable_public_flow_results.get("status") or "") != "b0-candidate":
-        raise SystemExit("describe-public-alpha-surface should mark stable_public_flow_results as b0-candidate")
+        raise SystemExit("describe-public-surface is missing stable_public_flow_results")
+    if str(stable_public_flow_results.get("status") or "") != "b0":
+        raise SystemExit("describe-public-surface should mark stable_public_flow_results as b0")
     entrypoints = stable_public_flow_results.get("entrypoints")
     if not isinstance(entrypoints, dict):
         raise SystemExit("stable_public_flow_results is missing entrypoints")
-    if set(str(key) for key in entrypoints.keys()) != expected_commands - {"audit-control-state", "enforce-worktree", "bootstrap-repo"}:
+    if set(str(key) for key in entrypoints.keys()) != expected_commands - {
+        "describe-config",
+        "describe-public-surface",
+        "audit-control-state",
+        "enforce-worktree",
+        "bootstrap-repo",
+    }:
         raise SystemExit("stable_public_flow_results did not describe the four public flow entrypoints")
     blocked_required_fields = stable_public_flow_results.get("blocked_detail_required_fields")
     if not isinstance(blocked_required_fields, list) or "code" not in blocked_required_fields:
@@ -379,7 +387,7 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
     return {
         "target_version": payload.get("target_version"),
         "status": payload.get("status"),
-        "public_alpha_command_count": len(public_commands),
+        "public_command_count": len(public_commands),
         "repo_owned_agent_wrapper_count": len(repo_wrappers),
         "stable_public_flow_entrypoint_count": len(entrypoints),
         "stable_public_subcontract_entrypoint_count": sum(
@@ -562,19 +570,19 @@ def main() -> int:
             or "onboard-repo" not in installed_help
             or "onboard-repo-from-intent" not in installed_help
             or "assess-external-target-once" not in installed_help
-            or "describe-public-alpha-surface" not in installed_help
+            or "describe-public-surface" not in installed_help
         ):
             raise SystemExit("installed package help is missing expected commands")
 
-        public_alpha_surface = cli_json(
+        public_surface = cli_json(
             installed_cli,
             repo_root=ROOT,
-            command="describe-public-alpha-surface",
+            command="describe-public-surface",
             args=[],
             cwd=ROOT,
             env=installed_env,
         )
-        public_alpha_summary = assert_public_alpha_surface(public_alpha_surface)
+        public_surface_summary = assert_public_surface(public_surface)
 
         installed_host = bootstrap_and_audit(
             fixture_root=INSTALLED_FIXTURE_ROOT,
@@ -613,7 +621,7 @@ def main() -> int:
             "source_bootstrap": source_host,
             "installed_cli": installed_cli[0],
             "installed_help_contains_expected_commands": True,
-            "installed_public_alpha_surface": public_alpha_summary,
+            "installed_public_surface": public_surface_summary,
             "installed_config_runtime": installed_config_runtime,
             "installed_bootstrap": installed_host,
             "installed_onboarding": workflow_setup,
