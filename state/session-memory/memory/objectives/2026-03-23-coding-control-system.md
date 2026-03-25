@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: a434b6ae3bd90cdc6f4cda3137669d1ed3dd6a69
+git_sha: ed70c6e4ca73a2f6079c1312e3f82ba12b879ffb
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T14:02:22+08:00
-phase: execution
+updated_at: 2026-03-25T14:36:23+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-execution
+paused
 
 ## Active Risks
 
@@ -158,3 +158,5 @@ Phase changed from `paused` to `execution` because Release publication still lac
 Phase changed from `execution` to `paused` because The release publication process-fix round is closed and the project should leave execution until the next bounded round opens.
 
 Phase changed from `paused` to `execution` because CI failed because smoke and release scripts hardcoded a Windows git executable path; this round makes git resolution repo-owned and cross-platform.
+
+Phase changed from `execution` to `paused` because no durable open round remains after closing the a5 public flow contract round

@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1415-unify-a5-public-flow-success-and-blocked-payloads
 type: task-contract
 title: "Unify a5 public flow success and blocked payloads"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 5900e057f83b733d1c02d997617ef95f94646552
+git_sha: ed70c6e4ca73a2f6079c1312e3f82ba12b879ffb
 paths:
   - kernel/commands/onboard_repo.py
   - kernel/commands/onboard_repo_from_intent.py
@@ -30,7 +30,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T14:15:05+08:00
-updated_at: 2026-03-25T14:29:49+08:00
+updated_at: 2026-03-25T14:34:38+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1414-stabilize-public-flow-result-contracts-for-a5"
@@ -63,7 +63,8 @@ Replace ad hoc public workflow payloads with one stable direct-and-intent result
 
 ## Resolution
 
-_none recorded_
+- direct and intent public entrypoints now emit a shared structured success or blocked result envelope
+- onboarding and external assessment wrappers now reframe lower-layer payloads instead of returning ad hoc shapes
 
 ## Active Risks
 
@@ -72,3 +73,9 @@ _none recorded_
 ## Status Notes
 
 Task contract rewritten because The a5 implementation extracted one shared public-flow contract owner layer that must be covered by the active task contract.
+
+active -> completed: a5 public flow result contract work passed smoke validation and is captured in commit ed70c6e
+
+resolution recorded:
+- direct and intent public entrypoints now emit a shared structured success or blocked result envelope
+- onboarding and external assessment wrappers now reframe lower-layer payloads instead of returning ad hoc shapes
