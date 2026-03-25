@@ -2,12 +2,12 @@
 id: round-2026-03-25-1441-cut-the-0-1-0a5-preview-release
 type: round-contract
 title: "Cut the 0.1.0a5 preview release"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 7ff723b146ea86ea7c9751c8e99257a920ae272a
+git_sha: c309b4a51f83650c178216be08b71f2263567910
 paths:
   - pyproject.toml
   - uv.lock
@@ -28,7 +28,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T14:41:24+08:00
-updated_at: 2026-03-25T14:41:24+08:00
+updated_at: 2026-03-25T14:51:58+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -52,6 +52,13 @@ One clean a5 preview release commit with aligned version truth and validated pac
 ## Validation Plan
 
 Run audit-product-docs, smoke_kernel_bootstrap, audit-control-state, and enforce-worktree after the version cut.
+scripts/audit_product_docs.py
+scripts/smoke_repo_onboarding.py
+scripts/smoke_assess_host_adoption.py
+scripts/smoke_kernel_bootstrap.py
+commit c309b4a
+tag v0.1.0a5
+commit c309b4a
 
 ## Active Risks
 
@@ -63,4 +70,21 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> validation_pending: the a5 preview release cut passed release-facing validation
+
+validated by:
+- scripts/audit_product_docs.py
+- scripts/smoke_repo_onboarding.py
+- scripts/smoke_assess_host_adoption.py
+- scripts/smoke_kernel_bootstrap.py
+
+validation_pending -> captured: the a5 preview release state is durably recorded in commit c309b4a and tag v0.1.0a5
+
+validated by:
+- commit c309b4a
+- tag v0.1.0a5
+
+captured -> closed: the a5 preview release round is complete and no open implementation work remains in this boundary
+
+validated by:
+- commit c309b4a

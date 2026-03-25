@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 7ff723b146ea86ea7c9751c8e99257a920ae272a
+git_sha: c309b4a51f83650c178216be08b71f2263567910
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T14:41:23+08:00
-phase: execution
+updated_at: 2026-03-25T14:52:20+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-execution
+paused
 
 ## Active Risks
 
@@ -162,3 +162,5 @@ Phase changed from `paused` to `execution` because CI failed because smoke and r
 Phase changed from `execution` to `paused` because no durable open round remains after closing the a5 public flow contract round
 
 Phase changed from `paused` to `execution` because cut the a5 preview release line after landing the shared public flow result contract work
+
+Phase changed from `execution` to `paused` because no durable open round remains after the a5 preview release round closed

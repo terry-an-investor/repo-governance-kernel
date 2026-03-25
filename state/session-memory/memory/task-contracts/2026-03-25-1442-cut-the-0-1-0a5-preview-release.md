@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1442-cut-the-0-1-0a5-preview-release
 type: task-contract
 title: "Cut the 0.1.0a5 preview release"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 7ff723b146ea86ea7c9751c8e99257a920ae272a
+git_sha: c309b4a51f83650c178216be08b71f2263567910
 paths:
   - pyproject.toml
   - uv.lock
@@ -28,7 +28,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T14:42:17+08:00
-updated_at: 2026-03-25T14:42:17+08:00
+updated_at: 2026-03-25T14:50:46+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1441-cut-the-0-1-0a5-preview-release"
@@ -63,7 +63,8 @@ Align package metadata, machine-readable public-surface descriptors, and release
 
 ## Resolution
 
-_none recorded_
+- package metadata, public-surface descriptors, and release-facing docs now report 0.1.0a5 as the current preview release
+- release-facing validation passed for audit-product-docs, onboarding smoke, assessment smoke, and installed-wheel bootstrap smoke
 
 ## Active Risks
 
@@ -71,4 +72,8 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: the a5 preview release cut is complete in commit c309b4a and tagged as v0.1.0a5
+
+resolution recorded:
+- package metadata, public-surface descriptors, and release-facing docs now report 0.1.0a5 as the current preview release
+- release-facing validation passed for audit-product-docs, onboarding smoke, assessment smoke, and installed-wheel bootstrap smoke
