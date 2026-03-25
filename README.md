@@ -215,6 +215,7 @@ These remain host-local and are not part of the package contract:
 - [`skills/use-repo-governance-kernel/SKILL.md`](./skills/use-repo-governance-kernel/SKILL.md): repo-owned agent wrapper for bounded onboarding and assessment
 - [`docs/canonical/PUBLIC_ALPHA_SURFACE.md`](./docs/canonical/PUBLIC_ALPHA_SURFACE.md): current `0.1.0a4` public package contract, with the same entrypoint set first frozen in `0.1.0a3`
 - [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): release status and validation evidence
+  - includes the explicit publication checklist and the repo-owned `verify_release_publication.py` verifier
 - [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): product definition and positioning
 - [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md): durable truth, projections, audit, and enforcement
 - [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md): command, bundle, and intent surface

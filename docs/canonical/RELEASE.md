@@ -88,6 +88,32 @@ Do not promote beyond alpha until:
 - package-facing docs include quickstart and support boundary
 - host/sample adapters no longer look like canonical kernel ownership
 
+## Publication Checklist
+
+Treat a release as incomplete until all of the following are true:
+
+1. the release commit is on `origin/master`
+2. the annotated version tag exists on origin and dereferences to the intended release commit
+3. the GitHub Release object exists for that tag
+4. the GitHub Release object carries the intended wheel and sdist assets
+
+The repo-owned publication verifier for this checklist is:
+
+- `uv run python scripts/verify_release_publication.py --repo terry-an-investor/repo-governance-kernel --version <version> --expected-sha <release-commit-sha> --asset repo_governance_kernel-<version>-py3-none-any.whl --asset repo_governance_kernel-<version>.tar.gz`
+
+Use `--require-branch-head` during the release cut itself when `origin/master`
+should still equal the release commit. Omit it later when auditing an older
+release after newer commits have already advanced `master`.
+
+Recommended cut order:
+
+1. land the release commit locally
+2. `git push origin master`
+3. `git tag -a v<version> <release-commit-sha> -m "repo-governance-kernel <version>"`
+4. `git push origin v<version>`
+5. `gh release create v<version> dist/repo_governance_kernel-<version>.tar.gz dist/repo_governance_kernel-<version>-py3-none-any.whl --repo terry-an-investor/repo-governance-kernel --title "repo-governance-kernel <version>"`
+6. run `verify_release_publication.py --require-branch-head` against the same version and release commit before calling the cut complete
+
 ## Preview Evidence
 
 Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
