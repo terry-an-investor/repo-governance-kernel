@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1731-promote-minimum-stable-b1-public-subcontracts
 type: task-contract
 title: "Promote minimum stable b1 public subcontracts"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 204802ce4f1822967cb5a957116471141e697a89
+git_sha: e128136188eb75da4d18423c060e06247443667a
 paths:
   - kernel/public_flow_contracts.py
   - kernel/public_surface.py
@@ -27,7 +27,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T17:31:20+08:00
-updated_at: 2026-03-25T17:41:11+08:00
+updated_at: 2026-03-25T17:44:32+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1730-promote-minimum-stable-public-response-kernels-for-b1"
@@ -59,7 +59,8 @@ Move only the repeatedly observed execution and postcondition kernels into the s
 
 ## Resolution
 
-_none recorded_
+- Promoted execution and postconditions into the source-line b1 next-stable subcontract layer without changing the released b0 contract.
+- Kept deeper evidence projections explicit as remaining b1-target candidates and aligned canonical/package docs plus smokes to the new three-layer contract split.
 
 ## Active Risks
 
@@ -70,3 +71,9 @@ _none recorded_
 Task contract rewritten because Add canonical release guidance to the same bounded b1 contract-promotion slice so the task scope still covers every canonical public contract doc touched in this round.
 
 Task contract rewritten because Bring the package entry docs into the same bounded b1 contract-promotion slice so the first user-facing docs do not drift from canonical truth.
+
+active -> completed: The bounded b1 public contract promotion slice is implemented and validated.
+
+resolution recorded:
+- Promoted execution and postconditions into the source-line b1 next-stable subcontract layer without changing the released b0 contract.
+- Kept deeper evidence projections explicit as remaining b1-target candidates and aligned canonical/package docs plus smokes to the new three-layer contract split.
