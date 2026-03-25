@@ -1,7 +1,7 @@
 # Active Objective
 
 - Objective id: `obj-2026-03-23-0002`
-- Phase: `paused`
+- Phase: `execution`
 - Status: `active`
 
 ## Problem

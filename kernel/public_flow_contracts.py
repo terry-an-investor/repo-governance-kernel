@@ -26,6 +26,56 @@ PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS = (
     "suggested_next_actions",
 )
 
+PUBLIC_FLOW_ONBOARDING_CONTRACT_FIELDS = (
+    "intent_class",
+    "execution_surface",
+    "bundle_name",
+    "project_id",
+    "workspace_root",
+    "requires_git_repo",
+    "requires_empty_project_history",
+    "hook_installation_requested",
+    "control_plane_mutation_allowed",
+    "preexisting_repo_dirty_path_mutation_allowed",
+    "continuous_monitoring_in_scope",
+    "general_autonomous_rewrite_in_scope",
+)
+
+PUBLIC_FLOW_EXTERNAL_ASSESSMENT_CONTRACT_FIELDS = (
+    "intent_class",
+    "execution_surface",
+    "bundle_name",
+    "project_id",
+    "workspace_root",
+    "source_repo",
+    "scope_strategy",
+    "draft_before_assessment",
+    "scope_rewrite_allowed",
+    "requires_governed_control_state",
+    "target_repo_mutation_allowed",
+    "continuous_monitoring_in_scope",
+    "general_autonomous_rewrite_in_scope",
+)
+
+PUBLIC_FLOW_ONBOARDING_INTENT_COMPILATION_FIELDS = (
+    "intent_class",
+    "request",
+    "project_id",
+    "execution_surface",
+    "bundle_name",
+    "hook_installation_requested",
+)
+
+PUBLIC_FLOW_EXTERNAL_ASSESSMENT_INTENT_COMPILATION_FIELDS = (
+    "intent_class",
+    "request",
+    "workspace_root",
+    "source_repo",
+    "scope_strategy",
+    "execution_surface",
+    "bundle_name",
+)
+
 _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
     "onboard-repo": {
         "flow_name": "repo-onboarding",
@@ -56,6 +106,13 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
             "ok": (),
             "blocked": ("execution", "outcome", "postconditions"),
         },
+        "stable_subcontracts": {
+            "flow_contract": {
+                "required_when_status": ("ok", "blocked"),
+                "optional_when_status": (),
+                "required_fields": PUBLIC_FLOW_ONBOARDING_CONTRACT_FIELDS,
+            },
+        },
     },
     "onboard-repo-from-intent": {
         "flow_name": "repo-onboarding",
@@ -85,6 +142,18 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
         "optional_top_level_fields": {
             "ok": (),
             "blocked": ("workspace_root", "flow_contract", "execution", "outcome", "postconditions"),
+        },
+        "stable_subcontracts": {
+            "flow_contract": {
+                "required_when_status": ("ok",),
+                "optional_when_status": ("blocked",),
+                "required_fields": PUBLIC_FLOW_ONBOARDING_CONTRACT_FIELDS,
+            },
+            "intent_compilation": {
+                "required_when_status": ("ok", "blocked"),
+                "optional_when_status": (),
+                "required_fields": PUBLIC_FLOW_ONBOARDING_INTENT_COMPILATION_FIELDS,
+            },
         },
     },
     "assess-external-target-once": {
@@ -118,6 +187,13 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
             "ok": (),
             "blocked": ("execution", "outcome", "postconditions"),
         },
+        "stable_subcontracts": {
+            "flow_contract": {
+                "required_when_status": ("ok", "blocked"),
+                "optional_when_status": (),
+                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_CONTRACT_FIELDS,
+            },
+        },
     },
     "assess-external-target-from-intent": {
         "flow_name": "external-target-single-assessment",
@@ -148,6 +224,18 @@ _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
         "optional_top_level_fields": {
             "ok": (),
             "blocked": ("workspace_root", "source_repo", "flow_contract", "execution", "outcome", "postconditions"),
+        },
+        "stable_subcontracts": {
+            "flow_contract": {
+                "required_when_status": ("ok",),
+                "optional_when_status": ("blocked",),
+                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_CONTRACT_FIELDS,
+            },
+            "intent_compilation": {
+                "required_when_status": ("ok", "blocked"),
+                "optional_when_status": (),
+                "required_fields": PUBLIC_FLOW_EXTERNAL_ASSESSMENT_INTENT_COMPILATION_FIELDS,
+            },
         },
     },
 }
@@ -205,6 +293,58 @@ def public_flow_optional_top_level_fields(entrypoint: str, status: str) -> tuple
     return fields
 
 
+def public_flow_subcontract_required_fields(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
+    contract = _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.get(str(entrypoint).strip())
+    if contract is None:
+        raise SystemExit(f"unknown public flow entrypoint contract: {entrypoint}")
+    subcontracts = contract.get("stable_subcontracts")
+    if not isinstance(subcontracts, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` is missing stable_subcontracts")
+    subcontract = subcontracts.get(str(subcontract_name).strip())
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` does not define subcontract `{subcontract_name}`")
+    fields = subcontract.get("required_fields")
+    if not isinstance(fields, tuple):
+        raise SystemExit(f"public flow subcontract `{subcontract_name}` for `{entrypoint}` is missing required_fields")
+    return fields
+
+
+def public_flow_subcontract_required_statuses(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
+    contract = _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.get(str(entrypoint).strip())
+    if contract is None:
+        raise SystemExit(f"unknown public flow entrypoint contract: {entrypoint}")
+    subcontracts = contract.get("stable_subcontracts")
+    if not isinstance(subcontracts, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` is missing stable_subcontracts")
+    subcontract = subcontracts.get(str(subcontract_name).strip())
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` does not define subcontract `{subcontract_name}`")
+    statuses = subcontract.get("required_when_status")
+    if not isinstance(statuses, tuple):
+        raise SystemExit(
+            f"public flow subcontract `{subcontract_name}` for `{entrypoint}` is missing required_when_status"
+        )
+    return statuses
+
+
+def public_flow_subcontract_optional_statuses(entrypoint: str, subcontract_name: str) -> tuple[str, ...]:
+    contract = _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.get(str(entrypoint).strip())
+    if contract is None:
+        raise SystemExit(f"unknown public flow entrypoint contract: {entrypoint}")
+    subcontracts = contract.get("stable_subcontracts")
+    if not isinstance(subcontracts, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` is missing stable_subcontracts")
+    subcontract = subcontracts.get(str(subcontract_name).strip())
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` does not define subcontract `{subcontract_name}`")
+    statuses = subcontract.get("optional_when_status")
+    if not isinstance(statuses, tuple):
+        raise SystemExit(
+            f"public flow subcontract `{subcontract_name}` for `{entrypoint}` is missing optional_when_status"
+        )
+    return statuses
+
+
 def describe_public_flow_contract_catalog() -> dict[str, object]:
     entrypoints: dict[str, object] = {}
     for entrypoint, contract in _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.items():
@@ -219,6 +359,14 @@ def describe_public_flow_contract_catalog() -> dict[str, object]:
                 "ok": list(public_flow_optional_top_level_fields(entrypoint, "ok")),
                 "blocked": list(public_flow_optional_top_level_fields(entrypoint, "blocked")),
             },
+            "stable_subcontracts": {
+                name: {
+                    "required_when_status": list(public_flow_subcontract_required_statuses(entrypoint, name)),
+                    "optional_when_status": list(public_flow_subcontract_optional_statuses(entrypoint, name)),
+                    "required_fields": list(public_flow_subcontract_required_fields(entrypoint, name)),
+                }
+                for name in dict(contract.get("stable_subcontracts") or {}).keys()
+            },
         }
     return {
         "status": PUBLIC_FLOW_BETA_CANDIDATE_STATUS,
@@ -231,6 +379,7 @@ def describe_public_flow_contract_catalog() -> dict[str, object]:
             "this catalog describes the current b0 candidate stable field contract for the four public flow entrypoints",
             "required_top_level_fields are the fields callers may depend on by entrypoint and top-level status",
             "optional_top_level_fields are fields that may appear for richer detail but are not yet the minimum stable promise",
+            "stable_subcontracts describe the minimum stable nested field contract for public flow subobjects that callers may read directly",
         ],
     }
 

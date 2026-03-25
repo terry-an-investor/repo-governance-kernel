@@ -363,6 +363,18 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
     blocked_required_fields = stable_public_flow_results.get("blocked_detail_required_fields")
     if not isinstance(blocked_required_fields, list) or "code" not in blocked_required_fields:
         raise SystemExit("stable_public_flow_results is missing blocked detail field requirements")
+    onboarding_subcontracts = (entrypoints.get("onboard-repo-from-intent") or {}).get("stable_subcontracts")
+    assessment_subcontracts = (entrypoints.get("assess-external-target-from-intent") or {}).get("stable_subcontracts")
+    if not isinstance(onboarding_subcontracts, dict) or "intent_compilation" not in onboarding_subcontracts:
+        raise SystemExit("stable_public_flow_results is missing onboarding intent subcontract detail")
+    if not isinstance(assessment_subcontracts, dict) or "flow_contract" not in assessment_subcontracts:
+        raise SystemExit("stable_public_flow_results is missing external assessment flow subcontract detail")
+    onboarding_intent_fields = (onboarding_subcontracts.get("intent_compilation") or {}).get("required_fields")
+    assessment_flow_fields = (assessment_subcontracts.get("flow_contract") or {}).get("required_fields")
+    if not isinstance(onboarding_intent_fields, list) or "bundle_name" not in onboarding_intent_fields:
+        raise SystemExit("stable onboarding intent subcontract is missing bundle_name")
+    if not isinstance(assessment_flow_fields, list) or "scope_strategy" not in assessment_flow_fields:
+        raise SystemExit("stable external assessment flow subcontract is missing scope_strategy")
 
     return {
         "target_version": payload.get("target_version"),
@@ -370,6 +382,11 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
         "public_alpha_command_count": len(public_commands),
         "repo_owned_agent_wrapper_count": len(repo_wrappers),
         "stable_public_flow_entrypoint_count": len(entrypoints),
+        "stable_public_subcontract_entrypoint_count": sum(
+            1
+            for entry in entrypoints.values()
+            if isinstance(entry, dict) and isinstance(entry.get("stable_subcontracts"), dict) and entry["stable_subcontracts"]
+        ),
     }
 
 

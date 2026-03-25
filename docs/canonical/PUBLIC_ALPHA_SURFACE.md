@@ -83,10 +83,27 @@ Current candidate freeze boundary:
   - `message`
   - `meaning`
   - `suggested_next_actions`
+- the two public interpretation subobjects that callers most directly depend on
+  now also export stable nested field catalogs:
+  - `flow_contract`
+  - `intent_compilation`
+
+Current stable nested subcontract boundary:
+
+- `flow_contract` is the stable explanation object for direct workflows and for
+  successful intent wrappers
+- `intent_compilation` is the stable explanation object for intent wrappers,
+  including blocked intent-compilation outcomes
+- the descriptor records both:
+  - which top-level statuses require each subobject
+  - which nested fields are stable when that subobject is present
+- `execution`, `outcome`, and `postconditions` remain outside the minimum
+  stable beta candidate contract in this slice
 
 This is intentionally a `b0` candidate contract, not a finished beta promise
-yet. The remaining freeze work is to decide whether any currently optional
-detail fields should graduate into the minimum stable contract before `0.1.0b0`.
+yet. The remaining freeze work is to decide whether any evidence-layer objects
+such as `execution`, `outcome`, or `postconditions` should graduate into the
+minimum stable contract before `0.1.0b0`.
 
 ## Package-Internal But Implemented
 

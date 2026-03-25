@@ -14,6 +14,7 @@ from kernel.public_flow_contracts import (
     PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
     PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
     public_flow_required_top_level_fields,
+    public_flow_subcontract_required_fields,
 )
 
 
@@ -48,6 +49,24 @@ def assert_required_public_flow_fields(payload: dict[str, object], *, entrypoint
         missing_blocked_fields = [field for field in PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS if field not in blocked]
         if missing_blocked_fields:
             raise SystemExit(f"{context} blocked detail is missing stable fields: {missing_blocked_fields}")
+
+
+def assert_required_public_flow_subcontract(
+    payload: dict[str, object],
+    *,
+    entrypoint: str,
+    subcontract_name: str,
+    context: str,
+) -> dict[str, object]:
+    subcontract = payload.get(subcontract_name)
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"{context} is missing {subcontract_name}")
+    missing_fields = [
+        field for field in public_flow_subcontract_required_fields(entrypoint, subcontract_name) if field not in subcontract
+    ]
+    if missing_fields:
+        raise SystemExit(f"{context} {subcontract_name} is missing stable fields: {missing_fields}")
+    return subcontract
 
 
 def run(cmd: list[str], *, cwd: Path, expect_success: bool = True) -> subprocess.CompletedProcess[str]:
@@ -339,6 +358,12 @@ def main() -> int:
         status="blocked",
         context="clean external-target workflow",
     )
+    assert_required_public_flow_subcontract(
+        blocked_external_workflow,
+        entrypoint="assess-external-target-once",
+        subcontract_name="flow_contract",
+        context="clean external-target workflow",
+    )
     blocked_workflow_contract = blocked_external_workflow.get("result_contract")
     if not isinstance(blocked_workflow_contract, dict):
         raise SystemExit("clean external-target workflow is missing result_contract")
@@ -362,13 +387,22 @@ def main() -> int:
         "--report-output",
         str(WORKFLOW_REPORT_PATH),
     )
-    compiled_intent = external_intent.get("intent_compilation")
-    if not isinstance(compiled_intent, dict):
-        raise SystemExit("external intent wrapper is missing intent_compilation")
+    compiled_intent = assert_required_public_flow_subcontract(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="intent_compilation",
+        context="external assessment intent wrapper",
+    )
     assert_required_public_flow_fields(
         external_intent,
         entrypoint="assess-external-target-from-intent",
         status="ok",
+        context="external assessment intent wrapper",
+    )
+    assert_required_public_flow_subcontract(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="flow_contract",
         context="external assessment intent wrapper",
     )
     if compiled_intent["bundle_name"] != "assess-external-target-once":
@@ -413,6 +447,12 @@ def main() -> int:
         raise SystemExit("monitoring assessment intent should identify unsupported_request_scope")
     if str((blocked_external_intent.get("result_contract") or {}).get("entrypoint") or "") != "assess-external-target-from-intent":
         raise SystemExit("blocked assessment intent should keep the intent entrypoint")
+    assert_required_public_flow_subcontract(
+        blocked_external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="intent_compilation",
+        context="monitoring assessment intent",
+    )
 
     print(
         json.dumps(

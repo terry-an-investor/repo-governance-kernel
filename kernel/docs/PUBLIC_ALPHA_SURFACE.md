@@ -13,6 +13,16 @@ For the `0.1.0b0` freeze line, the candidate stable field contract for those
 four public flow entrypoints is now exported through the same machine-readable
 descriptor instead of living only in prose and smoke assertions.
 
+That `b0` candidate descriptor now includes:
+
+- stable top-level result fields by entrypoint and status
+- stable blocked-detail fields
+- stable nested subcontract fields for `flow_contract` and
+  `intent_compilation`
+
+It still does not promise stable nested shapes for `execution`, `outcome`, or
+`postconditions`.
+
 Use these commands as the intended direct package entrypoints:
 
 - `audit-control-state`

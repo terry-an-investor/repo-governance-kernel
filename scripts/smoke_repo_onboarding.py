@@ -14,6 +14,7 @@ from kernel.public_flow_contracts import (
     PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
     PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
     public_flow_required_top_level_fields,
+    public_flow_subcontract_required_fields,
 )
 
 
@@ -46,6 +47,24 @@ def assert_required_public_flow_fields(payload: dict[str, object], *, entrypoint
         missing_blocked_fields = [field for field in PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS if field not in blocked]
         if missing_blocked_fields:
             raise SystemExit(f"{context} blocked detail is missing stable fields: {missing_blocked_fields}")
+
+
+def assert_required_public_flow_subcontract(
+    payload: dict[str, object],
+    *,
+    entrypoint: str,
+    subcontract_name: str,
+    context: str,
+) -> dict[str, object]:
+    subcontract = payload.get(subcontract_name)
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"{context} is missing {subcontract_name}")
+    missing_fields = [
+        field for field in public_flow_subcontract_required_fields(entrypoint, subcontract_name) if field not in subcontract
+    ]
+    if missing_fields:
+        raise SystemExit(f"{context} {subcontract_name} is missing stable fields: {missing_fields}")
+    return subcontract
 
 
 def run(cmd: list[str], *, cwd: Path, expect_success: bool = True) -> subprocess.CompletedProcess[str]:
@@ -163,9 +182,12 @@ def assert_onboarding_result(
     if str(result_contract.get("entrypoint") or "") != expected_entrypoint:
         raise SystemExit("unexpected onboarding entrypoint")
 
-    contract = onboarding.get("flow_contract")
-    if not isinstance(contract, dict):
-        raise SystemExit("onboard-repo result is missing flow_contract")
+    contract = assert_required_public_flow_subcontract(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        subcontract_name="flow_contract",
+        context=expected_entrypoint,
+    )
     if str(contract.get("intent_class") or "") != "repo-first-host-onboarding":
         raise SystemExit("unexpected onboarding intent_class")
     if str(contract.get("bundle_name") or "") != "onboard-repo":
@@ -288,6 +310,12 @@ def main() -> int:
             raise SystemExit("repeat onboard-repo should identify project_history_not_empty")
         if str((blocked_onboarding.get("result_contract") or {}).get("entrypoint") or "") != "onboard-repo":
             raise SystemExit("repeat onboard-repo blocked payload should keep the direct entrypoint")
+        assert_required_public_flow_subcontract(
+            blocked_onboarding,
+            entrypoint="onboard-repo",
+            subcontract_name="flow_contract",
+            context="repeat onboard-repo",
+        )
 
         expected_intent_dirty_paths = prepare_dirty_host(INTENT_FIXTURE_ROOT)
         intent_payload = cli_json(
@@ -300,9 +328,12 @@ def main() -> int:
             ],
             repo_root=INTENT_FIXTURE_ROOT,
         )
-        compiled_intent = intent_payload.get("intent_compilation")
-        if not isinstance(compiled_intent, dict):
-            raise SystemExit("onboard-repo-from-intent result is missing intent_compilation")
+        compiled_intent = assert_required_public_flow_subcontract(
+            intent_payload,
+            entrypoint="onboard-repo-from-intent",
+            subcontract_name="intent_compilation",
+            context="onboard-repo-from-intent",
+        )
         if str(compiled_intent.get("intent_class") or "") != "repo-first-host-onboarding":
             raise SystemExit("unexpected onboarding intent_compilation.intent_class")
         if str(compiled_intent.get("bundle_name") or "") != "onboard-repo":
@@ -338,6 +369,12 @@ def main() -> int:
             raise SystemExit("monitoring onboarding intent should identify unsupported_request_scope")
         if str((blocked_intent.get("result_contract") or {}).get("entrypoint") or "") != "onboard-repo-from-intent":
             raise SystemExit("blocked onboarding intent should keep the intent entrypoint")
+        assert_required_public_flow_subcontract(
+            blocked_intent,
+            entrypoint="onboard-repo-from-intent",
+            subcontract_name="intent_compilation",
+            context="monitoring onboarding intent",
+        )
 
         result = {
             "status": "ok",
