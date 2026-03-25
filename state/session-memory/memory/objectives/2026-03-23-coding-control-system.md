@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: b4b3bca630cb1c0a19098b00529ac238e24927de
+git_sha: 2b5145d2a5d306b61493b7706e76b2175d143c99
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T18:21:36+08:00
-phase: execution
+updated_at: 2026-03-25T18:38:23+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-execution
+paused
 
 ## Active Risks
 
@@ -194,3 +194,5 @@ Phase changed from `paused` to `execution` because Open a bounded b1 hardening s
 Phase changed from `execution` to `paused` because The bounded b1 contract promotion slice is closed, so the active objective should return to paused until the next source-line release step opens.
 
 Phase changed from `paused` to `execution` because Open the bounded 0.1.0b1 release-identity cut now that the selected b1 contract promotion is complete.
+
+Phase changed from `execution` to `paused` because The 0.1.0b1 local beta release round is closed, so the objective returns to paused until the next bounded release slice opens.

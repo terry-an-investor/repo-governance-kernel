@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1821-cut-the-local-0-1-0b1-beta-identity
 type: task-contract
 title: "Cut the local 0.1.0b1 beta identity"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: b4b3bca630cb1c0a19098b00529ac238e24927de
+git_sha: 2b5145d2a5d306b61493b7706e76b2175d143c99
 paths:
   - pyproject.toml
   - uv.lock
@@ -32,7 +32,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T18:21:53+08:00
-updated_at: 2026-03-25T18:32:25+08:00
+updated_at: 2026-03-25T18:37:30+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1821-cut-the-local-0-1-0b1-beta-identity"
@@ -62,7 +62,7 @@ Turn the selected b1 contract from source-line next-stable semantics into releas
 
 ## Resolution
 
-_none recorded_
+- Promoted execution and postconditions into the stable public contract, aligned package identity to 0.1.0b1, renamed the forward layer to candidate, and passed the local release validation matrix including docs audit, public-surface describe, onboarding, assessment, bootstrap, task-contract gates, acceptance, audit-control-state, enforce-worktree, and uv build.
 
 ## Active Risks
 
@@ -71,3 +71,8 @@ _none recorded_
 ## Status Notes
 
 Task contract rewritten because Capture the full b1 identity release slice in the active task contract.
+
+active -> completed: The local 0.1.0b1 beta identity is implemented and validated across the release matrix.
+
+resolution recorded:
+- Promoted execution and postconditions into the stable public contract, aligned package identity to 0.1.0b1, renamed the forward layer to candidate, and passed the local release validation matrix including docs audit, public-surface describe, onboarding, assessment, bootstrap, task-contract gates, acceptance, audit-control-state, enforce-worktree, and uv build.
