@@ -9,6 +9,10 @@ This entrypoint set remains unchanged from the surface first frozen in
 This `0.1.0a5` line keeps the same command set and standardizes the result
 envelope for the highest-frequency one-task flows.
 
+For the `0.1.0b0` freeze line, the candidate stable field contract for those
+four public flow entrypoints is now exported through the same machine-readable
+descriptor instead of living only in prose and smoke assertions.
+
 Use these commands as the intended direct package entrypoints:
 
 - `audit-control-state`

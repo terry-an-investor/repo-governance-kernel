@@ -350,11 +350,26 @@ def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]
     ):
         raise SystemExit("describe-public-alpha-surface is missing the repo-owned agent wrapper")
 
+    stable_public_flow_results = payload.get("stable_public_flow_results")
+    if not isinstance(stable_public_flow_results, dict):
+        raise SystemExit("describe-public-alpha-surface is missing stable_public_flow_results")
+    if str(stable_public_flow_results.get("status") or "") != "b0-candidate":
+        raise SystemExit("describe-public-alpha-surface should mark stable_public_flow_results as b0-candidate")
+    entrypoints = stable_public_flow_results.get("entrypoints")
+    if not isinstance(entrypoints, dict):
+        raise SystemExit("stable_public_flow_results is missing entrypoints")
+    if set(str(key) for key in entrypoints.keys()) != expected_commands - {"audit-control-state", "enforce-worktree", "bootstrap-repo"}:
+        raise SystemExit("stable_public_flow_results did not describe the four public flow entrypoints")
+    blocked_required_fields = stable_public_flow_results.get("blocked_detail_required_fields")
+    if not isinstance(blocked_required_fields, list) or "code" not in blocked_required_fields:
+        raise SystemExit("stable_public_flow_results is missing blocked detail field requirements")
+
     return {
         "target_version": payload.get("target_version"),
         "status": payload.get("status"),
         "public_alpha_command_count": len(public_commands),
         "repo_owned_agent_wrapper_count": len(repo_wrappers),
+        "stable_public_flow_entrypoint_count": len(entrypoints),
     }
 
 

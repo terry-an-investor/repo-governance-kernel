@@ -10,6 +10,11 @@ import sys
 from pathlib import Path
 
 from git_exec import GIT_EXE
+from kernel.public_flow_contracts import (
+    PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
+    PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
+    public_flow_required_top_level_fields,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,6 +23,29 @@ INTENT_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "repo-onboarding-intent-
 PROJECT_ID = "repo-onboarding-host"
 INTENT_PROJECT_ID = "repo-onboarding-intent-host"
 CLI = [sys.executable, "-m", "kernel.cli"]
+
+
+def assert_required_public_flow_fields(payload: dict[str, object], *, entrypoint: str, status: str, context: str) -> None:
+    missing_top_level = [
+        field for field in public_flow_required_top_level_fields(entrypoint, status) if field not in payload
+    ]
+    if missing_top_level:
+        raise SystemExit(f"{context} is missing stable top-level fields: {missing_top_level}")
+
+    result_contract = payload.get("result_contract")
+    if not isinstance(result_contract, dict):
+        raise SystemExit(f"{context} is missing result_contract")
+    missing_contract_fields = [field for field in PUBLIC_FLOW_RESULT_CONTRACT_FIELDS if field not in result_contract]
+    if missing_contract_fields:
+        raise SystemExit(f"{context} result_contract is missing stable fields: {missing_contract_fields}")
+
+    if status == "blocked":
+        blocked = payload.get("blocked")
+        if not isinstance(blocked, dict):
+            raise SystemExit(f"{context} is missing blocked detail")
+        missing_blocked_fields = [field for field in PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS if field not in blocked]
+        if missing_blocked_fields:
+            raise SystemExit(f"{context} blocked detail is missing stable fields: {missing_blocked_fields}")
 
 
 def run(cmd: list[str], *, cwd: Path, expect_success: bool = True) -> subprocess.CompletedProcess[str]:
@@ -120,6 +148,12 @@ def assert_onboarding_result(
 ) -> dict[str, object]:
     if str(onboarding.get("status") or "") != "ok":
         raise SystemExit("onboard-repo did not report ok")
+    assert_required_public_flow_fields(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        status="ok",
+        context=expected_entrypoint,
+    )
 
     result_contract = onboarding.get("result_contract")
     if not isinstance(result_contract, dict):
@@ -244,6 +278,12 @@ def main() -> int:
         blocked_payload = blocked_onboarding.get("blocked")
         if str(blocked_onboarding.get("status") or "") != "blocked":
             raise SystemExit("repeat onboard-repo should report blocked")
+        assert_required_public_flow_fields(
+            blocked_onboarding,
+            entrypoint="onboard-repo",
+            status="blocked",
+            context="repeat onboard-repo",
+        )
         if not isinstance(blocked_payload, dict) or str(blocked_payload.get("code") or "") != "project_history_not_empty":
             raise SystemExit("repeat onboard-repo should identify project_history_not_empty")
         if str((blocked_onboarding.get("result_contract") or {}).get("entrypoint") or "") != "onboard-repo":
@@ -288,6 +328,12 @@ def main() -> int:
         blocked_intent_payload = blocked_intent.get("blocked")
         if str(blocked_intent.get("status") or "") != "blocked":
             raise SystemExit("monitoring onboarding intent should report blocked")
+        assert_required_public_flow_fields(
+            blocked_intent,
+            entrypoint="onboard-repo-from-intent",
+            status="blocked",
+            context="monitoring onboarding intent",
+        )
         if not isinstance(blocked_intent_payload, dict) or str(blocked_intent_payload.get("code") or "") != "unsupported_request_scope":
             raise SystemExit("monitoring onboarding intent should identify unsupported_request_scope")
         if str((blocked_intent.get("result_contract") or {}).get("entrypoint") or "") != "onboard-repo-from-intent":

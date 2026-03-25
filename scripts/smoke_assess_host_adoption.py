@@ -10,6 +10,11 @@ import sys
 from pathlib import Path
 
 from git_exec import GIT_EXE
+from kernel.public_flow_contracts import (
+    PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
+    PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
+    public_flow_required_top_level_fields,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -20,6 +25,29 @@ PROJECT_ID = "assess-host-adoption"
 EXTERNAL_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-report.md"
 EXTERNAL_DRAFT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-draft.md"
 WORKFLOW_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-workflow-report.md"
+
+
+def assert_required_public_flow_fields(payload: dict[str, object], *, entrypoint: str, status: str, context: str) -> None:
+    missing_top_level = [
+        field for field in public_flow_required_top_level_fields(entrypoint, status) if field not in payload
+    ]
+    if missing_top_level:
+        raise SystemExit(f"{context} is missing stable top-level fields: {missing_top_level}")
+
+    result_contract = payload.get("result_contract")
+    if not isinstance(result_contract, dict):
+        raise SystemExit(f"{context} is missing result_contract")
+    missing_contract_fields = [field for field in PUBLIC_FLOW_RESULT_CONTRACT_FIELDS if field not in result_contract]
+    if missing_contract_fields:
+        raise SystemExit(f"{context} result_contract is missing stable fields: {missing_contract_fields}")
+
+    if status == "blocked":
+        blocked = payload.get("blocked")
+        if not isinstance(blocked, dict):
+            raise SystemExit(f"{context} is missing blocked detail")
+        missing_blocked_fields = [field for field in PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS if field not in blocked]
+        if missing_blocked_fields:
+            raise SystemExit(f"{context} blocked detail is missing stable fields: {missing_blocked_fields}")
 
 
 def run(cmd: list[str], *, cwd: Path, expect_success: bool = True) -> subprocess.CompletedProcess[str]:
@@ -305,6 +333,12 @@ def main() -> int:
     )
     if str(blocked_external_workflow.get("status") or "") != "blocked":
         raise SystemExit("clean external-target workflow should report blocked")
+    assert_required_public_flow_fields(
+        blocked_external_workflow,
+        entrypoint="assess-external-target-once",
+        status="blocked",
+        context="clean external-target workflow",
+    )
     blocked_workflow_contract = blocked_external_workflow.get("result_contract")
     if not isinstance(blocked_workflow_contract, dict):
         raise SystemExit("clean external-target workflow is missing result_contract")
@@ -331,6 +365,12 @@ def main() -> int:
     compiled_intent = external_intent.get("intent_compilation")
     if not isinstance(compiled_intent, dict):
         raise SystemExit("external intent wrapper is missing intent_compilation")
+    assert_required_public_flow_fields(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        status="ok",
+        context="external assessment intent wrapper",
+    )
     if compiled_intent["bundle_name"] != "assess-external-target-once":
         raise SystemExit("natural-language entry should compile into the governed assessment bundle")
     external_workflow = external_intent.get("outcome")
@@ -362,6 +402,12 @@ def main() -> int:
     )
     if str(blocked_external_intent.get("status") or "") != "blocked":
         raise SystemExit("monitoring assessment intent should report blocked")
+    assert_required_public_flow_fields(
+        blocked_external_intent,
+        entrypoint="assess-external-target-from-intent",
+        status="blocked",
+        context="monitoring assessment intent",
+    )
     blocked_intent_detail = blocked_external_intent.get("blocked")
     if not isinstance(blocked_intent_detail, dict) or str(blocked_intent_detail.get("code") or "") != "unsupported_request_scope":
         raise SystemExit("monitoring assessment intent should identify unsupported_request_scope")

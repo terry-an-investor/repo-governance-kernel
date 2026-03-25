@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
+from kernel.public_flow_contracts import describe_public_flow_contract_catalog
+
 
 PUBLIC_ALPHA_TARGET_VERSION = "0.1.0a5"
 PUBLIC_ALPHA_FROZEN_SINCE_VERSION = "0.1.0a3"
@@ -116,9 +118,11 @@ def describe_public_alpha_surface() -> dict[str, object]:
         "package_internal_commands": [asdict(entry) for entry in _package_internal_commands()],
         "repo_owned_agent_wrappers": list(_repo_owned_agent_wrappers()),
         "host_local_surfaces": list(_host_local_surfaces()),
+        "stable_public_flow_results": describe_public_flow_contract_catalog(),
         "contract_notes": [
             "public-alpha commands are the intended direct entrypoints for users and agent callers in the current preview release",
             "the current public-alpha release version is 0.1.0a5 even though this command set has remained unchanged since 0.1.0a3",
+            "the current b0 candidate stable field contract for the four public flow entrypoints is exported alongside this descriptor",
             "package-internal commands remain implemented owner-layer surfaces but are not the frozen public alpha compatibility promise",
             "repo-owned agent wrappers package the same bounded surfaces without widening authority",
             "host-local surfaces remain evidence or adapter layers rather than package contract",

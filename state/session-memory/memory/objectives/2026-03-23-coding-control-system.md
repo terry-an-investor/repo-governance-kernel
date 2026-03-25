@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: dac91cb3add4232dd3f5167565a073ad020c5c29
+git_sha: dd9b5402cf97ad67dd55f5897652f77bd82396f1
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T15:03:20+08:00
-phase: paused
+updated_at: 2026-03-25T15:14:50+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -168,3 +168,5 @@ Phase changed from `execution` to `paused` because no durable open round remains
 Phase changed from `paused` to `execution` because land a repo rule that requires local control-state sync before any remote push
 
 Phase changed from `execution` to `paused` because no durable open round remains after closing the push-order rule round
+
+Phase changed from `paused` to `execution` because start the b0 public contract freeze by moving stable public flow fields into one repo-owned owner layer

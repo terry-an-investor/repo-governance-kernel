@@ -53,6 +53,41 @@ The `a5` productization focus for these same commands is:
 - shared top-level result categories across direct and intent-wrapper entrypoints
 - explicit machine-readable blocked payloads when the one-task workflow cannot finish cleanly
 
+## `0.1.0b0` Candidate Public Flow Contract
+
+The current `b0` freeze work starts from the four highest-frequency public flow
+entrypoints:
+
+- `onboard-repo`
+- `onboard-repo-from-intent`
+- `assess-external-target-once`
+- `assess-external-target-from-intent`
+
+The owner-layer source of truth for their candidate stable field contract now
+lives in:
+
+- `kernel/public_flow_contracts.py`
+
+and is exported through:
+
+- `describe-public-alpha-surface`
+
+Current candidate freeze boundary:
+
+- `result_contract` always carries one stable schema/version/entrypoint record
+- each of the four entrypoints now has one owner-layer list of required
+  top-level fields for `ok` and `blocked`
+- blocked payloads now share one stable required detail shape:
+  - `stage`
+  - `code`
+  - `message`
+  - `meaning`
+  - `suggested_next_actions`
+
+This is intentionally a `b0` candidate contract, not a finished beta promise
+yet. The remaining freeze work is to decide whether any currently optional
+detail fields should graduate into the minimum stable contract before `0.1.0b0`.
+
 ## Package-Internal But Implemented
 
 These commands remain real owner-layer surfaces, but they are not the frozen

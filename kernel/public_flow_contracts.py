@@ -7,6 +7,150 @@ from pathlib import Path
 PUBLIC_FLOW_RESULT_SCHEMA = "repo-governance-kernel.public-flow-result"
 PUBLIC_FLOW_RESULT_VERSION = "1"
 PUBLIC_FLOW_AUTOMATION_SCOPE = "bounded-registry-owned-execution"
+PUBLIC_FLOW_BETA_CANDIDATE_STATUS = "b0-candidate"
+
+PUBLIC_FLOW_RESULT_CONTRACT_FIELDS = (
+    "schema",
+    "version",
+    "flow_name",
+    "entrypoint",
+    "entry_kind",
+    "automation_scope",
+)
+
+PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS = (
+    "stage",
+    "code",
+    "message",
+    "meaning",
+    "suggested_next_actions",
+)
+
+_PUBLIC_FLOW_ENTRYPOINT_CONTRACTS: dict[str, dict[str, object]] = {
+    "onboard-repo": {
+        "flow_name": "repo-onboarding",
+        "entry_kind": "direct-command",
+        "required_top_level_fields": {
+            "ok": (
+                "status",
+                "result_contract",
+                "project_id",
+                "workspace_root",
+                "flow_contract",
+                "execution",
+                "outcome",
+                "postconditions",
+                "next_actions",
+            ),
+            "blocked": (
+                "status",
+                "result_contract",
+                "project_id",
+                "workspace_root",
+                "flow_contract",
+                "next_actions",
+                "blocked",
+            ),
+        },
+        "optional_top_level_fields": {
+            "ok": (),
+            "blocked": ("execution", "outcome", "postconditions"),
+        },
+    },
+    "onboard-repo-from-intent": {
+        "flow_name": "repo-onboarding",
+        "entry_kind": "intent-wrapper",
+        "required_top_level_fields": {
+            "ok": (
+                "status",
+                "result_contract",
+                "project_id",
+                "workspace_root",
+                "flow_contract",
+                "intent_compilation",
+                "execution",
+                "outcome",
+                "postconditions",
+                "next_actions",
+            ),
+            "blocked": (
+                "status",
+                "result_contract",
+                "project_id",
+                "intent_compilation",
+                "next_actions",
+                "blocked",
+            ),
+        },
+        "optional_top_level_fields": {
+            "ok": (),
+            "blocked": ("workspace_root", "flow_contract", "execution", "outcome", "postconditions"),
+        },
+    },
+    "assess-external-target-once": {
+        "flow_name": "external-target-single-assessment",
+        "entry_kind": "direct-command",
+        "required_top_level_fields": {
+            "ok": (
+                "status",
+                "result_contract",
+                "project_id",
+                "workspace_root",
+                "source_repo",
+                "flow_contract",
+                "execution",
+                "outcome",
+                "postconditions",
+                "next_actions",
+            ),
+            "blocked": (
+                "status",
+                "result_contract",
+                "project_id",
+                "workspace_root",
+                "source_repo",
+                "flow_contract",
+                "next_actions",
+                "blocked",
+            ),
+        },
+        "optional_top_level_fields": {
+            "ok": (),
+            "blocked": ("execution", "outcome", "postconditions"),
+        },
+    },
+    "assess-external-target-from-intent": {
+        "flow_name": "external-target-single-assessment",
+        "entry_kind": "intent-wrapper",
+        "required_top_level_fields": {
+            "ok": (
+                "status",
+                "result_contract",
+                "project_id",
+                "workspace_root",
+                "source_repo",
+                "flow_contract",
+                "intent_compilation",
+                "execution",
+                "outcome",
+                "postconditions",
+                "next_actions",
+            ),
+            "blocked": (
+                "status",
+                "result_contract",
+                "project_id",
+                "intent_compilation",
+                "next_actions",
+                "blocked",
+            ),
+        },
+        "optional_top_level_fields": {
+            "ok": (),
+            "blocked": ("workspace_root", "source_repo", "flow_contract", "execution", "outcome", "postconditions"),
+        },
+    },
+}
 
 
 def _normalize_path(value: str) -> str:
@@ -32,6 +176,62 @@ def public_flow_result_contract(flow_name: str, entrypoint: str, entry_kind: str
         "entrypoint": entrypoint,
         "entry_kind": entry_kind,
         "automation_scope": PUBLIC_FLOW_AUTOMATION_SCOPE,
+    }
+
+
+def public_flow_required_top_level_fields(entrypoint: str, status: str) -> tuple[str, ...]:
+    contract = _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.get(str(entrypoint).strip())
+    if contract is None:
+        raise SystemExit(f"unknown public flow entrypoint contract: {entrypoint}")
+    required_by_status = contract["required_top_level_fields"]
+    if not isinstance(required_by_status, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` is missing required_top_level_fields")
+    fields = required_by_status.get(str(status).strip())
+    if not isinstance(fields, tuple):
+        raise SystemExit(f"public flow contract for `{entrypoint}` does not define `{status}` required fields")
+    return fields
+
+
+def public_flow_optional_top_level_fields(entrypoint: str, status: str) -> tuple[str, ...]:
+    contract = _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.get(str(entrypoint).strip())
+    if contract is None:
+        raise SystemExit(f"unknown public flow entrypoint contract: {entrypoint}")
+    optional_by_status = contract["optional_top_level_fields"]
+    if not isinstance(optional_by_status, dict):
+        raise SystemExit(f"public flow contract for `{entrypoint}` is missing optional_top_level_fields")
+    fields = optional_by_status.get(str(status).strip())
+    if not isinstance(fields, tuple):
+        raise SystemExit(f"public flow contract for `{entrypoint}` does not define `{status}` optional fields")
+    return fields
+
+
+def describe_public_flow_contract_catalog() -> dict[str, object]:
+    entrypoints: dict[str, object] = {}
+    for entrypoint, contract in _PUBLIC_FLOW_ENTRYPOINT_CONTRACTS.items():
+        entrypoints[entrypoint] = {
+            "flow_name": contract["flow_name"],
+            "entry_kind": contract["entry_kind"],
+            "required_top_level_fields": {
+                "ok": list(public_flow_required_top_level_fields(entrypoint, "ok")),
+                "blocked": list(public_flow_required_top_level_fields(entrypoint, "blocked")),
+            },
+            "optional_top_level_fields": {
+                "ok": list(public_flow_optional_top_level_fields(entrypoint, "ok")),
+                "blocked": list(public_flow_optional_top_level_fields(entrypoint, "blocked")),
+            },
+        }
+    return {
+        "status": PUBLIC_FLOW_BETA_CANDIDATE_STATUS,
+        "result_contract_schema": PUBLIC_FLOW_RESULT_SCHEMA,
+        "result_contract_version": PUBLIC_FLOW_RESULT_VERSION,
+        "result_contract_required_fields": list(PUBLIC_FLOW_RESULT_CONTRACT_FIELDS),
+        "blocked_detail_required_fields": list(PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS),
+        "entrypoints": entrypoints,
+        "notes": [
+            "this catalog describes the current b0 candidate stable field contract for the four public flow entrypoints",
+            "required_top_level_fields are the fields callers may depend on by entrypoint and top-level status",
+            "optional_top_level_fields are fields that may appear for richer detail but are not yet the minimum stable promise",
+        ],
     }
 
 
