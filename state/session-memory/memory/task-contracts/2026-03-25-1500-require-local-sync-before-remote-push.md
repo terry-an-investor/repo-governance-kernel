@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1500-require-local-sync-before-remote-push
 type: task-contract
 title: "Require local sync before remote push"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 156be43430c10b020a8f16eed7ff6d0a39c37525
+git_sha: dac91cb3add4232dd3f5167565a073ad020c5c29
 paths:
   - AGENTS.md
   - docs/canonical/RELEASE.md
@@ -18,7 +18,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T15:00:33+08:00
-updated_at: 2026-03-25T15:00:33+08:00
+updated_at: 2026-03-25T15:02:19+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1500-require-local-sync-before-remote-push"
@@ -50,7 +50,8 @@ Encode local close-out before push as a repo-owned rule instead of relying on op
 
 ## Resolution
 
-_none recorded_
+- repo rules now require local task/round close-out, anchor refresh, paused phase recovery, and clean audit/enforcement before push
+- the canonical release checklist now requires tagging locally, syncing the release round locally, and only then pushing branch and tag
 
 ## Active Risks
 
@@ -58,4 +59,8 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: the local push-order rule is now encoded in AGENTS.md and RELEASE.md in commit dac91cb
+
+resolution recorded:
+- repo rules now require local task/round close-out, anchor refresh, paused phase recovery, and clean audit/enforcement before push
+- the canonical release checklist now requires tagging locally, syncing the release round locally, and only then pushing branch and tag
