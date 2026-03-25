@@ -8,8 +8,8 @@ Scope: alpha release preparation for the reusable kernel
 Current target:
 
 - package name: `repo-governance-kernel`
-- current released version: `0.1.0a3`
-- next target version: `0.1.0a4`
+- current released version: `0.1.0a4`
+- next target version: `0.1.0a5`
 - release level: alpha / internal preview
 
 ## What Ships
@@ -45,26 +45,39 @@ Known reasons:
 - kernel-only smoke coverage is still thinner than host-repo smoke coverage
 - the alpha command surface is still intentionally narrow and does not promise general autonomous rewrite
 
+## Current Release Theme
+
+The current preview cut is `0.1.0a4`.
+
+Its purpose was not to broaden the kernel. Its purpose was to make external
+installation and runtime configuration more predictable while keeping the
+frozen `0.1.0a3` public alpha command surface intact.
+
+Delivered outcomes:
+
+- explicit user/project/local config layering for `repo_root` and `project_id`
+- one package-facing `describe-config` surface with source attribution
+- the first public command consumer of shared `project_id` resolution
+- stronger install-first proof that does not assume prior knowledge of this
+  source repo
+- stronger source-repo push gating so repo acceptance smoke regressions are
+  caught locally before GitHub Actions
+
+This means `0.1.0a4` is a config-layering and installability release, not a
+monitoring, server, provider-selection, or general autonomous rewrite release.
+
 ## Next Release Theme
 
-The next planned cut is `0.1.0a4`.
+The next planned cut is `0.1.0a5`.
 
-Its purpose is not to broaden the kernel. Its purpose is to make external
-installation and runtime configuration more predictable now that the `0.1.0a3`
-public alpha surface is frozen.
+Its purpose is to make the highest-frequency package flows feel like one-task
+product surfaces instead of command archaeology.
 
 Primary outcomes:
 
-- explicit user/project/local config layering
-- clearer provider/config resolution order
-- stronger install-first proof that does not assume knowledge of this source repo
-- stronger source-repo push gating so repo acceptance smoke regressions are
-  caught locally before GitHub Actions
-- one package-facing `describe-config` surface plus the first public command
-  consumer of shared `project_id` resolution
-
-This means `0.1.0a4` is a config-layering and installability release, not a
-monitoring, server, or general autonomous rewrite release.
+- keep compressing common flows into bounded one-command entrypoints
+- stabilize JSON result contracts for those entrypoints
+- make blocked-state explanations easier for agents to consume directly
 
 ## Promotion Bar
 
@@ -77,10 +90,24 @@ Do not promote beyond alpha until:
 
 ## Preview Evidence
 
-Preview validation completed on 2026-03-25.
+Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
+
+- `uv run python scripts/smoke_config_runtime.py`
+  - focused config runtime proof now covers user config, project config, local
+    override, environment override, and explicit-flag precedence for
+    `repo_root` and `project_id`
+- `uv run python scripts/smoke_repo_acceptance.py`
+  - the renamed source-repo acceptance smoke now passes under Python 3.11 and
+    includes the focused config runtime proof in the same repo-owned gate
+- `uv run python scripts/audit_product_docs.py`
+  - package-facing and canonical docs stay aligned on the `0.1.0a4` release
+    boundary and the still-frozen `0.1.0a3` public alpha command contract
 
 - `uv run python scripts/smoke_kernel_bootstrap.py`
-  - source-tree bootstrap still passes `audit-control-state`, and an installed wheel can both bootstrap a second disposable host and complete one bounded external-target single assessment from an isolated environment without mutating the target repo
+  - source-tree bootstrap still passes `audit-control-state`, and an installed
+    wheel can both bootstrap a second disposable host and complete one bounded
+    external-target single assessment from an isolated environment without
+    mutating the target repo
 - `uv run python scripts/smoke_task_contract_hard_gate.py`
   - unresolved task contracts block direct round promotion until the task contract is resolved
 - `uv run python scripts/smoke_task_contract_bundle_gate.py`
@@ -99,13 +126,14 @@ Preview validation completed on 2026-03-25.
   - bounded natural-language entry compiles one supported intent into the same governed bundle-backed flow
 - `uv build`
   - produced:
-    - `dist/repo_governance_kernel-0.1.0a3.tar.gz`
-    - `dist/repo_governance_kernel-0.1.0a3-py3-none-any.whl`
+    - `dist/repo_governance_kernel-0.1.0a4.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl`
 - installed-package check
-  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a3-py3-none-any.whl`
+  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl`
   - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
   - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
-  - installed `describe-public-alpha-surface` returns the frozen `0.1.0a3` public command set and repo-owned agent wrapper metadata
+  - installed `describe-public-alpha-surface` returns the still-frozen
+    `0.1.0a3` public command set and repo-owned agent wrapper metadata
   - installed `describe-config` reports resolved `repo_root` and `project_id` with source attribution, and installed `audit-control-state` can resolve `project_id` from `<repo_root>/.repo-governance-kernel/project.json` without an explicit flag
 
 ## Preview Residual Risks

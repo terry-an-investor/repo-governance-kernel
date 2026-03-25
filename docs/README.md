@@ -15,8 +15,8 @@ implementation direction, and release status.
 - `docs/canonical/TRANSITION_COMMANDS.md`: command, bundle, and intent surface
 - `docs/canonical/SCHEMA.md`: object schema and layout contract
 - `docs/canonical/DESIGN_PRINCIPLES.md`: repo design constraints
-- `docs/canonical/IMPLEMENTATION_PLAN.md`: current implementation direction
-- `docs/canonical/PUBLIC_ALPHA_SURFACE.md`: frozen `0.1.0a3` public package entrypoints
+- `docs/canonical/IMPLEMENTATION_PLAN.md`: current implementation direction from `0.1.0a4` toward beta freeze
+- `docs/canonical/PUBLIC_ALPHA_SURFACE.md`: frozen `0.1.0a3` public package entrypoints still shipped in the current `0.1.0a4` preview
 - `docs/canonical/RELEASE.md`: release target and validation evidence
 
 ## Auxiliary Docs

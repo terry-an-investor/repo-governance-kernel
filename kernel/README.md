@@ -6,8 +6,14 @@ Use it when you want the package-facing view of the project: what the package
 owns, how to install it, and which commands already form the supported alpha
 surface.
 
-The next planned release line is `0.1.0a4`: add explicit config layering and
-installability polish on top of the now-frozen `0.1.0a3` public alpha surface.
+The current preview release is `0.1.0a4`.
+
+Its release theme is explicit config layering and installability polish on top
+of the still-frozen `0.1.0a3` public alpha surface.
+
+The next planned release line is `0.1.0a5`: compress the highest-frequency
+flows into clearer one-task product surfaces and stabilize more of their
+machine-readable result contracts.
 
 It owns:
 
@@ -30,7 +36,7 @@ It does not own:
 ```powershell
 uv build
 uv venv artifacts/preview-install/.venv
-uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a3-py3-none-any.whl
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
@@ -54,7 +60,8 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C
 
 ### Inspect shared config resolution
 
-`a4` starts one shared config runtime for `repo_root` and `project_id`.
+The current `a4` preview ships one shared config runtime for `repo_root` and
+`project_id`.
 
 Current precedence:
 
@@ -117,8 +124,9 @@ Implemented lower-level owner-layer commands such as `assess-host-adoption`,
 `draft-external-target-shadow-scope`, and `execute-adjudication-followups`
 remain available, but they are not the frozen public alpha promise.
 
-`describe-config` is now a package-facing inspection command for the active
-`a4` line, but it is not part of the frozen `0.1.0a3` public alpha contract.
+`describe-config` is now a package-facing inspection command for the current
+`a4` preview line, but it is not part of the frozen `0.1.0a3` public alpha
+contract.
 
 ## Common Commands
 

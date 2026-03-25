@@ -3,6 +3,9 @@
 This file is the package-facing summary of the frozen `0.1.0a3` public alpha
 surface.
 
+The current preview release is `0.1.0a4`, but this command contract remains
+the same frozen direct-entry surface.
+
 Use these commands as the intended direct package entrypoints:
 
 - `audit-control-state`

@@ -7,12 +7,13 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: bb118b9346eae2b83714ffc5dd6d388aaebbd9b9
+git_sha: f8bcaaa227040371b83759566be5fab542de7927
 paths:
   - kernel
   - docs
   - README.md
   - pyproject.toml
+  - uv.lock
   - scripts
   - .githooks
   - .github
@@ -23,7 +24,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T11:16:27+08:00
-updated_at: 2026-03-25T12:20:48+08:00
+updated_at: 2026-03-25T13:09:28+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -67,3 +68,5 @@ _none recorded_
 Round rewritten because This a4 slice needs to change the repo-owned pre-push gate alongside the shared config and path-budget runtime, so the open round scope must honestly cover .githooks.
 
 Round rewritten because This a4 slice is now also renaming the top-level acceptance smoke surface and updating the repo-owned CI trigger path, so the round scope must honestly include .github and the release-facing acceptance entrypoint rename.
+
+Round rewritten because This a4 round now also needs the lockfile in scope so the actual version cut can be validated and committed honestly.

@@ -11,6 +11,9 @@ on directly during the `0.1.0a3` alpha line.
 This document exists because "implemented command" and "frozen public alpha
 surface" are not the same thing.
 
+The current preview release is `0.1.0a4`, but the direct package command
+contract remains the same public alpha surface first frozen in `0.1.0a3`.
+
 The product remains a repo governance kernel as defined in
 [`PRODUCT.md`](./PRODUCT.md). Its automation scope remains `bounded
 registry-owned execution`. Its autonomy boundary remains `not a general

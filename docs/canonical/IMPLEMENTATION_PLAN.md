@@ -68,13 +68,13 @@ Current status:
 
 Primary outcome:
 
-- make external installation and provider/config resolution predictable
+- make external installation and runtime config resolution predictable
 
 Needed work:
 
 - add explicit user/project/local config layering for package-facing behavior
-- define provider resolution order across flags, environment, config files, and
-  build defaults
+- define runtime config resolution order across flags, environment, config
+  files, cwd discovery, and package defaults
 - tighten installed-package proof so it does not depend on familiarity with this
   source repo
 - keep package install docs and validation evidence aligned
@@ -83,6 +83,10 @@ Success standard:
 
 - a new repo can install the package and understand how runtime configuration is
   resolved without reading the source tree
+
+Current status:
+
+- landed in the current preview line
 
 ### `0.1.0a5` — One-Task Productization
 
@@ -224,8 +228,8 @@ The following should stay out of scope for this phase:
 
 ## Immediate Order
 
-1. add explicit config layering and installability proof for `0.1.0a4`
-2. compress the highest-frequency workflows into clearer one-task product surfaces for `0.1.0a5`
+1. compress the highest-frequency workflows into clearer one-task product surfaces for `0.1.0a5`
+2. stabilize machine-readable result contracts and blocked-state explanations for those flows
 3. freeze the beta contract only after the public surface and validation matrix stop drifting
 
 ## Validation Standard
