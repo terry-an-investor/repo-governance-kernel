@@ -16,8 +16,8 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-25-1332-correct-a4-release-semantics-and-cut-real-tag`
-- Phase: `execution`
+- Active round id: ``
+- Phase: `paused`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
 - Phase-1 baseline already exists:

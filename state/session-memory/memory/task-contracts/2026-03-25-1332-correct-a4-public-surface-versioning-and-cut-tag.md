@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1332-correct-a4-public-surface-versioning-and-cut-tag
 type: task-contract
 title: "Correct a4 public-surface versioning and cut tag"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 275379b93571a3181418ef2d7a1c4c9fe9c5e5b8
+git_sha: 092d70cbe011a40d730a23b365d4e357b4decb94
 paths:
   - kernel
   - docs
@@ -19,7 +19,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T13:32:22+08:00
-updated_at: 2026-03-25T13:32:23+08:00
+updated_at: 2026-03-25T13:37:09+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1332-correct-a4-release-semantics-and-cut-real-tag"
@@ -53,7 +53,8 @@ Stop the current package and docs from reporting a3 as the live release identity
 
 ## Resolution
 
-_none recorded_
+- Updated machine-readable and release-facing public-surface descriptors so the current preview reports 0.1.0a4 while recording 0.1.0a3 as the freeze lineage for the unchanged entrypoint set.
+- Pushed commit 092d70c to origin and created the annotated tag v0.1.0a4 on that corrected release commit.
 
 ## Active Risks
 
@@ -61,4 +62,10 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The a4 release identity and missing tag are now corrected on origin.
+
+resolution recorded:
+- Updated machine-readable and release-facing public-surface descriptors so the current preview reports 0.1.0a4 while recording 0.1.0a3 as the freeze lineage for the unchanged entrypoint set.
+- Pushed commit 092d70c to origin and created the annotated tag v0.1.0a4 on that corrected release commit.
+
+active -> completed: The a4 public release identity and tag are now corrected.
