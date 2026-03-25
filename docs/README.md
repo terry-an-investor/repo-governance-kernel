@@ -16,6 +16,7 @@ implementation direction, and release status.
 - `docs/canonical/SCHEMA.md`: object schema and layout contract
 - `docs/canonical/DESIGN_PRINCIPLES.md`: repo design constraints
 - `docs/canonical/IMPLEMENTATION_PLAN.md`: current implementation direction
+- `docs/canonical/PUBLIC_ALPHA_SURFACE.md`: frozen `0.1.0a3` public package entrypoints
 - `docs/canonical/RELEASE.md`: release target and validation evidence
 
 ## Auxiliary Docs

@@ -60,6 +60,10 @@ Success standard:
 - an agent can discover and use the intended bounded package entrypoints without
   reading smoke code or host-local docs
 
+Current status:
+
+- landed in the current preview line
+
 ### `0.1.0a4` — Config Layering And Installability Polish
 
 Primary outcome:
@@ -220,11 +224,9 @@ The following should stay out of scope for this phase:
 
 ## Immediate Order
 
-1. land the `0.1.0a3` public alpha surface and first repo-owned agent skill
-2. tighten package-facing doc layering so public vs host-local surfaces stop blending
-3. add explicit config layering and installability proof for `0.1.0a4`
-4. compress the highest-frequency workflows into clearer one-task product surfaces for `0.1.0a5`
-5. freeze the beta contract only after the public surface and validation matrix stop drifting
+1. add explicit config layering and installability proof for `0.1.0a4`
+2. compress the highest-frequency workflows into clearer one-task product surfaces for `0.1.0a5`
+3. freeze the beta contract only after the public surface and validation matrix stop drifting
 
 ## Validation Standard
 

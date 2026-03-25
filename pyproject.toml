@@ -1,6 +1,6 @@
 [project]
 name = "repo-governance-kernel"
-version = "0.1.0a2"
+version = "0.1.0a3"
 description = "Registry-first repo governance kernel with bounded control execution"
 requires-python = ">=3.11"
 readme = "README.md"

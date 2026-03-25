@@ -25,6 +25,7 @@ Do not use this skill for:
 Use these commands as the primary entrypoints:
 
 ```powershell
+repo-governance-kernel describe-public-alpha-surface
 repo-governance-kernel --repo-root C:/path/to/host/repo onboard-repo --project-id my-repo
 repo-governance-kernel --repo-root C:/path/to/host/repo onboard-repo-from-intent --project-id my-repo --request "Initialize governance for this repo."
 repo-governance-kernel --repo-root C:/path/to/host/repo audit-control-state --project-id my-repo
@@ -75,6 +76,7 @@ repo-governance-kernel --repo-root C:/path/to/governed/host/repo assess-external
 
 ## Rules
 
+- Use `describe-public-alpha-surface` when you need the frozen public contract instead of inferring supported entrypoints from prose.
 - Keep authority bounded to the command surface above.
 - Prefer one-task entrypoints over manually stitching lower-level commands.
 - Treat `audit-control-state` and `enforce-worktree` as the required follow-up checks after onboarding.

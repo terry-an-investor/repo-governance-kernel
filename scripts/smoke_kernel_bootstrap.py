@@ -258,6 +258,52 @@ def onboard_governed_host(
     return onboarding
 
 
+def assert_public_alpha_surface(payload: dict[str, object]) -> dict[str, object]:
+    expected_commands = {
+        "audit-control-state",
+        "enforce-worktree",
+        "bootstrap-repo",
+        "onboard-repo",
+        "onboard-repo-from-intent",
+        "assess-external-target-once",
+        "assess-external-target-from-intent",
+    }
+    public_commands = payload.get("public_alpha_commands")
+    if not isinstance(public_commands, list):
+        raise SystemExit("describe-public-alpha-surface is missing public_alpha_commands")
+    observed_commands = {
+        str(item.get("name") or "").strip()
+        for item in public_commands
+        if isinstance(item, dict)
+    }
+    if observed_commands != expected_commands:
+        raise SystemExit(
+            json.dumps(
+                {
+                    "message": "unexpected public alpha command set",
+                    "expected": sorted(expected_commands),
+                    "observed": sorted(observed_commands),
+                },
+                ensure_ascii=True,
+                indent=2,
+            )
+        )
+
+    repo_wrappers = payload.get("repo_owned_agent_wrappers")
+    if not isinstance(repo_wrappers, list) or not any(
+        isinstance(item, dict) and str(item.get("name") or "").strip() == "use-repo-governance-kernel"
+        for item in repo_wrappers
+    ):
+        raise SystemExit("describe-public-alpha-surface is missing the repo-owned agent wrapper")
+
+    return {
+        "target_version": payload.get("target_version"),
+        "status": payload.get("status"),
+        "public_alpha_command_count": len(public_commands),
+        "repo_owned_agent_wrapper_count": len(repo_wrappers),
+    }
+
+
 def prepare_installed_cli() -> tuple[list[str], dict[str, str], str]:
     ensure_clean_dir(INSTALL_ROOT)
     venv_root = INSTALL_ROOT / ".venv"
@@ -427,8 +473,19 @@ def main() -> int:
             or "onboard-repo" not in installed_help
             or "onboard-repo-from-intent" not in installed_help
             or "assess-external-target-once" not in installed_help
+            or "describe-public-alpha-surface" not in installed_help
         ):
             raise SystemExit("installed package help is missing expected commands")
+
+        public_alpha_surface = cli_json(
+            installed_cli,
+            repo_root=ROOT,
+            command="describe-public-alpha-surface",
+            args=[],
+            cwd=ROOT,
+            env=installed_env,
+        )
+        public_alpha_summary = assert_public_alpha_surface(public_alpha_surface)
 
         installed_host = bootstrap_and_audit(
             fixture_root=INSTALLED_FIXTURE_ROOT,
@@ -460,6 +517,7 @@ def main() -> int:
             "source_bootstrap": source_host,
             "installed_cli": installed_cli[0],
             "installed_help_contains_expected_commands": True,
+            "installed_public_alpha_surface": public_alpha_summary,
             "installed_bootstrap": installed_host,
             "installed_onboarding": workflow_setup,
             "installed_external_target_assessment": installed_external_assessment,

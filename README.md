@@ -11,13 +11,12 @@ This source repository contains both:
 - the reusable package under [`kernel/`](./kernel/)
 - the host-local dogfood sample under [`state/session-memory/`](./state/session-memory/)
 
-The current preview release is `0.1.0a2`. The automation scope is
+The current preview release is `0.1.0a3`. The automation scope is
 `bounded registry-owned execution`. The autonomy boundary is
 `not a general autonomous rewrite engine`.
 
-The next planned release line is `0.1.0a3`: tighten the public alpha surface
-and add explicit repo-owned agent packaging for onboarding and one-time
-assessment.
+The next planned release line is `0.1.0a4`: add explicit config layering and
+make external installation behavior more predictable.
 
 ## What You Can Do Today
 
@@ -74,7 +73,7 @@ uv run python scripts/smoke_kernel_bootstrap.py
 ```powershell
 uv build
 uv venv artifacts/preview-install/.venv
-uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a2-py3-none-any.whl
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a3-py3-none-any.whl
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
@@ -176,6 +175,7 @@ These remain host-local and are not part of the package contract:
 
 - [`kernel/README.md`](./kernel/README.md): full package-facing command reference beyond the minimal install/init path above
 - [`skills/use-repo-governance-kernel/SKILL.md`](./skills/use-repo-governance-kernel/SKILL.md): repo-owned agent wrapper for bounded onboarding and assessment
+- [`docs/canonical/PUBLIC_ALPHA_SURFACE.md`](./docs/canonical/PUBLIC_ALPHA_SURFACE.md): frozen `0.1.0a3` public package contract
 - [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): release status and validation evidence
 - [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): product definition and positioning
 - [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md): durable truth, projections, audit, and enforcement

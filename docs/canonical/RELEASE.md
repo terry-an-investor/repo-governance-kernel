@@ -8,8 +8,8 @@ Scope: alpha release preparation for the reusable kernel
 Current target:
 
 - package name: `repo-governance-kernel`
-- current released version: `0.1.0a2`
-- next target version: `0.1.0a3`
+- current released version: `0.1.0a3`
+- next target version: `0.1.0a4`
 - release level: alpha / internal preview
 
 ## What Ships
@@ -47,18 +47,19 @@ Known reasons:
 
 ## Next Release Theme
 
-The next planned cut is `0.1.0a3`.
+The next planned cut is `0.1.0a4`.
 
-Its purpose is not to broaden the kernel. Its purpose is to make the existing
-bounded package surface feel more like a small product.
+Its purpose is not to broaden the kernel. Its purpose is to make external
+installation and runtime configuration more predictable now that the `0.1.0a3`
+public alpha surface is frozen.
 
 Primary outcomes:
 
-- freeze the first public alpha command set
-- add repo-owned agent packaging for onboarding and one-time assessment
-- tighten the split between public package docs and host-local/internal docs
+- explicit user/project/local config layering
+- clearer provider/config resolution order
+- stronger install-first proof that does not assume knowledge of this source repo
 
-This means `0.1.0a3` is an agent-packaging and public-surface release, not a
+This means `0.1.0a4` is a config-layering and installability release, not a
 monitoring, server, or general autonomous rewrite release.
 
 ## Promotion Bar
@@ -94,12 +95,13 @@ Preview validation completed on 2026-03-25.
   - bounded natural-language entry compiles one supported intent into the same governed bundle-backed flow
 - `uv build`
   - produced:
-    - `dist/repo_governance_kernel-0.1.0a2.tar.gz`
-    - `dist/repo_governance_kernel-0.1.0a2-py3-none-any.whl`
+    - `dist/repo_governance_kernel-0.1.0a3.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0a3-py3-none-any.whl`
 - installed-package check
-  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a2-py3-none-any.whl`
+  - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a3-py3-none-any.whl`
   - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
   - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
+  - installed `describe-public-alpha-surface` returns the frozen `0.1.0a3` public command set and repo-owned agent wrapper metadata
 
 ## Preview Residual Risks
 

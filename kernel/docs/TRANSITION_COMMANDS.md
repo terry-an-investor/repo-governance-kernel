@@ -39,6 +39,13 @@ That means:
 
 The kernel should stay centered on a small set of first-class commands.
 
+The frozen `0.1.0a3` public alpha entrypoints are documented separately in:
+
+- [`PUBLIC_ALPHA_SURFACE.md`](./PUBLIC_ALPHA_SURFACE.md)
+
+That public-alpha contract is intentionally narrower than the full implemented
+owner-layer command surface below.
+
 ### Objective-Line Commands
 
 - `open-objective`

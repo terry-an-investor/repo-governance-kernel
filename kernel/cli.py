@@ -26,6 +26,7 @@ COMMAND_MODULES = {
     "compile-adjudication-executor-plan": "kernel.commands.compile_adjudication_executor_plan",
     "compile-role-context": "kernel.commands.compile_role_context",
     "create-snapshot": "kernel.commands.create_snapshot",
+    "describe-public-alpha-surface": "kernel.commands.describe_public_alpha_surface",
     "draft-external-target-shadow-scope": "kernel.commands.draft_external_target_shadow_scope",
     "enforce-worktree": "kernel.commands.enforce_worktree",
     "execute-adjudication-followups": "kernel.commands.execute_adjudication_followups",
