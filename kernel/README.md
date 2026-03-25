@@ -37,6 +37,12 @@ artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
 ```
 
+### Onboard a governed host repo into its first control line
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo onboard-repo --project-id my-repo
+```
+
 ### Run one bounded external-target assessment
 
 ```powershell
@@ -54,6 +60,7 @@ The current package already supports:
 - `audit-control-state`
 - `enforce-worktree`
 - `bootstrap-repo`
+- `onboard-repo`
 - `assess-host-adoption`
 - `draft-external-target-shadow-scope`
 - `assess-external-target-once`
@@ -97,11 +104,26 @@ honest first audit:
 - `.githooks/pre-commit`
 - `.githooks/pre-push`
 
+Move that host straight into its first honest governed boundary:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/host/repo onboard-repo --project-id my-repo
+```
+
+This onboarding path exists to remove the manual bootstrap plus authoring gap:
+
+- it bootstraps the governed host surface if needed
+- it opens the first active objective, one execution round, and one active task contract
+- it refreshes the current-task anchor to the governed host repo root
+- it carries any pre-existing dirty repo paths into the first honest round/task boundary instead of dropping them
+- it fails closed if the repo already has durable objective, round, or task-contract history for that project id
+
 ## Validation Evidence
 
 The current release proof covers:
 
 - a brand-new disposable git repo
+- one disposable host repo with real pre-existing dirty paths onboarding through the package-facing surface
 - the same bootstrap path from an installed wheel in an isolated environment
 - one installed-wheel governed external-target single assessment against a disposable external repo without mutating that target repo
 - one focused governed bundle proof showing `execute-adjudication-followups`

@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-25-0843-make-task-contract-a-real-hard-execution-gate`
+- Active round id: `round-2026-03-25-0946-make-package-first-repo-onboarding-real`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`

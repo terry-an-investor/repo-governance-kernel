@@ -72,6 +72,7 @@ The kernel should stay centered on a small set of first-class commands.
 
 ### Orientation, Audit, And Repair Commands
 
+- `bootstrap-repo`
 - `refresh-anchor`
 - `render-live-workspace`
 - `draft-external-target-shadow-scope`
@@ -157,6 +158,19 @@ Mark one active exception contract invalid because later truth made it obsolete.
 ### `refresh-anchor`
 
 Refresh the durable orientation bullets in `current/current-task.md`.
+
+### `bootstrap-repo`
+
+Bootstrap the minimum governed host surface inside one repo.
+
+This command is the lowest owner-layer bootstrap surface:
+
+- it requires one git repo root
+- it creates the governed project tree under `state/<project_id>/`
+- it writes the first constitution, pivot log, exception ledger, and current-task files
+- it installs repo-local hooks through the shared kernel hook path unless `--skip-hooks` is passed
+- it does not open the first objective, round, or task contract by itself
+- it exists so higher-level onboarding can compose one honest first control line without re-implementing bootstrap privately
 
 ### `render-live-workspace`
 
@@ -251,6 +265,7 @@ Current governed bundle wrappers include:
 
 - `round-close-chain`
 - `round-close-chain-then-hard-pivot`
+- `onboard-repo`
 - `assess-external-target-once`
 
 Bundle rules:
@@ -263,6 +278,7 @@ Bundle rules:
 - bundles must stay bounded, audit-visible, and smoke-proven
 - bundles that advance round state, such as `round-close-chain`, must inherit
   the same unresolved task-contract gate as direct promotion commands
+- onboarding bundles such as `onboard-repo` may bootstrap one first control line, but they must still stay inside registry-owned command and bundle semantics
 
 The ban is on private bundle semantics, not on all bundle composition.
 

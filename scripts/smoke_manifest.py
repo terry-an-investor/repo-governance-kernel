@@ -67,6 +67,14 @@ SMOKE_SPECS: tuple[SmokeSpec, ...] = (
         description="Validate source-tree bootstrap plus installed-wheel bootstrap and bounded external-target single assessment proof.",
     ),
     SmokeSpec(
+        name="repo_onboarding",
+        script_name="smoke_repo_onboarding.py",
+        fixture_project_ids=(),
+        parallel_safe=False,
+        shared_resources=("artifacts_fixture_roots",),
+        description="Validate one package-facing onboarding flow can create the first honest governed boundary for a disposable host repo with real dirty paths.",
+    ),
+    SmokeSpec(
         name="objective_line",
         script_name="smoke_objective_line.py",
         fixture_project_ids=("__objective_line_smoke__",),

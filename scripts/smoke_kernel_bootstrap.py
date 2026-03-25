@@ -235,135 +235,27 @@ def write_external_target_fixture(path: Path) -> list[str]:
     return dirty_paths
 
 
-def refresh_anchor(
-    *,
-    cli_cmd: list[str],
-    repo_root: Path,
-    project_id: str,
-    workspace_root: Path,
-    env: dict[str, str] | None = None,
-) -> str:
-    completed = run(
-        [
-            *cli_cmd,
-            "--repo-root",
-            str(repo_root),
-            "refresh-current-task-anchor",
-            "--project-id",
-            project_id,
-            "--workspace-root",
-            str(workspace_root).replace("\\", "/"),
-        ],
-        cwd=ROOT,
-        env=env,
-    )
-    return completed.stdout.strip()
-
-
-def prepare_external_target_workflow(
+def onboard_governed_host(
     *,
     cli_cmd: list[str],
     repo_root: Path,
     project_id: str,
     env: dict[str, str] | None = None,
 ) -> dict[str, object]:
-    objective = cli_json(
+    onboarding = cli_json(
         cli_cmd,
         repo_root=repo_root,
-        command="open-objective",
+        command="onboard-repo",
         args=[
             "--project-id",
             project_id,
-            "--title",
-            "Installed package external-target assessment proof",
-            "--summary",
-            "Prove the installed package can assess one external repo in a bounded single pass.",
-            "--problem",
-            "The package-first smoke should prove more than bootstrap and audit.",
-            "--success-criterion",
-            "One installed wheel can bootstrap a host and complete one external-target single assessment.",
-            "--non-goal",
-            "Do not claim general live-host mutation.",
-            "--why-now",
-            "Alpha packaging needs one install-first proof for the single-assessment surface.",
-            "--phase",
-            "exploration",
-            "--path",
-            "README.md",
         ],
         cwd=ROOT,
         env=env,
     )
-
-    set_phase = cli_json(
-        cli_cmd,
-        repo_root=repo_root,
-        command="set-phase",
-        args=[
-            "--project-id",
-            project_id,
-            "--phase",
-            "execution",
-            "--reason",
-            "The installed package now needs one bounded round for external-target assessment proof.",
-            "--auto-open-round",
-            "--round-title",
-            "Prove installed package external-target single assessment",
-            "--round-scope-item",
-            "Complete one bounded installed-package external-target single assessment proof.",
-            "--round-scope-path",
-            "README.md",
-            "--round-deliverable",
-            "One installed-package external-target assessment report.",
-            "--round-validation-plan",
-            "Run assess-external-target-once from the installed package and inspect the report.",
-        ],
-        cwd=ROOT,
-        env=env,
-    )
-    round_id = str((set_phase.get("auto_open_round") or {}).get("round_id") or "").strip()
-    if not round_id:
-        raise SystemExit("set-phase auto-open-round did not return a round_id")
-
-    task_contract = cli_json(
-        cli_cmd,
-        repo_root=repo_root,
-        command="open-task-contract",
-        args=[
-            "--project-id",
-            project_id,
-            "--round-id",
-            round_id,
-            "--title",
-            "Run installed package external-target workflow",
-            "--intent",
-            "Use the installed package to run one governed external-target single assessment.",
-            "--path",
-            "README.md",
-            "--allowed-change",
-            "Run the bounded package-facing workflow and inspect its outputs.",
-            "--forbidden-change",
-            "Do not mutate the external target repo.",
-            "--completion-criterion",
-            "Installed package assessment finishes with an unblocked verdict.",
-        ],
-        cwd=ROOT,
-        env=env,
-    )
-
-    anchor_output = refresh_anchor(
-        cli_cmd=cli_cmd,
-        repo_root=repo_root,
-        project_id=project_id,
-        workspace_root=repo_root,
-        env=env,
-    )
-    return {
-        "objective": objective,
-        "set_phase": set_phase,
-        "task_contract": task_contract,
-        "refresh_anchor_stdout": anchor_output,
-    }
+    if str(onboarding.get("status") or "") != "ok":
+        raise SystemExit("onboard-repo did not report ok")
+    return onboarding
 
 
 def prepare_installed_cli() -> tuple[list[str], dict[str, str], str]:
@@ -530,7 +422,7 @@ def main() -> int:
         )
 
         installed_cli, installed_env, installed_help = prepare_installed_cli()
-        if "bootstrap-repo" not in installed_help or "assess-external-target-once" not in installed_help:
+        if "bootstrap-repo" not in installed_help or "onboard-repo" not in installed_help or "assess-external-target-once" not in installed_help:
             raise SystemExit("installed package help is missing expected commands")
 
         installed_host = bootstrap_and_audit(
@@ -541,7 +433,7 @@ def main() -> int:
             commit_after_bootstrap=True,
         )
 
-        workflow_setup = prepare_external_target_workflow(
+        workflow_setup = onboard_governed_host(
             cli_cmd=installed_cli,
             repo_root=INSTALLED_FIXTURE_ROOT,
             project_id=INSTALLED_PROJECT_ID,
@@ -564,7 +456,7 @@ def main() -> int:
             "installed_cli": installed_cli[0],
             "installed_help_contains_expected_commands": True,
             "installed_bootstrap": installed_host,
-            "installed_external_target_setup": workflow_setup,
+            "installed_onboarding": workflow_setup,
             "installed_external_target_assessment": installed_external_assessment,
         }
     finally:

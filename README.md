@@ -22,6 +22,9 @@ The current preview release is `0.1.0a2`. The automation scope is
 - audit control state and enforce live worktree honesty
 - run registry-owned commands with explicit guards and write ownership
 - use governed bundles for bounded multi-step workflows
+- attach the package to a fresh repo with one bounded onboarding flow that
+  bootstraps governance and opens the first honest objective, round, and task
+  contract
 - run one bounded external-target assessment flow that:
   - drafts scope from the target repo's live dirty paths
   - rewrites the active round and task contract through governed commands
@@ -52,6 +55,15 @@ uv run python -m kernel.cli enforce-worktree --project-id session-memory
 
 ```powershell
 uv run python scripts/smoke_kernel_bootstrap.py
+```
+
+### Onboard a new host repo
+
+```powershell
+uv run python -m kernel.cli `
+  --repo-root C:/path/to/host/repo `
+  onboard-repo `
+  --project-id my-repo
 ```
 
 ### Run one external-target assessment

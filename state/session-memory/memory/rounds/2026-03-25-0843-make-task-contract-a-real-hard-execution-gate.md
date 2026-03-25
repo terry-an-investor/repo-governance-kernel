@@ -2,12 +2,12 @@
 id: round-2026-03-25-0843-make-task-contract-a-real-hard-execution-gate
 type: round-contract
 title: "Make task-contract a real hard execution gate"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 86e350032843e594e4243c8bd4aa1a4f1e57a4a3
+git_sha: afad3f1b796dd2cb73421997d577eacb1635334e
 paths:
   - kernel
   - scripts
@@ -22,7 +22,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T08:43:50+08:00
-updated_at: 2026-03-25T09:04:45+08:00
+updated_at: 2026-03-25T09:46:31+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -45,6 +45,11 @@ One hard-gate-complete owner layer plus one 0.1.0a2 release cut with aligned ver
 ## Validation Plan
 
 Run focused bundle/adjudication hard-gate proof, smoke_phase1, smoke_kernel_bootstrap, audit-control-state, enforce-worktree, audit_product_docs, uv build, and installed-wheel verification after the release cut lands.
+uv run python scripts/smoke_task_contract_hard_gate.py
+uv run python scripts/smoke_task_contract_bundle_gate.py
+uv run python scripts/smoke_phase1.py
+uv run python scripts/smoke_kernel_bootstrap.py
+uv build and installed-wheel help verification
 
 ## Active Risks
 
@@ -62,3 +67,16 @@ _none recorded_
 Round rewritten because Expand the round to cover the remaining high-level hard-gate proof and the 0.1.0a2 release cut so code, docs, and versioning stay inside the same honest control boundary.
 
 Round rewritten because Include uv.lock in the release-cut boundary so package metadata and the lockfile stay aligned inside the same honest round.
+
+active -> validation_pending: The hard-gate completion proof and the 0.1.0a2 release candidate validations all passed, so this round can leave active execution.
+
+validation_pending -> captured: The round deliverable is proven by the task-contract hard-gate smokes, smoke_phase1, smoke_kernel_bootstrap, audit, enforcement, build, and installed-wheel checks.
+
+validated by:
+- uv run python scripts/smoke_task_contract_hard_gate.py
+- uv run python scripts/smoke_task_contract_bundle_gate.py
+- uv run python scripts/smoke_phase1.py
+- uv run python scripts/smoke_kernel_bootstrap.py
+- uv build and installed-wheel help verification
+
+captured -> closed: The task-contract hard-gate and 0.1.0a2 release-cut round is complete and the next work shifts to package-first repo onboarding.
