@@ -30,5 +30,5 @@ jobs:
       - name: Audit product docs
         run: uv run python -m kernel.cli --repo-root "${{ github.workspace }}" audit-product-docs
 
-      - name: Run phase-1 smoke
-        run: uv run python scripts/smoke_phase1.py
+      - name: Run repo acceptance smoke
+        run: uv run python scripts/smoke_repo_acceptance.py

@@ -58,8 +58,8 @@ Primary outcomes:
 - explicit user/project/local config layering
 - clearer provider/config resolution order
 - stronger install-first proof that does not assume knowledge of this source repo
-- stronger source-repo push gating so phase-1 smoke regressions are caught
-  locally before GitHub Actions
+- stronger source-repo push gating so repo acceptance smoke regressions are
+  caught locally before GitHub Actions
 
 This means `0.1.0a4` is a config-layering and installability release, not a
 monitoring, server, or general autonomous rewrite release.

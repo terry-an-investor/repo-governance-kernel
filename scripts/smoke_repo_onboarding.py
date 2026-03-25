@@ -169,7 +169,8 @@ def assert_onboarding_result(
         raise SystemExit("onboard-repo result is missing stable next_actions")
 
     current_task = (fixture_root / "state" / project_id / "current" / "current-task.md").read_text(encoding="utf-8")
-    expected_workspace_root_line = f"Workspace root: `{str(fixture_root).replace('\\', '/')}`"
+    normalized_fixture_root = str(fixture_root).replace("\\", "/")
+    expected_workspace_root_line = f"Workspace root: `{normalized_fixture_root}`"
     if expected_workspace_root_line not in current_task:
         raise SystemExit("current-task anchor did not record the governed host workspace root")
 

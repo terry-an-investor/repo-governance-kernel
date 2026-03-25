@@ -45,7 +45,7 @@ KERNEL_COMMANDS = {
 }
 
 REPO_COMMAND_MAP = {
-    "smoke": SCRIPTS / "smoke_phase1.py",
+    "smoke": SCRIPTS / "smoke_repo_acceptance.py",
     "smoke-kernel-bootstrap": SCRIPTS / "smoke_kernel_bootstrap.py",
     "smoke-brooks-semantic-research-snapshot-adoption": SCRIPTS / "smoke_brooks_semantic_research_snapshot_adoption.py",
     "smoke-wind-agent-snapshot-bootstrap": SCRIPTS / "smoke_wind_agent_snapshot_bootstrap.py",
@@ -59,7 +59,7 @@ REPO_COMMAND_MAP = {
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Unified CLI for session-memory phase-1 workflows.")
+    parser = argparse.ArgumentParser(description="Unified CLI for session-memory repo workflows.")
     parser.add_argument("command", choices=sorted(KERNEL_COMMANDS | set(REPO_COMMAND_MAP)))
     parser.add_argument("args", nargs=argparse.REMAINDER)
     parsed = parser.parse_args()

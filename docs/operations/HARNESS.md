@@ -34,8 +34,8 @@ The current harness owner layer includes:
   - canonical registry of disposable smoke fixtures
 - `scripts/run_smoke_suite.py`
   - suite runner that enforces fixture leak checks and serial execution
-- `scripts/smoke_phase1.py`
-  - top-level phase-1 integration path that delegates disposable fixture work to
+- `scripts/smoke_repo_acceptance.py`
+  - top-level repo acceptance smoke that delegates disposable fixture work to
     the suite runner
 
 ## Canonical Rules
@@ -95,7 +95,7 @@ regression.
 The correct fix is to strengthen the harness law, not to hand-wave the failure
 away.
 
-### 5. Phase-1 integration should use the suite runner
+### 5. Repo acceptance smoke should use the suite runner
 
 Top-level integration should not call each disposable smoke script ad hoc.
 
@@ -107,8 +107,8 @@ It should call the canonical suite runner so:
 - later CI and local execution share the same harness owner layer
 
 For this source repository, that means `.githooks/pre-push` should run
-`scripts/smoke_phase1.py` instead of relying on audit-only local gates while CI
-owns the first full harness execution.
+`scripts/smoke_repo_acceptance.py` instead of relying on audit-only local gates
+while CI owns the first full harness execution.
 
 ## Current Limitations
 
