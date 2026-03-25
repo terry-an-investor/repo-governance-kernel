@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1309-cut-the-0-1-0a4-preview-release
 type: task-contract
 title: "Cut the 0.1.0a4 preview release"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: f8bcaaa227040371b83759566be5fab542de7927
+git_sha: 0940906b335c9f0053003f190dbca3bb9757a03e
 paths:
   - pyproject.toml
   - uv.lock
@@ -21,7 +21,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T13:09:39+08:00
-updated_at: 2026-03-25T13:09:39+08:00
+updated_at: 2026-03-25T13:15:25+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1116-start-explicit-package-config-layering-for-a4"
@@ -55,7 +55,8 @@ Finish a4 as a versioned preview release instead of leaving the package metadata
 
 ## Resolution
 
-_none recorded_
+- Bumped package metadata and release-facing docs from 0.1.0a3 to 0.1.0a4, advanced the next target line to 0.1.0a5, and clarified that the current preview still ships the public alpha command contract first frozen in a3.
+- Validated the a4 release cut with audit_product_docs, smoke_config_runtime, smoke_repo_acceptance, uv build, smoke_kernel_bootstrap, audit-control-state, and enforce-worktree.
 
 ## Active Risks
 
@@ -63,4 +64,10 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The a4 release cut is now committed with aligned metadata, release docs, and validated package proof.
+
+resolution recorded:
+- Bumped package metadata and release-facing docs from 0.1.0a3 to 0.1.0a4, advanced the next target line to 0.1.0a5, and clarified that the current preview still ships the public alpha command contract first frozen in a3.
+- Validated the a4 release cut with audit_product_docs, smoke_config_runtime, smoke_repo_acceptance, uv build, smoke_kernel_bootstrap, audit-control-state, and enforce-worktree.
+
+active -> completed: The 0.1.0a4 preview release is now cut as a validated config-layering and installability release.
