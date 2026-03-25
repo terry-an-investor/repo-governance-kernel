@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1515-land-the-b0-candidate-public-flow-contract-descriptor
 type: task-contract
 title: "Land the b0 candidate public flow contract descriptor"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: dd9b5402cf97ad67dd55f5897652f77bd82396f1
+git_sha: 00f1703978ec0b681ea5bdebb1813ee25f5253e4
 paths:
   - kernel/public_flow_contracts.py
   - kernel/public_alpha_surface.py
@@ -23,7 +23,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T15:15:28+08:00
-updated_at: 2026-03-25T15:15:28+08:00
+updated_at: 2026-03-25T15:20:21+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1514-start-b0-public-contract-freeze"
@@ -58,7 +58,8 @@ Use one owner-layer catalog for stable public flow fields so docs, CLI descripto
 
 ## Resolution
 
-_none recorded_
+- Added one owner-layer machine-readable descriptor for the four public flow entrypoints.
+- Aligned public alpha surface export, canonical docs, and smoke assertions to the same b0 candidate contract truth.
 
 ## Active Risks
 
@@ -66,4 +67,8 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The b0 candidate public flow contract descriptor, doc export, and smoke enforcement landed and validated.
+
+resolution recorded:
+- Added one owner-layer machine-readable descriptor for the four public flow entrypoints.
+- Aligned public alpha surface export, canonical docs, and smoke assertions to the same b0 candidate contract truth.

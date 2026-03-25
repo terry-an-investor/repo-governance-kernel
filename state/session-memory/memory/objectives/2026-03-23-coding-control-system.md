@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: dd9b5402cf97ad67dd55f5897652f77bd82396f1
+git_sha: 00f1703978ec0b681ea5bdebb1813ee25f5253e4
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T15:14:50+08:00
-phase: execution
+updated_at: 2026-03-25T15:21:23+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-execution
+paused
 
 ## Active Risks
 
@@ -170,3 +170,5 @@ Phase changed from `paused` to `execution` because land a repo rule that require
 Phase changed from `execution` to `paused` because no durable open round remains after closing the push-order rule round
 
 Phase changed from `paused` to `execution` because start the b0 public contract freeze by moving stable public flow fields into one repo-owned owner layer
+
+Phase changed from `execution` to `paused` because The b0 candidate public flow contract freeze slice is closed; the objective returns to paused until the next beta hardening round starts.

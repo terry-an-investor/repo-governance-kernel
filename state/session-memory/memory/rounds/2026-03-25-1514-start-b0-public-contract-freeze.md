@@ -2,12 +2,12 @@
 id: round-2026-03-25-1514-start-b0-public-contract-freeze
 type: round-contract
 title: "Start b0 public contract freeze"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: dd9b5402cf97ad67dd55f5897652f77bd82396f1
+git_sha: 00f1703978ec0b681ea5bdebb1813ee25f5253e4
 paths:
   - kernel/public_flow_contracts.py
   - kernel/public_alpha_surface.py
@@ -23,7 +23,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T15:14:50+08:00
-updated_at: 2026-03-25T15:14:50+08:00
+updated_at: 2026-03-25T15:21:02+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -47,6 +47,14 @@ One repo-owned b0 candidate contract descriptor for public flows, wired into doc
 ## Validation Plan
 
 Run py_compile, onboarding smoke, assessment smoke, bootstrap smoke, audit-product-docs, audit-control-state, and enforce-worktree.
+uv run python -m py_compile kernel\\public_flow_contracts.py kernel\\public_alpha_surface.py scripts\\smoke_repo_onboarding.py scripts\\smoke_assess_host_adoption.py scripts\\smoke_kernel_bootstrap.py
+uv run python scripts\\smoke_repo_onboarding.py
+uv run python scripts\\smoke_assess_host_adoption.py
+uv run python scripts\\smoke_kernel_bootstrap.py
+uv run python scripts\\audit_product_docs.py
+uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
+py_compile + smoke_repo_onboarding + smoke_assess_host_adoption + smoke_kernel_bootstrap + audit_product_docs + audit-control-state + enforce-worktree
 
 ## Active Risks
 
@@ -58,4 +66,20 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> validation_pending: The b0 candidate contract freeze slice passed py_compile, public flow smokes, product doc audit, audit-control-state, and enforce-worktree.
+
+validated by:
+- uv run python -m py_compile kernel\\public_flow_contracts.py kernel\\public_alpha_surface.py scripts\\smoke_repo_onboarding.py scripts\\smoke_assess_host_adoption.py scripts\\smoke_kernel_bootstrap.py
+- uv run python scripts\\smoke_repo_onboarding.py
+- uv run python scripts\\smoke_assess_host_adoption.py
+- uv run python scripts\\smoke_kernel_bootstrap.py
+- uv run python scripts\\audit_product_docs.py
+- uv run python -m kernel.cli audit-control-state --project-id session-memory
+- uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
+
+validation_pending -> captured: The validated b0 candidate contract freeze result is now durable and ready to close.
+
+validated by:
+- py_compile + smoke_repo_onboarding + smoke_assess_host_adoption + smoke_kernel_bootstrap + audit_product_docs + audit-control-state + enforce-worktree
+
+captured -> closed: The b0 candidate contract freeze slice is complete and its validated result has been captured in durable history.
