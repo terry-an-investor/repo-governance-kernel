@@ -1,40 +1,28 @@
 # Repo Governance Kernel
 
-This directory is the reusable repo-governance kernel prepared for alpha
-packaging.
+This directory is the reusable package surface for `repo-governance-kernel`.
+
+Use it when you want the package-facing view of the project: what the package
+owns, how to install it, and which commands already form the supported alpha
+surface.
 
 It owns:
 
-- machine-readable transition semantics
+- transition semantics
 - shared control runtime
 - audit and enforcement logic
-- generic command implementations
+- governed command and bundle implementations
 - the reusable kernel CLI
 
 It does not own:
 
 - `state/session-memory/` dogfood control state
-- repo-local smoke/eval harnesses
-- this repository's sample-specific history and fixtures
+- repo-local smoke and evaluation harnesses
+- this repository's sample-specific history
 
-## Kernel Surfaces
+## Start Here
 
-- `kernel/transition_specs.py`
-- `kernel/round_control.py`
-- `kernel/control_enforcement.py`
-- `kernel/resolver_runtime.py`
-- `kernel/executor_command_builder.py`
-- `kernel/executor_runtime.py`
-- `kernel/audit_control_state.py`
-- `kernel/product_semantics.py`
-- `kernel/commands/`
-- `kernel/cli.py`
-
-## Invocation
-
-### Package-First Quickstart
-
-Build and install the current wheel into an isolated environment:
+### Install the current wheel
 
 ```powershell
 uv build
@@ -43,21 +31,43 @@ uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --for
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
-Bootstrap a governed host repo from the installed package:
+### Bootstrap a governed host repo
 
 ```powershell
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
 ```
 
-Run the bounded installed-package external-target single assessment:
+### Run one bounded external-target assessment
 
 ```powershell
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/governed/host/repo assess-external-target-once --project-id my-repo --workspace-root C:/path/to/external/repo
 ```
 
-The repository smoke at `scripts/smoke_kernel_bootstrap.py` now proves this
-package-first chain end to end: source-tree bootstrap, installed-wheel
-bootstrap, and installed-wheel external-target single assessment.
+The repo smoke at `scripts/smoke_kernel_bootstrap.py` proves this path end to
+end: source-tree bootstrap, installed-wheel bootstrap, and installed-wheel
+external-target single assessment.
+
+## Alpha Surface
+
+The current package already supports:
+
+- `audit-control-state`
+- `enforce-worktree`
+- `bootstrap-repo`
+- `assess-host-adoption`
+- `draft-external-target-shadow-scope`
+- `assess-external-target-once`
+- `assess-external-target-from-intent`
+- bounded adjudication follow-up execution through governed commands and bundles
+
+What matters is not the command count, but the boundary:
+
+- execution is bounded
+- semantics are registry-owned
+- task-contract gating applies to both direct round promotion and governed close bundles
+- external-target assessment does not mutate the target repo
+
+## Common Commands
 
 Generic kernel commands can run through:
 
@@ -77,8 +87,8 @@ Bootstrap a new host repo:
 repo-governance-kernel --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
 ```
 
-This bootstrap path now creates the minimum host-governance surface needed for
-an honest first audit:
+This bootstrap path creates the minimum host-governance surface needed for an
+honest first audit:
 
 - `state/<project_id>/control/constitution.md`
 - `state/<project_id>/control/pivot-log.md`
@@ -87,7 +97,9 @@ an honest first audit:
 - `.githooks/pre-commit`
 - `.githooks/pre-push`
 
-The current validation path now covers:
+## Validation Evidence
+
+The current release proof covers:
 
 - a brand-new disposable git repo
 - the same bootstrap path from an installed wheel in an isolated environment
@@ -97,10 +109,10 @@ The current validation path now covers:
   is resolved
 - a frozen copied `wind-agent` host snapshot
 
-Both surfaces bootstrap and pass host-side `audit-control-state` without
-touching the live source repository.
+Both bootstrap surfaces pass host-side `audit-control-state` without touching
+the live source repository.
 
-The frozen `wind-agent` path also proves the next adoption truth:
+The frozen `wind-agent` path also proves:
 
 - `enforce-worktree` is expected to remain `blocked` until one explicit adopted
   round honestly covers the dirty host paths
@@ -112,6 +124,8 @@ The frozen `wind-agent` path also proves the next adoption truth:
   round authority; remaining `blocked` results now come from real scope law such
   as `dirty_paths_outside_scope_round` and
   `dirty_paths_outside_active_task_contracts`
+
+## Assessment Commands
 
 Assess a governed host for shadow adoption:
 
@@ -166,6 +180,8 @@ This natural-language surface stays narrow on purpose:
 - it only compiles one-time external-target assessment intents
 - it still routes into the governed bundle-backed workflow instead of bypassing owner-layer controls
 - it rejects continuous monitoring requests rather than pretending the current product supports them
+
+## Repo Integration
 
 Install or refresh repo-local hooks:
 
