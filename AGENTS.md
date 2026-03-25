@@ -75,3 +75,16 @@ These rules apply inside `C:/Users/terryzzb/Desktop/session-memory`.
   - validation gaps between claimed behavior and observed behavior
 - Do not wait for the user to ask "what is still wrong"; surface the current
   problems proactively in the round close-out.
+
+## 8. Push Order
+
+- Do not push remote refs while the local control state for the current round is
+  still unsynced.
+- Before any `git push`, first finish the honest local close-out sequence for
+  the active work:
+  - update task and round status through legal transitions
+  - refresh `current-task`
+  - return the objective phase to `paused` when no open round remains
+  - rerun `audit-control-state` and `enforce-worktree` until both return `ok`
+- For release cuts, tag the release commit locally first, then close the
+  release round locally, and only then push `master` and the tag.

@@ -106,11 +106,13 @@ release after newer commits have already advanced `master`.
 Recommended cut order:
 
 1. land the release commit locally
-2. `git push origin master`
-3. `git tag -a v<version> <release-commit-sha> -m "repo-governance-kernel <version>"`
-4. `git push origin v<version>`
-5. `gh release create v<version> dist/repo_governance_kernel-<version>.tar.gz dist/repo_governance_kernel-<version>-py3-none-any.whl --repo terry-an-investor/repo-governance-kernel --title "repo-governance-kernel <version>"`
-6. run `verify_release_publication.py --require-branch-head` against the same version and release commit before calling the cut complete
+2. `git tag -a v<version> <release-commit-sha> -m "repo-governance-kernel <version>"` locally against that exact release commit
+3. close the release task/round locally, refresh the current-task anchor, and return the objective phase to `paused` if no open round remains
+4. rerun `audit-control-state` and `enforce-worktree` and require both to return `ok` before any remote push
+5. `git push origin master`
+6. `git push origin v<version>`
+7. `gh release create v<version> dist/repo_governance_kernel-<version>.tar.gz dist/repo_governance_kernel-<version>-py3-none-any.whl --repo terry-an-investor/repo-governance-kernel --title "repo-governance-kernel <version>"`
+8. run `verify_release_publication.py --require-branch-head` against the same version and release commit before calling the cut complete
 
 ## Preview Evidence
 
