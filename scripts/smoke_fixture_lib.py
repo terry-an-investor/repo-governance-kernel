@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from git_exec import GIT_EXE
+
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
@@ -80,7 +82,7 @@ def run_plain(script_name: str, *args: str) -> None:
 
 
 def run_git(repo_dir: Path, *args: str) -> None:
-    subprocess.run(["git", "-C", str(repo_dir), *args], cwd=str(ROOT), check=True)
+    subprocess.run([GIT_EXE, "-C", str(repo_dir), *args], cwd=str(ROOT), check=True)
 
 
 def on_rm_error(func, path, exc_info) -> None:

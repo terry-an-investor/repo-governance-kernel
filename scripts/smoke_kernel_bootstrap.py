@@ -10,6 +10,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+from git_exec import GIT_EXE
+
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "bootstrap-host"
@@ -20,7 +22,6 @@ INSTALLED_DRAFT_PATH = ROOT / "artifacts" / "fixtures" / "bootstrap-external-tar
 INSTALLED_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "bootstrap-external-target-installed-report.md"
 SOURCE_PROJECT_ID = "bootstrap-host"
 INSTALLED_PROJECT_ID = "bootstrap-host-installed"
-GIT_EXE = "C:\\Program Files\\Git\\cmd\\git.exe"
 SOURCE_CLI = [sys.executable, "-m", "kernel.cli"]
 
 

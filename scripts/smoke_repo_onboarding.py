@@ -9,13 +9,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+from git_exec import GIT_EXE
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DIRECT_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "repo-onboarding-host"
 INTENT_FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "repo-onboarding-intent-host"
 PROJECT_ID = "repo-onboarding-host"
 INTENT_PROJECT_ID = "repo-onboarding-intent-host"
-GIT_EXE = "C:\\Program Files\\Git\\cmd\\git.exe"
 CLI = [sys.executable, "-m", "kernel.cli"]
 
 

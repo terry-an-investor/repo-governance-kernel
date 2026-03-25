@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from evaluation_bundle import copy_repo_snapshot, resolve_snapshot_exclusions
+from git_exec import GIT_EXE
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -198,7 +199,7 @@ def main() -> int:
     )
 
     hooks_path = run(
-        ["C:\\Program Files\\Git\\cmd\\git.exe", "config", "--get", "core.hooksPath"],
+        [GIT_EXE, "config", "--get", "core.hooksPath"],
         cwd=FIXTURE_ROOT,
     ).stdout.strip().replace("\\", "/")
 

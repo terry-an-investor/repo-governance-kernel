@@ -10,6 +10,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from git_exec import GIT_EXE
+
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "config-runtime-host"
@@ -20,7 +22,6 @@ PROJECT_LAYER_ID = "config-runtime-project"
 LOCAL_LAYER_ID = "config-runtime-local"
 ENV_LAYER_ID = "config-runtime-env"
 FLAG_LAYER_ID = "config-runtime-flag"
-GIT_EXE = "C:\\Program Files\\Git\\cmd\\git.exe"
 CLI = [sys.executable, "-m", "kernel.cli"]
 
 

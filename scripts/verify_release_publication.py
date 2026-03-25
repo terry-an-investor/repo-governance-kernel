@@ -7,9 +7,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from git_exec import GIT_EXE
+
 
 ROOT = Path(__file__).resolve().parent.parent
-GIT_EXE = "C:\\Program Files\\Git\\cmd\\git.exe"
 
 
 def run(cmd: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:

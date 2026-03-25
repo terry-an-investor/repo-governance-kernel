@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from git_exec import GIT_EXE
+
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "assess-host-adoption"
@@ -68,9 +70,9 @@ def kernel_json(repo_root: Path, command: str, *args: str, expect_success: bool 
 
 
 def init_git_repo(path: Path) -> None:
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "init"], cwd=path)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.email", "fixture@example.com"], cwd=path)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "config", "user.name", "Fixture Smoke"], cwd=path)
+    run([GIT_EXE, "init"], cwd=path)
+    run([GIT_EXE, "config", "user.email", "fixture@example.com"], cwd=path)
+    run([GIT_EXE, "config", "user.name", "Fixture Smoke"], cwd=path)
 
 
 def write_external_target_fixture(path: Path) -> None:
@@ -80,8 +82,8 @@ def write_external_target_fixture(path: Path) -> None:
     baseline_doc = path / "docs" / "baseline.md"
     baseline_doc.parent.mkdir(parents=True, exist_ok=True)
     baseline_doc.write_text("baseline\n", encoding="utf-8", newline="\n")
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "add", "README.md", "docs/baseline.md"], cwd=path)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "commit", "-m", "Initial external fixture baseline"], cwd=path)
+    run([GIT_EXE, "add", "README.md", "docs/baseline.md"], cwd=path)
+    run([GIT_EXE, "commit", "-m", "Initial external fixture baseline"], cwd=path)
 
     (path / "docs" / "baseline.md").write_text("baseline changed\n", encoding="utf-8", newline="\n")
     (path / "docs" / "close_reading" / "README.md").parent.mkdir(parents=True, exist_ok=True)
@@ -103,8 +105,8 @@ def main() -> int:
     FIXTURE_ROOT.mkdir(parents=True, exist_ok=True)
     init_git_repo(FIXTURE_ROOT)
     (FIXTURE_ROOT / "README.md").write_text("fixture\n", encoding="utf-8", newline="\n")
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "add", "README.md"], cwd=FIXTURE_ROOT)
-    run(["C:\\Program Files\\Git\\cmd\\git.exe", "commit", "-m", "Initial fixture baseline"], cwd=FIXTURE_ROOT)
+    run([GIT_EXE, "add", "README.md"], cwd=FIXTURE_ROOT)
+    run([GIT_EXE, "commit", "-m", "Initial fixture baseline"], cwd=FIXTURE_ROOT)
     write_external_target_fixture(EXTERNAL_TARGET_ROOT)
 
     bootstrap = kernel_json(FIXTURE_ROOT, "bootstrap-repo", "--project-id", PROJECT_ID)
