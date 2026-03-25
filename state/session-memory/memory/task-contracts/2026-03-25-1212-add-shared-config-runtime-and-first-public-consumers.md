@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1212-add-shared-config-runtime-and-first-public-consumers
 type: task-contract
 title: "Add shared config runtime and first public consumers"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: bb118b9346eae2b83714ffc5dd6d388aaebbd9b9
+git_sha: 59745309e19dbca9365bc8c99e520c3a8ca467c9
 paths:
   - kernel
   - docs
@@ -21,7 +21,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T12:12:07+08:00
-updated_at: 2026-03-25T12:12:08+08:00
+updated_at: 2026-03-25T12:54:55+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1116-start-explicit-package-config-layering-for-a4"
@@ -55,7 +55,9 @@ Add one owner-layer config runtime that resolves repo_root and project_id across
 
 ## Resolution
 
-_none recorded_
+- Added kernel/config_runtime.py and the package-facing describe-config command with source-attributed repo_root/project_id resolution.
+- Wired kernel.cli to resolve project_id through the shared runtime for public alpha commands such as audit-control-state.
+- Added smoke_config_runtime, integrated it into repo acceptance smoke, and extended smoke_kernel_bootstrap with installed-package config proof.
 
 ## Active Risks
 
@@ -64,4 +66,9 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The shared config runtime, describe-config surface, first public consumer wiring, and installed config proof are now committed.
+
+resolution recorded:
+- Added kernel/config_runtime.py and the package-facing describe-config command with source-attributed repo_root/project_id resolution.
+- Wired kernel.cli to resolve project_id through the shared runtime for public alpha commands such as audit-control-state.
+- Added smoke_config_runtime, integrated it into repo acceptance smoke, and extended smoke_kernel_bootstrap with installed-package config proof.

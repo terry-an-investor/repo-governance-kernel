@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1231-land-source-repo-smoke-rename-and-ci-gate-fixes
 type: task-contract
 title: "Land source-repo smoke rename and CI gate fixes"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: bb118b9346eae2b83714ffc5dd6d388aaebbd9b9
+git_sha: 59745309e19dbca9365bc8c99e520c3a8ca467c9
 paths:
   - .githooks
   - .github
@@ -21,7 +21,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T12:31:57+08:00
-updated_at: 2026-03-25T12:31:57+08:00
+updated_at: 2026-03-25T12:54:54+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1116-start-explicit-package-config-layering-for-a4"
@@ -55,7 +55,8 @@ Carry the renamed repo acceptance smoke surface and Python 3.11 source-repo smok
 
 ## Resolution
 
-_none recorded_
+- Renamed scripts/smoke_phase1.py to scripts/smoke_repo_acceptance.py and updated live references in CI, hooks, CLI, and docs.
+- Fixed the Python 3.11 parser-incompatible f-string in scripts/smoke_repo_onboarding.py and revalidated the renamed acceptance surface.
 
 ## Active Risks
 
@@ -63,4 +64,8 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The renamed repo acceptance smoke surface, CI gate updates, and Python 3.11 source-repo smoke fix are now committed.
+
+resolution recorded:
+- Renamed scripts/smoke_phase1.py to scripts/smoke_repo_acceptance.py and updated live references in CI, hooks, CLI, and docs.
+- Fixed the Python 3.11 parser-incompatible f-string in scripts/smoke_repo_onboarding.py and revalidated the renamed acceptance surface.
