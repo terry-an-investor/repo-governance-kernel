@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface`
+- Active round id: `round-2026-03-25-0843-make-task-contract-a-real-hard-execution-gate`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`
@@ -476,4 +476,3 @@ The immediate objective is:
    semantics before expanding beyond one predecessor-round replacement path.
 6. Validate the product on more non-self-hosted repositories after the product
    positioning and owner-layer contracts stabilize.
-

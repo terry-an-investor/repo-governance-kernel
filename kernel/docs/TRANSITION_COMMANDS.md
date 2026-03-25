@@ -134,6 +134,10 @@ This command normally inspects the workspace root from the governed anchor, but
 it may also accept one explicit `workspace_root` override when the execution
 environment differs from the durable host path, such as CI runners.
 
+Promotion and closure commands must also fail closed when unresolved draft or
+active task contracts still remain attached to the round or objective line they
+would otherwise advance.
+
 ## Governed Bundles
 
 Current governed bundle wrappers include:

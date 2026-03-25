@@ -2,12 +2,12 @@
 id: taskc-2026-03-24-2111-separate-alpha-single-assessment-artifacts-and-add-package-smoke
 type: task-contract
 title: "Separate alpha single-assessment artifacts and add package smoke"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 59ed661321d0cea365810696572a99c66dd98ddc
+git_sha: f09a1bc6652290b312ea43a06e38410030bb9e1b
 paths:
   - kernel
   - scripts
@@ -23,7 +23,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:11:05+08:00
-updated_at: 2026-03-24T22:52:59+08:00
+updated_at: 2026-03-25T08:42:59+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface"
@@ -59,7 +59,9 @@ Make the 0.1.0a2 alpha surface more product-like by keeping draft/report artifac
 
 ## Resolution
 
-_none recorded_
+- Canonical project state now lives under state/<project_id> and no runtime or live documentation surface depends on projects/<project_id>.
+- Package-first validation still proves installed-wheel bootstrap plus one bounded external-target single assessment.
+- audit-control-state, enforce-worktree, smoke_phase1, and smoke_kernel_bootstrap all passed on the committed migration baseline.
 
 ## Active Risks
 
@@ -94,3 +96,10 @@ Task contract rewritten because The active task now executes the real state-root
 Task contract rewritten because The state-root migration is now real, so the active task must drop the retired projects tree and explicitly target state/<project_id> as the only live host-state layout.
 
 Task contract rewritten because The state-root migration also repairs the derived-index contract read surface, so the active task must cover index alongside the runtime and canonical docs it now describes.
+
+active -> completed: The state-root migration, package-first proof, and canonical-doc cleanup all landed and validated cleanly, so this task contract is resolved.
+
+resolution recorded:
+- Canonical project state now lives under state/<project_id> and no runtime or live documentation surface depends on projects/<project_id>.
+- Package-first validation still proves installed-wheel bootstrap plus one bounded external-target single assessment.
+- audit-control-state, enforce-worktree, smoke_phase1, and smoke_kernel_bootstrap all passed on the committed migration baseline.

@@ -167,9 +167,13 @@ Current hard gates should converge on:
 - dirty non-control paths must stay inside active round scope
 - when active task contracts exist, dirty implementation paths should narrow to
   task scope rather than round scope
+- unresolved draft or active task contracts must block round promotion into
+  `validation_pending`, `captured`, `closed`, or `abandoned`
 - dirty projected control files must still match durable truth
 - guarded exception-zone edits require one active exception contract
 - blocked audit or enforcement must prevent promotion and closure
+- objective close or hard pivot must not bypass unresolved draft or active task
+  contracts by replacing the objective line underneath them
 
 The current external-host validation evidence now covers one honest sequence:
 
@@ -200,6 +204,8 @@ Task contracts become honest only when they are consumable:
 - surfaced in assembled and role-specific contexts
 - considered by enforcement
 - considered by promotion and closure commands
+- able to block round promotion and objective-line replacement while still
+  unresolved
 - prevented from being stranded across pivots or round closure
 
 ## Bundle Governance

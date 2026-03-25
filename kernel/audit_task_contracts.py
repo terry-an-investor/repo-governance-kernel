@@ -6,15 +6,14 @@ import json
 from pathlib import Path
 
 from kernel.round_control import (
+    OPEN_TASK_CONTRACT_STATUSES,
+    TASK_CONTRACT_EXECUTION_GATE_ROUND_STATUSES,
     load_all_task_contracts,
     load_round_file,
     locate_round_file,
     parse_bullet_list,
     project_dir,
 )
-
-
-OPEN_ROUND_STATUSES = {"draft", "active", "blocked", "validation_pending"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -120,13 +119,18 @@ def audit_task_contracts(project_id: str) -> dict[str, object]:
                 evidence=[task_contract_id, f"task objective: {objective_id}", f"round objective: {round_objective_id}"],
             )
 
-        if status == "active" and round_status not in OPEN_ROUND_STATUSES:
+        if status in OPEN_TASK_CONTRACT_STATUSES and round_status not in TASK_CONTRACT_EXECUTION_GATE_ROUND_STATUSES:
             add_issue(
                 issues,
                 severity="error",
-                code="active_task_contract_on_non_open_round",
-                message="active task contract is attached to a round that is no longer open",
-                evidence=[task_contract_id, round_id, f"round status: {round_status}"],
+                code="unresolved_task_contract_on_non_execution_round",
+                message="draft or active task contract is attached to a round that is no longer eligible for unresolved execution work",
+                evidence=[
+                    task_contract_id,
+                    round_id,
+                    f"task status: {status}",
+                    f"round status: {round_status}",
+                ],
             )
 
         if not task_paths:

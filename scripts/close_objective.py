@@ -6,13 +6,12 @@ import json
 
 from round_control import (
     OPEN_ROUND_STATUSES,
-    OPEN_TASK_CONTRACT_STATUSES,
     active_objective_path,
     apply_transition_transaction,
+    assert_no_unresolved_task_contracts,
     assert_objective_phase_command_contract,
     find_exception_contracts,
     find_rounds,
-    find_task_contracts,
     merged_tags,
     objective_record_payload,
     pivot_log_path,
@@ -66,20 +65,12 @@ def main() -> int:
             "close, capture, or abandon those rounds first"
         )
 
-    blocking_task_contracts = find_task_contracts(
+    assert_no_unresolved_task_contracts(
         args.project_id,
         objective_id=objective_id,
-        statuses=OPEN_TASK_CONTRACT_STATUSES,
+        transition_target=f"close objective `{objective_id}`",
+        remediation="complete, abandon, or invalidate those task contracts first",
     )
-    if blocking_task_contracts:
-        rendered_contracts = ", ".join(
-            f"`{str(contract_meta.get('id') or contract_path.stem)}` ({str(contract_meta.get('status') or 'unknown').strip()})"
-            for contract_path, contract_meta, _contract_sections in blocking_task_contracts
-        )
-        raise SystemExit(
-            f"cannot close objective `{objective_id}` while draft or active task contracts remain attached: {rendered_contracts}; "
-            "complete, abandon, or invalidate them first"
-        )
 
     active_exception_contracts = find_exception_contracts(
         args.project_id,

@@ -40,6 +40,7 @@ ROUND_STATUS_TRANSITIONS = {
     "abandoned": set(),
 }
 OPEN_TASK_CONTRACT_STATUSES = {"draft", "active"}
+TASK_CONTRACT_EXECUTION_GATE_ROUND_STATUSES = {"draft", "active", "blocked"}
 TASK_CONTRACT_STATUS_TRANSITIONS = {
     "draft": {"active", "abandoned", "invalidated"},
     "active": {"completed", "abandoned", "invalidated"},
@@ -1821,6 +1822,15 @@ def find_task_contracts(
     return matches
 
 
+def render_task_contract_record_refs(
+    records: list[tuple[Path, dict[str, object], dict[str, str]]],
+) -> str:
+    return ", ".join(
+        f"`{str(meta.get('id') or path.stem)}` ({str(meta.get('status') or 'unknown').strip()})"
+        for path, meta, _sections in records
+    )
+
+
 def active_task_contract_records(
     project_id: str,
     *,
@@ -1846,6 +1856,30 @@ def open_task_contract_records(
         objective_id=objective_id,
         round_id=round_id,
         statuses=OPEN_TASK_CONTRACT_STATUSES,
+    )
+
+
+def assert_no_unresolved_task_contracts(
+    project_id: str,
+    *,
+    objective_id: str = "",
+    round_id: str = "",
+    transition_target: str,
+    remediation: str,
+) -> None:
+    blocking_task_contracts = find_task_contracts(
+        project_id,
+        objective_id=objective_id,
+        round_id=round_id,
+        statuses=OPEN_TASK_CONTRACT_STATUSES,
+    )
+    if not blocking_task_contracts:
+        return
+
+    rendered_contracts = render_task_contract_record_refs(blocking_task_contracts)
+    raise SystemExit(
+        f"cannot {transition_target.strip()} while unresolved draft or active task contracts remain attached: "
+        f"{rendered_contracts}; {remediation.strip()}"
     )
 
 

@@ -121,6 +121,15 @@ Refresh one open round's path scope from live evidence or explicit path edits.
 
 Move one round across its legal lifecycle.
 
+This command must fail closed when unresolved draft or active task contracts
+still remain attached to the round and the requested next status would promote
+or close that round, including:
+
+- `validation_pending`
+- `captured`
+- `closed`
+- `abandoned`
+
 ### `open-task-contract`
 
 Create one durable task contract inside an open round.
@@ -220,9 +229,12 @@ The command surface should keep these expectations uniform:
 - no second active objective
 - no execution without bounded round authority
 - no task-contract scope outside round scope
+- no promotion into `validation_pending`, `captured`, `closed`, or `abandoned`
+  while unresolved draft or active task contracts still remain attached to the
+  round
 - no promotion or closure while audit or worktree enforcement is blocked
 - no objective close or hard pivot that strands open rounds or active exception
-  contracts
+  contracts or unresolved draft or active task contracts
 - no rewrite that changes object identity silently
 
 Those guards belong in the registry and runtime, not in doc-only prose.

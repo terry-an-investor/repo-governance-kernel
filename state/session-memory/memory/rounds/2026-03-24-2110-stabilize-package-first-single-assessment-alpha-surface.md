@@ -2,12 +2,12 @@
 id: round-2026-03-24-2110-stabilize-package-first-single-assessment-alpha-surface
 type: round-contract
 title: "Stabilize package-first single-assessment alpha surface"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 59ed661321d0cea365810696572a99c66dd98ddc
+git_sha: f09a1bc6652290b312ea43a06e38410030bb9e1b
 paths:
   - kernel
   - scripts
@@ -23,7 +23,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-24T21:10:50+08:00
-updated_at: 2026-03-24T22:52:59+08:00
+updated_at: 2026-03-25T08:43:22+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -47,6 +47,14 @@ A cleaner alpha single-assessment surface with distinct artifact semantics, one 
 ## Validation Plan
 
 Run smoke_phase1, smoke_kernel_bootstrap, run_smoke_suite --smoke kernel_bootstrap, audit_product_docs, audit-control-state, and enforce-worktree after the state-root migration lands.
+uv run python scripts/smoke_phase1.py
+uv run python scripts/smoke_kernel_bootstrap.py
+uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
+uv run python scripts/smoke_phase1.py
+uv run python scripts/smoke_kernel_bootstrap.py
+uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
 
 ## Active Risks
 
@@ -89,3 +97,21 @@ Round rewritten because The next slice is a real state-layout migration from sta
 Round rewritten because The state-root migration is now the active deliverable, so the round contract must drop the retired projects tree and describe state/<project_id> as the canonical control-state layout.
 
 Round rewritten because The state-root migration also repairs the derived-index contract read surface, so the active round must cover index alongside the runtime and canonical docs it now describes.
+
+active -> validation_pending: The alpha-surface migration slice is implemented and ready for final round validation on the committed state-root baseline.
+
+validated by:
+- uv run python scripts/smoke_phase1.py
+- uv run python scripts/smoke_kernel_bootstrap.py
+- uv run python -m kernel.cli audit-control-state --project-id session-memory
+- uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
+
+validation_pending -> captured: The alpha-surface migration slice passed its declared validation set and can be durably captured.
+
+validated by:
+- uv run python scripts/smoke_phase1.py
+- uv run python scripts/smoke_kernel_bootstrap.py
+- uv run python -m kernel.cli audit-control-state --project-id session-memory
+- uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
+
+captured -> closed: The alpha-surface migration slice is captured and no open task contracts remain, so the round can close cleanly.

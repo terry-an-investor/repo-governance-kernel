@@ -7,12 +7,11 @@ import json
 from kernel.control_enforcement import assert_worktree_enforcement
 from kernel.round_control import (
     OPEN_ROUND_STATUSES,
-    OPEN_TASK_CONTRACT_STATUSES,
     ROUND_STATUS_TRANSITIONS,
     active_round_path,
     apply_transition_transaction,
+    assert_no_unresolved_task_contracts,
     assert_round_command_contract,
-    find_task_contracts,
     load_active_round,
     load_round_file,
     locate_round_file,
@@ -67,21 +66,13 @@ def main() -> int:
     if args.status not in allowed:
         raise SystemExit(f"illegal transition `{previous_status} -> {args.status}` for round `{round_id}`")
 
-    if args.status in {"captured", "closed", "abandoned"}:
-        blocking_task_contracts = find_task_contracts(
+    if args.status in {"validation_pending", "captured", "closed", "abandoned"}:
+        assert_no_unresolved_task_contracts(
             args.project_id,
             round_id=round_id,
-            statuses=OPEN_TASK_CONTRACT_STATUSES,
+            transition_target=f"move round `{round_id}` to `{args.status}`",
+            remediation="complete, abandon, or invalidate those task contracts first",
         )
-        if blocking_task_contracts:
-            rendered_contracts = ", ".join(
-                f"`{str(task_meta.get('id') or task_path.stem)}` ({str(task_meta.get('status') or 'unknown').strip()})"
-                for task_path, task_meta, _task_sections in blocking_task_contracts
-            )
-            raise SystemExit(
-                f"cannot move round `{round_id}` to `{args.status}` while draft or active task contracts remain attached: "
-                f"{rendered_contracts}; complete, abandon, or invalidate them first"
-            )
 
     if args.status in {"captured", "closed"}:
         assert_worktree_enforcement(

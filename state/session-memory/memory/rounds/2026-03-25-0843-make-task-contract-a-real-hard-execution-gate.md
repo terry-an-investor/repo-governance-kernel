@@ -1,8 +1,35 @@
-# Active Round
+---
+id: round-2026-03-25-0843-make-task-contract-a-real-hard-execution-gate
+type: round-contract
+title: "Make task-contract a real hard execution gate"
+status: active
+project_id: session-memory
+workspace_id: ws-1490b759
+workspace_root: C:/Users/terryzzb/Desktop/session-memory
+branch: master
+git_sha: f09a1bc6652290b312ea43a06e38410030bb9e1b
+paths:
+  - kernel
+  - scripts
+  - docs
+  - README.md
+thread_ids: []
+evidence_refs: []
+tags:
+  - round
+  - control-plane
+confidence: high
+created_at: 2026-03-25T08:43:50+08:00
+updated_at: 2026-03-25T08:43:50+08:00
+objective_id: obj-2026-03-23-0002
+phase: execution
+supersedes: []
+superseded_by: []
+---
 
-- Round id: `round-2026-03-25-0843-make-task-contract-a-real-hard-execution-gate`
-- Objective id: `obj-2026-03-23-0002`
-- Status: `active`
+## Summary
+
+One reusable task-contract hard-gate primitive, promotion and closure commands that consume it consistently, and one proof path showing dishonest transitions block until the task contract is resolved.
 
 ## Scope
 
@@ -23,5 +50,9 @@ Run audit-control-state, enforce-worktree, smoke_phase1, and one focused hard-ga
 - Promotion and closure semantics may still drift if the new gate only lands in one command family instead of the shared owner layer.
 
 ## Blockers
+
+_none recorded_
+
+## Status Notes
 
 _none recorded_

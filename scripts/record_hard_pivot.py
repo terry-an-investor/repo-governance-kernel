@@ -5,12 +5,11 @@ import argparse
 import json
 
 from round_control import (
-    OPEN_TASK_CONTRACT_STATUSES,
     active_objective_path,
     apply_transition_transaction,
+    assert_no_unresolved_task_contracts,
     assert_objective_phase_command_contract,
     find_rounds,
-    find_task_contracts,
     merged_tags,
     objective_record_payload,
     objectives_dir,
@@ -82,20 +81,12 @@ def main() -> int:
             f"{rendered_rounds}; close, capture, abandon, or explicitly re-scope them first"
         )
 
-    blocking_task_contracts = find_task_contracts(
+    assert_no_unresolved_task_contracts(
         args.project_id,
         objective_id=previous_objective_id,
-        statuses=OPEN_TASK_CONTRACT_STATUSES,
+        transition_target=f"hard-pivot objective `{previous_objective_id}`",
+        remediation="complete, abandon, invalidate, or retarget those task contracts first",
     )
-    if blocking_task_contracts:
-        rendered_contracts = ", ".join(
-            f"`{str(meta.get('id') or path.stem)}` ({str(meta.get('status') or 'unknown').strip()})"
-            for path, meta, _sections in blocking_task_contracts
-        )
-        raise SystemExit(
-            f"cannot hard-pivot while draft or active task contracts remain against objective `{previous_objective_id}`: "
-            f"{rendered_contracts}; complete, abandon, invalidate, or retarget them first"
-        )
 
     timestamp = timestamp_now()
     slug = slugify(args.title)

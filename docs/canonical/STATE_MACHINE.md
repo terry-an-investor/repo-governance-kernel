@@ -126,6 +126,10 @@ A round should not become `captured` or `closed` unless:
 - audit is not blocked
 - validation or abandonment history makes the transition honest
 
+A round should not become `validation_pending`, `captured`, `closed`, or
+`abandoned` while unresolved draft or active task contracts still remain
+attached.
+
 ### Round Consequences
 
 When a round becomes `blocked`, blockers must be explicit.
@@ -164,6 +168,8 @@ When task contracts are active:
 - they should narrow implementation authority beneath the round scope
 - they should appear in assembled and role-specific context
 - promotion or closure should not strand them silently
+- objective close or hard pivot should not replace the objective line beneath
+  them silently
 
 Task contracts remain a control layer, not free authorization for arbitrary
 automatic rewrite.
