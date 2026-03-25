@@ -6,15 +6,14 @@ Use it when you want the package-facing view of the project: what the package
 owns, how to install it, and which commands already form the supported beta
 surface.
 
-The current beta release is `0.1.0b0`.
+The current beta release is `0.1.0b1`.
 
 Its release theme is the first formal beta compatibility promise for the
 package-facing command and flow contract.
 
-The current source line is now hardening that beta promise toward `0.1.0b1`
-by promoting `execution` and `postconditions` into an explicit next-stable
-subcontract layer while keeping deeper evidence projections as explicit
-`b1-target` candidates.
+The current source line now matches that release identity: `execution` and
+`postconditions` are part of the stable public contract, while deeper evidence
+projections remain explicit forward-looking `candidate` subcontracts.
 
 It owns:
 
@@ -37,7 +36,7 @@ It does not own:
 ```powershell
 uv build
 uv venv artifacts/beta-install/.venv
-uv pip install --python artifacts/beta-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0b0-py3-none-any.whl
+uv pip install --python artifacts/beta-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0b1-py3-none-any.whl
 artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
@@ -95,7 +94,7 @@ external-target single assessment.
 
 ## Public Surface
 
-The current `0.1.0b0` public beta surface is:
+The current `0.1.0b1` public beta surface is:
 
 - `describe-config`
 - `describe-public-surface`
@@ -186,10 +185,9 @@ and immediate follow-up commands without scraping prose.
 The same machine-readable public surface now records three owner-layer
 contract layers instead of leaving response shape implicit in smoke code:
 
-- the released `b0` stable contract
-- the source-line `b1` next-stable subcontracts for `execution` and
-  `postconditions`
-- the remaining `b1-target` candidates for deeper evidence projections such as
+- the released `b1` stable contract
+- the stable nested subcontracts for `execution` and `postconditions`
+- the remaining `candidate` subcontracts for deeper evidence projections such as
   onboarding `compiled_bundle`, onboarding `created_control_state`, and
   assessment `outcome`
 

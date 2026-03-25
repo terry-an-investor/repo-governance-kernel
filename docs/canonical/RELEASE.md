@@ -8,9 +8,9 @@ Scope: beta release preparation and publication for the reusable kernel
 Current target:
 
 - package name: `repo-governance-kernel`
-- current released version: `0.1.0b0`
-- previous released version: `0.1.0a5`
-- next target version: `0.1.0b1`
+- current released version: `0.1.0b1`
+- previous released version: `0.1.0b0`
+- next target version: not yet selected
 - release level: beta
 
 ## What Ships
@@ -37,10 +37,10 @@ The host repository continues to own:
 
 ## Beta Boundary
 
-This beta is the first stable compatibility promise for the bounded package
+This beta line carries the stable compatibility promise for the bounded package
 surface.
 
-What is frozen in `0.1.0b0`:
+What is frozen in `0.1.0b1`:
 
 - the public command set documented in [`PUBLIC_SURFACE.md`](./PUBLIC_SURFACE.md)
 - the machine-readable `describe-public-surface` descriptor
@@ -52,18 +52,21 @@ What is frozen in `0.1.0b0`:
 - the stable nested public subcontracts for:
   - `flow_contract`
   - `intent_compilation`
+  - `execution`
+  - `postconditions`
 
 What is still explicitly out of scope:
 
 - continuous monitoring of external repositories
 - background server behavior
 - general autonomous rewrite
-- stable nested shapes for `execution`, `outcome`, or `postconditions`
+- stable nested shapes for onboarding `execution.compiled_bundle`, onboarding
+  `outcome.created_control_state`, or assessment `outcome`
 - lower-level owner-layer commands not listed in the public surface
 
 ## Current Release Theme
 
-The current beta cut is `0.1.0b0`.
+The current beta cut is `0.1.0b1`.
 
 Its purpose is to stop treating the package-facing surface as a moving preview
 target and instead publish one formal beta identity with:
@@ -76,20 +79,11 @@ target and instead publish one formal beta identity with:
 
 ## Next Release Theme
 
-The next planned cut is `0.1.0b1`.
+No post-`0.1.0b1` beta target is selected yet.
 
-Its purpose is beta hardening after the first compatibility promise, not a new
-authority expansion.
-
-Primary outcomes:
-
-- tighten package docs and examples around the beta contract
-- carry the already selected source-line `b1` next-stable subcontracts for
-  `execution` and `postconditions` through release validation and publication
-- keep the deeper `compiled_bundle`, `created_control_state`, and assessment
-  `outcome` projections explicit as `b1-target` candidates instead of
-  over-freezing them
-- keep CI and installed-package proof aligned with the beta surface
+The immediate follow-up is to observe whether the remaining candidate
+subcontracts should stay intentionally unstable or later graduate into another
+beta cut.
 
 ## Promotion Bar
 
@@ -134,14 +128,15 @@ Recommended cut order:
 
 ## Beta Evidence
 
-Beta validation completed on 2026-03-25 for the `0.1.0b0` cut.
+Beta validation completed on 2026-03-25 for the `0.1.0b1` local cut.
 
 - `uv run python scripts/audit_product_docs.py`
   - package-facing and canonical docs agree on the formal beta identity and
     keep package contract separate from host-local surfaces
 - `uv run python scripts/smoke_repo_onboarding.py`
   - direct and intent onboarding now satisfy the stable public flow contract,
-    including the stable `flow_contract` and `intent_compilation` subcontracts
+    including the stable `flow_contract`, `intent_compilation`, `execution`,
+    and `postconditions` subcontracts
 - `uv run python scripts/smoke_assess_host_adoption.py`
   - direct and intent one-time external-target assessment now satisfy the same
     stable public flow and subcontract truth
@@ -159,8 +154,8 @@ Beta validation completed on 2026-03-25 for the `0.1.0b0` cut.
   - the repo-owned acceptance path still passes under the same release truth
 - `uv build`
   - produced:
-    - `dist/repo_governance_kernel-0.1.0b0.tar.gz`
-    - `dist/repo_governance_kernel-0.1.0b0-py3-none-any.whl`
+    - `dist/repo_governance_kernel-0.1.0b1.tar.gz`
+    - `dist/repo_governance_kernel-0.1.0b1-py3-none-any.whl`
 
 ## Beta Residual Risks
 

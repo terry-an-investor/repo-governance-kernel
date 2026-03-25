@@ -11,17 +11,17 @@ This source repository contains both:
 - the reusable package under [`kernel/`](./kernel/)
 - the host-local dogfood sample under [`state/session-memory/`](./state/session-memory/)
 
-The current beta release is `0.1.0b0`. The automation scope is
+The current beta release is `0.1.0b1`. The automation scope is
 `bounded registry-owned execution`. The autonomy boundary is
 `not a general autonomous rewrite engine`.
 
 This is the first beta line: freeze the public command and flow contract before
 any broader product expansion.
 
-The current source line is now hardening that beta promise toward `0.1.0b1` by
-promoting `execution` and `postconditions` into an explicit next-stable
-subcontract layer while keeping deeper evidence projections as explicit
-`b1-target` candidates. The released package remains `0.1.0b0`.
+The current source line now matches that release identity: `execution` and
+`postconditions` are part of the stable public contract, while deeper evidence
+projections remain explicit forward-looking `candidate` subcontracts rather
+than pretending to be frozen.
 
 ## What You Can Do Today
 
@@ -83,7 +83,7 @@ uv run python scripts/smoke_kernel_bootstrap.py
 ```powershell
 uv build
 uv venv artifacts/beta-install/.venv
-uv pip install --python artifacts/beta-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0b0-py3-none-any.whl
+uv pip install --python artifacts/beta-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0b1-py3-none-any.whl
 artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
@@ -144,10 +144,9 @@ The returned JSON is agent-facing. The important fields are:
 `describe-public-surface` now separates three layers so agents can stop
 inferring response shape from smoke code:
 
-- the released `b0` stable contract
-- the source-line `b1` next-stable subcontracts for `execution` and
-  `postconditions`
-- the remaining `b1-target` candidates for deeper evidence projections such as
+- the released `b1` stable contract
+- the stable nested subcontracts for `execution` and `postconditions`
+- the remaining `candidate` subcontracts for deeper evidence projections such as
   onboarding `compiled_bundle`, onboarding `created_control_state`, and
   assessment `outcome`
 
@@ -228,12 +227,12 @@ These remain host-local and are not part of the package contract:
 
 - [`kernel/README.md`](./kernel/README.md): full package-facing command reference beyond the minimal install/init path above
 - [`skills/use-repo-governance-kernel/SKILL.md`](./skills/use-repo-governance-kernel/SKILL.md): repo-owned agent wrapper for bounded onboarding and assessment
-- [`docs/canonical/PUBLIC_SURFACE.md`](./docs/canonical/PUBLIC_SURFACE.md): current `0.1.0b0` public package contract
+- [`docs/canonical/PUBLIC_SURFACE.md`](./docs/canonical/PUBLIC_SURFACE.md): current `0.1.0b1` public package contract
 - [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): release status and validation evidence
   - includes the explicit publication checklist and the repo-owned `verify_release_publication.py` verifier
 - [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): product definition and positioning
 - [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md): durable truth, projections, audit, and enforcement
 - [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md): command, bundle, and intent surface
-- [`docs/canonical/IMPLEMENTATION_PLAN.md`](./docs/canonical/IMPLEMENTATION_PLAN.md): current roadmap beyond the `0.1.0b0` beta freeze
+- [`docs/canonical/IMPLEMENTATION_PLAN.md`](./docs/canonical/IMPLEMENTATION_PLAN.md): current roadmap beyond the `0.1.0b1` beta hardening cut
 - [`docs/README.md`](./docs/README.md): full docs index
 

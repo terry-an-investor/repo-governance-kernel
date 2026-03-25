@@ -6,9 +6,9 @@ from dataclasses import asdict, dataclass
 from kernel.public_flow_contracts import describe_public_flow_contract_catalog
 
 
-PUBLIC_SURFACE_RELEASED_VERSION = "0.1.0b0"
+PUBLIC_SURFACE_RELEASED_VERSION = "0.1.0b1"
 PUBLIC_SURFACE_SOURCE_LINE_TARGET_VERSION = "0.1.0b1"
-PUBLIC_SURFACE_FROZEN_SINCE_VERSION = "0.1.0b0"
+PUBLIC_SURFACE_FROZEN_SINCE_VERSION = "0.1.0b1"
 
 
 @dataclass(frozen=True)
@@ -128,18 +128,17 @@ def describe_public_surface() -> dict[str, object]:
         "released_version": PUBLIC_SURFACE_RELEASED_VERSION,
         "source_line_target_version": PUBLIC_SURFACE_SOURCE_LINE_TARGET_VERSION,
         "frozen_since_version": PUBLIC_SURFACE_FROZEN_SINCE_VERSION,
-        "status": "public-beta-b0",
+        "status": "public-beta-b1",
         "public_commands": [asdict(entry) for entry in _public_commands()],
         "package_internal_commands": [asdict(entry) for entry in _package_internal_commands()],
         "repo_owned_agent_wrappers": list(_repo_owned_agent_wrappers()),
         "host_local_surfaces": list(_host_local_surfaces()),
         "stable_public_flow_results": describe_public_flow_contract_catalog(),
         "contract_notes": [
-            "public commands are the intended direct beta entrypoints for users and agent callers in the 0.1.0b0 line",
-            "the current public beta release version is 0.1.0b0 and the frozen surface now includes package-facing inspection commands as well as the bounded workflow commands",
-            "the current b0 stable public flow contract exports both top-level result fields and the minimum stable nested subcontracts for flow_contract and intent_compilation",
-            "the same descriptor now also records the source-line b1 next-stable subcontract set for execution and postconditions without pretending that b1 is already released",
-            "the remaining b1-target candidate subcontracts keep the deeper evidence projections explicit so agents and smokes can stop inferring them from payload examples",
+            "public commands are the intended direct beta entrypoints for users and agent callers in the 0.1.0b1 line",
+            "the current public beta release version is 0.1.0b1 and the frozen surface now includes package-facing inspection commands as well as the bounded workflow commands",
+            "the current b1 stable public flow contract now exports top-level result fields plus stable nested subcontracts for flow_contract, intent_compilation, execution, and postconditions",
+            "the remaining candidate subcontracts keep the deeper evidence projections explicit so agents and smokes can stop inferring them from payload examples",
             "package-internal commands remain implemented owner-layer surfaces but are not the frozen public beta compatibility promise",
             "repo-owned agent wrappers package the same bounded surfaces without widening authority",
             "host-local surfaces remain evidence or adapter layers rather than package contract",

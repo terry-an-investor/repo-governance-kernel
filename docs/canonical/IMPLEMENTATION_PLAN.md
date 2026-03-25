@@ -149,10 +149,10 @@ Primary outcome:
 
 Needed work:
 
-- decide whether any evidence-layer response objects deserve promotion into the
-  stable contract
+- promote the selected `execution` / `postconditions` kernels into the stable
+  public contract
 - keep package docs, installed-package proof, and CI validation aligned with
-  the `0.1.0b0` beta surface
+  the `0.1.0b1` beta surface
 - tighten examples and release tooling around the new public-surface naming
 
 Success standard:
@@ -162,15 +162,16 @@ Success standard:
 
 Current status:
 
-- in progress in the current source line
-- the owner layer now records a source-line `b1` next-stable subcontract set
-  for `execution` and `postconditions` across onboarding and one-time
-  external-target assessment
+- landed in the current beta line
+- the released stable public contract now includes `execution` and
+  `postconditions` across onboarding and one-time external-target assessment
 - the owner layer still keeps the deeper `compiled_bundle`,
   `created_control_state`, and assessment `outcome` projections as explicit
-  `b1-target` candidates instead of freezing those whole evidence objects
-- the current work is still intentionally narrower than changing released
-  package version truth before the actual `0.1.0b1` cut
+  forward-looking `candidate` subcontracts instead of freezing those whole
+  evidence objects
+- the current gap is no longer the `0.1.0b1` cut itself; the current gap is
+  deciding whether any remaining deeper evidence kernels deserve a later stable
+  promotion
 
 ## Cross-Version Priorities
 
@@ -275,8 +276,8 @@ The following should stay out of scope for this phase:
 
 ## Immediate Order
 
-1. keep the `0.1.0b0` beta command and flow contract aligned across code, docs, and release tooling
-2. decide whether any evidence-layer response objects should stay intentionally unstable or graduate into the stable contract in `0.1.0b1`
+1. keep the `0.1.0b1` beta command and flow contract aligned across code, docs, and release tooling
+2. decide whether any remaining deeper evidence kernels should stay intentionally unstable or later graduate into another stable beta cut
 3. continue hardening installation, validation, and publication proof without widening product authority
 
 ## Validation Standard

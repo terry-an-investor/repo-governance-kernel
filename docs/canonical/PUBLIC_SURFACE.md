@@ -1,19 +1,19 @@
 # Repo Governance Kernel Public Surface
 
 Date: 2026-03-25
-Scope: current `0.1.0b0` public beta package surface
+Scope: current `0.1.0b1` public beta package surface
 
 ## Goal
 
 Define the smallest public package contract that users and agents should depend
-on directly during the current `0.1.0b0` beta line.
+on directly during the current `0.1.0b1` beta line.
 
 This document exists because "implemented command" and "frozen public beta
 surface" are not the same thing.
 
-The current beta release is `0.1.0b0`.
+The current beta release is `0.1.0b1`.
 
-This is the first release that makes a beta compatibility promise about:
+This beta line now makes an explicit compatibility promise about:
 
 - which package-facing commands are stable
 - which public flow fields are stable
@@ -28,7 +28,7 @@ autonomous rewrite engine`.
 ## Public Beta Commands
 
 These are the intended direct entrypoints for users and agent callers during
-the current `0.1.0b0` line:
+the current `0.1.0b1` line:
 
 - `describe-config`
 - `describe-public-surface`
@@ -48,7 +48,7 @@ Why these and not more:
 - they have a clearer package-facing meaning than the lower-level owner-layer
   primitives they compose
 
-## `0.1.0b0` Stable Public Flow Contract
+## `0.1.0b1` Stable Public Flow Contract
 
 The stable beta flow contract currently covers the four highest-frequency public
 workflow entrypoints:
@@ -78,10 +78,12 @@ Current stable boundary:
   - `message`
   - `meaning`
   - `suggested_next_actions`
-- the two public interpretation subobjects that callers most directly depend on
+- the four public interpretation subobjects that callers most directly depend on
   now also export stable nested field catalogs:
   - `flow_contract`
   - `intent_compilation`
+  - `execution`
+  - `postconditions`
 
 Current stable nested subcontract boundary:
 
@@ -89,48 +91,28 @@ Current stable nested subcontract boundary:
   successful intent wrappers
 - `intent_compilation` is the stable explanation object for intent wrappers,
   including blocked intent-compilation outcomes
+- `execution` is the stable execution summary object for successful workflows
+  and may also appear on blocked outcomes that still reached bundle execution
+- `postconditions` is the stable post-run validation summary object for
+  successful workflows and may also appear on blocked outcomes that still
+  reached postcondition checks
 - the descriptor records both:
   - which top-level statuses require each subobject
   - which nested fields are stable when that subobject is present
-- `execution`, `outcome`, and `postconditions` remain outside the minimum
-  stable beta contract in this release
+- deeper evidence projections such as `execution.compiled_bundle`, onboarding
+  `outcome.created_control_state`, and assessment `outcome` remain outside the
+  minimum stable beta contract in this release
 
-This `0.1.0b0` promise is intentionally narrow. It freezes the public command
+This `0.1.0b1` promise is intentionally narrow. It freezes the public command
 surface plus the minimum public flow contract, not every detail-rich evidence
 object that may appear inside richer responses.
 
-## `0.1.0b1` Next-Stable Subcontracts In The Current Source Line
-
-The current source tree now records one explicit next-stable layer for the
-planned `0.1.0b1` cut without claiming that `0.1.0b1` is already released.
-
-Why this layer exists:
-
-- `execution` and `postconditions` are already repeated across direct and
-  intent-wrapper entrypoints
-- agents and smokes already consume those repeated kernels as bounded,
-  product-facing interpretation objects
-- the owner layer should mark that promotion explicitly before the actual beta
-  cut changes package version truth
-
-Current next-stable promotion set:
-
-- onboarding:
-  - `execution`
-  - `postconditions`
-- external-target assessment:
-  - `execution`
-  - `postconditions`
-
-These entries are more than loose candidates. They are the current source-line
-minimum stable target for `0.1.0b1`.
-
-## Remaining `0.1.0b1` Hardening Candidates In The Current Source Line
+## Remaining Forward-Looking Candidate Subcontracts
 
 The current source tree still records deeper evidence projections separately so
 the next cut does not accidentally freeze more than the smallest honest kernel.
 
-These `b1-target` candidate subcontracts are also exported through
+These remaining `candidate` subcontracts are also exported through
 `describe-public-surface`.
 
 Current candidate promotion targets:
@@ -143,8 +125,8 @@ Current candidate promotion targets:
   - `outcome`
 
 These candidate entries do not widen authority and do not freeze full evidence
-payloads. They only record the smallest repeated kernels that the current
-source line is testing for promotion into the next beta cut.
+payloads. They only record the smallest repeated kernels that remain under
+evaluation after the `0.1.0b1` stable cut.
 
 ## Package-Internal But Implemented
 
@@ -193,7 +175,6 @@ That command exists so package docs, installed-package proof, and agent
 wrappers can consume one shared owner-layer truth instead of carrying slightly
 different prose lists. The descriptor now carries both:
 
-- the released `b0` stable contract
-- the current source-line `b1` next-stable subcontract set
-- the remaining `b1-target` candidate subcontract catalog for deeper
-  evidence-layer hardening
+- the released `b1` stable contract
+- the remaining `candidate` subcontract catalog for deeper evidence-layer
+  hardening

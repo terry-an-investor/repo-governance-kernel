@@ -40,7 +40,7 @@ That means:
 
 The kernel should stay centered on a small set of first-class commands.
 
-The current `0.1.0b0` public beta entrypoints are documented separately in:
+The current `0.1.0b1` public beta entrypoints are documented separately in:
 
 - [`PUBLIC_SURFACE.md`](./PUBLIC_SURFACE.md)
 
