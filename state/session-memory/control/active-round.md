@@ -6,21 +6,21 @@
 
 ## Scope
 
-- Extract one owner-layer task-contract blocker primitive so round promotion, closure, and objective-line replacement stop hand-rolling the same open-contract checks.
-- Converge promotion and closure commands on the same hard gate: worktree enforcement plus unresolved task-contract blocking semantics.
-- Add one small validation path that proves the new hard gate blocks dishonest promotion and allows the honest path after task resolution.
+- Prove governed bundle and adjudication follow-up surfaces fail closed when unresolved task contracts still block the round close chain.
+- Cut the 0.1.0a2 alpha release by updating package metadata, release-facing docs, and release-grade validation evidence in one controlled round.
 
 ## Deliverable
 
-One reusable task-contract hard-gate primitive, promotion and closure commands that consume it consistently, and one proof path showing dishonest transitions block until the task contract is resolved.
+One hard-gate-complete owner layer plus one 0.1.0a2 release cut with aligned versioning, docs, and release evidence.
 
 ## Validation Plan
 
-Run audit-control-state, enforce-worktree, smoke_phase1, and one focused hard-gate smoke after the new task-contract gate lands.
+Run focused bundle/adjudication hard-gate proof, smoke_phase1, smoke_kernel_bootstrap, audit-control-state, enforce-worktree, audit_product_docs, uv build, and installed-wheel verification after the release cut lands.
 
 ## Active Risks
 
-- Promotion and closure semantics may still drift if the new gate only lands in one command family instead of the shared owner layer.
+- High-level workflow surfaces may still bypass the low-level task-contract gate unless one bundle-backed proof demonstrates the blocked path directly.
+- The release cut can drift from the real package surface if version, docs, and installed-wheel evidence are not updated in the same round.
 
 ## Blockers
 

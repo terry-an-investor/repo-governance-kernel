@@ -7,12 +7,14 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: f09a1bc6652290b312ea43a06e38410030bb9e1b
+git_sha: 86e350032843e594e4243c8bd4aa1a4f1e57a4a3
 paths:
   - kernel
   - scripts
   - docs
   - README.md
+  - pyproject.toml
+  - uv.lock
 thread_ids: []
 evidence_refs: []
 tags:
@@ -20,7 +22,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T08:43:50+08:00
-updated_at: 2026-03-25T08:43:50+08:00
+updated_at: 2026-03-25T09:04:54+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-0843-make-task-contract-a-real-hard-execution-gate"
@@ -30,28 +32,28 @@ superseded_by: []
 
 ## Summary
 
-Make unresolved active task contracts block dishonest promotion and objective-line transitions through one shared owner-layer gate.
+Complete task-contract hard-gate coverage for bundle-backed adjudication followups, then cut the 0.1.0a2 alpha release with aligned metadata and release evidence.
 
 ## Intent
 
-Replace duplicated per-command open-task checks with one reusable blocker primitive, wire promotion and closure commands through it, and prove the blocked and allowed paths with a focused smoke.
+Prove that governed round-close bundles executed through adjudication followups still fail closed on unresolved task contracts, then update versioning and release-facing docs to ship that hardened alpha surface as 0.1.0a2.
 
 ## Allowed Changes
 
-- Add one reusable owner-layer task-contract blocking helper and make promotion or closure commands consume it instead of open-coding the same checks.
-- Tighten transition commands and docs so unresolved active task contracts become an explicit hard gate for dishonest promotion, closure, and objective-line replacement.
-- Add one focused validation path that proves the gate blocks before task resolution and permits the honest transition after resolution.
+- Add one focused validation path that exercises execute-adjudication-followups plus round-close-chain against an unresolved task contract and proves the high-level surface is blocked until task resolution.
+- Update package metadata and release-facing docs to 0.1.0a2 only after the hard-gate proof and release-grade validations pass.
+- Run build and installed-wheel verification so the release claim is backed by observed package behavior, not only source-tree smoke.
 
 ## Forbidden Changes
 
-- Do not broaden into continuous monitoring, background orchestration, or free-form autonomous rewrite.
-- Do not introduce a second private policy implementation outside the shared owner-layer gate.
+- Do not bypass task-contract gating with private bundle logic, adjudication special cases, or direct durable rewrites.
+- Do not claim 0.1.0a2 release readiness without aligned version metadata, docs, and installed-wheel evidence.
 
 ## Completion Criteria
 
-- A shared owner-layer task-contract blocker primitive exists and the affected transition commands consume it.
-- At least one focused smoke proves a dishonest promotion or closure attempt is blocked until the attached task contract is resolved.
-- audit-control-state, enforce-worktree, and smoke_phase1 remain clean after the gate lands.
+- A focused proof shows execute-adjudication-followups plus round-close-chain is blocked until the attached task contract is resolved.
+- Version metadata and release-facing docs all point to 0.1.0a2 and describe the hardened alpha surface consistently.
+- smoke_phase1, smoke_kernel_bootstrap, audit-control-state, enforce-worktree, audit_product_docs, uv build, and installed-wheel verification all pass on the release candidate.
 
 ## Resolution
 
@@ -59,8 +61,11 @@ _none recorded_
 
 ## Active Risks
 
-- If the gate only checks round closure but not objective-line replacement, the system will still allow stranded execution authority through another transition surface.
+- If the high-level proof only covers direct command entry, governed bundles could still hide a task-contract bypass.
+- If the release cut updates version strings without re-proving installed-wheel behavior, the a2 tag would overclaim the package surface.
 
 ## Status Notes
 
-_none recorded_
+Task contract rewritten because Expand the task contract to finish high-level hard-gate proof coverage and the 0.1.0a2 release cut inside the same bounded execution contract.
+
+Task contract rewritten because Include uv.lock in the release-cut execution boundary so version metadata and the lockfile do not drift.

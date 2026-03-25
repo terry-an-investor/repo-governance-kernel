@@ -91,6 +91,14 @@ SMOKE_SPECS: tuple[SmokeSpec, ...] = (
         description="Validate unresolved task contracts block dishonest round promotion until the task is resolved.",
     ),
     SmokeSpec(
+        name="task_contract_bundle_gate",
+        script_name="smoke_task_contract_bundle_gate.py",
+        fixture_project_ids=("__task_contract_bundle_gate_smoke__",),
+        parallel_safe=False,
+        shared_resources=("repo_worktree_fixture_projects",),
+        description="Validate execute-adjudication-followups plus round-close-chain inherits the same unresolved task-contract hard gate.",
+    ),
+    SmokeSpec(
         name="transition_engine",
         script_name="smoke_transition_engine.py",
         fixture_project_ids=("__transition_engine_smoke__",),

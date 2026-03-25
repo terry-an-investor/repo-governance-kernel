@@ -218,6 +218,10 @@ Record an explicit durable verdict when control truth conflicts.
 
 Execute only the explicit bounded follow-up subset the repo can compile safely.
 
+This command must fail closed when one compiled command or governed bundle
+would violate the same promotion, closure, or task-contract guards that apply
+to the direct owner-layer command surface.
+
 **`reconcile-control-state`**
 
 Rebuild projected control files from already coherent durable truth.
@@ -257,6 +261,8 @@ Bundle rules:
 - bundles may compose only existing governed commands or bundles
 - bundles may not write durable truth directly outside those governed steps
 - bundles must stay bounded, audit-visible, and smoke-proven
+- bundles that advance round state, such as `round-close-chain`, must inherit
+  the same unresolved task-contract gate as direct promotion commands
 
 The ban is on private bundle semantics, not on all bundle composition.
 
@@ -294,6 +300,8 @@ It must continue to reject:
 - ambiguous target resolution
 - undeclared payload keys
 - ungoverned bundles
+- compiled follow-ups whose bounded command or bundle would still violate the
+  unresolved task-contract hard gate
 
 ## Current Implementation Status
 

@@ -58,6 +58,7 @@ def main() -> None:
         "guarded_exception_enforcement",
         "objective_line",
         "phase_scope_controls",
+        "task_contract_bundle_gate",
         "task_contract_hard_gate",
         "transition_engine",
     )
@@ -147,6 +148,7 @@ def main() -> None:
                 "guarded_exception_enforcement": smoke_results["guarded_exception_enforcement"],
                 "objective_line": smoke_results["objective_line"],
                 "phase_scope_controls": smoke_results["phase_scope_controls"],
+                "task_contract_bundle_gate": smoke_results["task_contract_bundle_gate"],
                 "task_contract_hard_gate": smoke_results["task_contract_hard_gate"],
                 "transition_engine": smoke_results["transition_engine"],
                 "build": build_result,

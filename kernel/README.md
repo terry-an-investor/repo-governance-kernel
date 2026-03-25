@@ -39,7 +39,7 @@ Build and install the current wheel into an isolated environment:
 ```powershell
 uv build
 uv venv artifacts/preview-install/.venv
-uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a1-py3-none-any.whl
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a2-py3-none-any.whl
 artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
 ```
 
@@ -92,6 +92,9 @@ The current validation path now covers:
 - a brand-new disposable git repo
 - the same bootstrap path from an installed wheel in an isolated environment
 - one installed-wheel governed external-target single assessment against a disposable external repo without mutating that target repo
+- one focused governed bundle proof showing `execute-adjudication-followups`
+  plus `round-close-chain` still fails closed until the attached task contract
+  is resolved
 - a frozen copied `wind-agent` host snapshot
 
 Both surfaces bootstrap and pass host-side `audit-control-state` without

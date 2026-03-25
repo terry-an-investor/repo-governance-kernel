@@ -17,7 +17,7 @@ The host sample is important evidence, but it is not the package contract.
 ## Current Status
 
 - package: `repo-governance-kernel`
-- current preview release: `0.1.0a1`
+- current preview release: `0.1.0a2`
 - release level: alpha / internal preview
 - automation scope: bounded registry-owned execution
 - autonomy boundary: not a general autonomous rewrite engine
@@ -35,6 +35,8 @@ The current preview already provides:
 - control-state audit and live worktree enforcement
 - registry-owned primitive transition commands with explicit guards and write
   ownership
+- task-contract hard gating across both direct promotion/closure commands and
+  governed round-close bundles executed through adjudication follow-ups
 - governed bundle execution for bounded multi-step workflows
 - external-target shadow assessment support that can:
   - draft scope from the external repo's observed dirty paths

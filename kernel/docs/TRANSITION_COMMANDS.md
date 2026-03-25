@@ -138,6 +138,10 @@ Promotion and closure commands must also fail closed when unresolved draft or
 active task contracts still remain attached to the round or objective line they
 would otherwise advance.
 
+The same gate must continue to apply when those promotion or closure steps are
+reached through `execute-adjudication-followups` and one governed bundle such as
+`round-close-chain`.
+
 ## Governed Bundles
 
 Current governed bundle wrappers include:
@@ -154,6 +158,8 @@ Bundle rules:
 - bundles may compose only existing governed commands or bundles
 - bundles may not write durable truth directly outside those governed steps
 - bundles must stay bounded, audit-visible, and smoke-proven
+- bundle-backed round advancement must inherit the same unresolved task-contract
+  gate as the direct command path
 
 ## Bounded Intent Surfaces
 

@@ -130,6 +130,9 @@ A round should not become `validation_pending`, `captured`, `closed`, or
 `abandoned` while unresolved draft or active task contracts still remain
 attached.
 
+That gate applies to both direct round-status commands and governed bundle
+wrappers that compose those same status transitions.
+
 ### Round Consequences
 
 When a round becomes `blocked`, blockers must be explicit.

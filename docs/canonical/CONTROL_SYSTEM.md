@@ -206,6 +206,8 @@ Task contracts become honest only when they are consumable:
 - considered by promotion and closure commands
 - able to block round promotion and objective-line replacement while still
   unresolved
+- able to block governed round-close bundles reached through adjudication
+  follow-ups while still unresolved
 - prevented from being stranded across pivots or round closure
 
 ## Bundle Governance
