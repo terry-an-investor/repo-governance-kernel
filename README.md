@@ -39,7 +39,13 @@ The current preview release is `0.1.0a2`. The automation scope is
 
 This repository is developed and validated with `uv` on Windows.
 
-### Set up the repo
+If an agent only reads one file, it should be able to do two things from this
+README:
+
+- install the package into an isolated environment
+- initialize one fresh git repo through the bounded onboarding surface
+
+### Set up this source repo
 
 ```powershell
 uv sync
@@ -59,23 +65,75 @@ uv run python -m kernel.cli enforce-worktree --project-id session-memory
 uv run python scripts/smoke_kernel_bootstrap.py
 ```
 
-### Onboard a new host repo
+### Install the package into an isolated environment
 
 ```powershell
-uv run python -m kernel.cli `
+uv build
+uv venv artifacts/preview-install/.venv
+uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a2-py3-none-any.whl
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --help
+```
+
+### Initialize one fresh host repo from the package
+
+Preconditions:
+
+- `C:/path/to/host/repo` already exists and is a git repo
+- the target `project_id` does not already have durable objective, round, or task-contract history
+- any pre-existing dirty repo paths will be carried into the first honest scope instead of being ignored
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
   --repo-root C:/path/to/host/repo `
   onboard-repo `
   --project-id my-repo
 ```
 
+That one command bootstraps governance and opens the first bounded control line:
+
+- one active objective
+- one active execution round
+- one active task contract
+- current-task anchor bound to the governed host repo
+- host-side `audit-control-state` and `enforce-worktree` required to end `ok`
+
+The returned JSON is agent-facing. The important fields are:
+
+- `onboarding_contract`
+- `compiled_onboarding`
+- `created_control_state`
+- `postconditions`
+- `next_actions`
+
 ### Let an agent say the same thing once
 
 ```powershell
-uv run python -m kernel.cli `
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
   --repo-root C:/path/to/host/repo `
   onboard-repo-from-intent `
   --project-id my-repo `
   --request "Initialize governance for this repo."
+```
+
+This wrapper is intentionally narrow:
+
+- it only accepts first-control-line repo initialization requests
+- it only compiles into `onboard-repo`
+- it rejects assessment or monitoring requests instead of stretching authority
+
+### Minimal follow-up after initialization
+
+```powershell
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
+  --repo-root C:/path/to/host/repo `
+  audit-control-state `
+  --project-id my-repo
+
+artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
+  --repo-root C:/path/to/host/repo `
+  enforce-worktree `
+  --project-id my-repo `
+  --workspace-root C:/path/to/host/repo
 ```
 
 ### Run one external-target assessment
@@ -112,7 +170,7 @@ These remain host-local and are not part of the package contract:
 
 ## Read Next
 
-- [`kernel/README.md`](./kernel/README.md): package-facing usage
+- [`kernel/README.md`](./kernel/README.md): full package-facing command reference beyond the minimal install/init path above
 - [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): release status and validation evidence
 - [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): product definition and positioning
 - [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md): durable truth, projections, audit, and enforcement
