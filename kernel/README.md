@@ -6,6 +6,10 @@ Use it when you want the package-facing view of the project: what the package
 owns, how to install it, and which commands already form the supported alpha
 surface.
 
+The next planned release line is `0.1.0a3`: make this package surface clearer
+for agent callers, freeze the first public alpha commands, and expose one
+explicit repo-owned skill for bounded onboarding and one-time assessment.
+
 It owns:
 
 - transition semantics
@@ -141,6 +145,19 @@ This intent wrapper stays narrow on purpose:
 - it only accepts first-control-line repo initialization requests
 - it compiles only into `onboard-repo`
 - it rejects monitoring and assessment requests instead of stretching its authority
+
+## Agent Packaging
+
+The repository now carries one repo-owned agent wrapper at:
+
+- [`skills/use-repo-governance-kernel/SKILL.md`](../skills/use-repo-governance-kernel/SKILL.md)
+
+That skill is intentionally narrow:
+
+- it teaches agents the bounded onboarding and one-time assessment surfaces
+- it keeps agents on `onboard-repo`, `onboard-repo-from-intent`,
+  `assess-external-target-once`, and `assess-external-target-from-intent`
+- it does not claim monitoring, server behavior, or freeform mutation authority
 
 ## Validation Evidence
 

@@ -15,6 +15,10 @@ The current preview release is `0.1.0a2`. The automation scope is
 `bounded registry-owned execution`. The autonomy boundary is
 `not a general autonomous rewrite engine`.
 
+The next planned release line is `0.1.0a3`: tighten the public alpha surface
+and add explicit repo-owned agent packaging for onboarding and one-time
+assessment.
+
 ## What You Can Do Today
 
 - model repository work with objectives, rounds, task contracts, exception
@@ -171,9 +175,11 @@ These remain host-local and are not part of the package contract:
 ## Read Next
 
 - [`kernel/README.md`](./kernel/README.md): full package-facing command reference beyond the minimal install/init path above
+- [`skills/use-repo-governance-kernel/SKILL.md`](./skills/use-repo-governance-kernel/SKILL.md): repo-owned agent wrapper for bounded onboarding and assessment
 - [`docs/canonical/RELEASE.md`](./docs/canonical/RELEASE.md): release status and validation evidence
 - [`docs/canonical/PRODUCT.md`](./docs/canonical/PRODUCT.md): product definition and positioning
 - [`docs/canonical/CONTROL_SYSTEM.md`](./docs/canonical/CONTROL_SYSTEM.md): durable truth, projections, audit, and enforcement
 - [`docs/canonical/TRANSITION_COMMANDS.md`](./docs/canonical/TRANSITION_COMMANDS.md): command, bundle, and intent surface
+- [`docs/canonical/IMPLEMENTATION_PLAN.md`](./docs/canonical/IMPLEMENTATION_PLAN.md): current roadmap from `0.1.0a3` toward beta freeze
 - [`docs/README.md`](./docs/README.md): full docs index
 

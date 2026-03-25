@@ -25,3 +25,8 @@ implementation direction, and release status.
 - `docs/evaluation/`: evaluation plans and experiment docs such as:
   - `docs/evaluation/EVALUATION.md`
   - `docs/evaluation/ROLE_CONTEXT_EVALUATION.md`
+
+## Agent Wrappers
+
+- `skills/`: repo-owned agent wrappers that package bounded command surfaces for
+  agent callers without expanding product authority

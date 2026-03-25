@@ -8,7 +8,8 @@ Scope: alpha release preparation for the reusable kernel
 Current target:
 
 - package name: `repo-governance-kernel`
-- version: `0.1.0a2`
+- current released version: `0.1.0a2`
+- next target version: `0.1.0a3`
 - release level: alpha / internal preview
 
 ## What Ships
@@ -43,6 +44,22 @@ Known reasons:
 - host repo and package still live in one repository
 - kernel-only smoke coverage is still thinner than host-repo smoke coverage
 - the alpha command surface is still intentionally narrow and does not promise general autonomous rewrite
+
+## Next Release Theme
+
+The next planned cut is `0.1.0a3`.
+
+Its purpose is not to broaden the kernel. Its purpose is to make the existing
+bounded package surface feel more like a small product.
+
+Primary outcomes:
+
+- freeze the first public alpha command set
+- add repo-owned agent packaging for onboarding and one-time assessment
+- tighten the split between public package docs and host-local/internal docs
+
+This means `0.1.0a3` is an agent-packaging and public-surface release, not a
+monitoring, server, or general autonomous rewrite release.
 
 ## Promotion Bar
 

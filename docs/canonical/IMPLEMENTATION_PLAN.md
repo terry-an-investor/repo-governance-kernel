@@ -1,12 +1,12 @@
-# Session Memory Implementation Plan
+# Repo Governance Kernel Implementation Plan
 
-Date: 2026-03-24
-Scope: Kernelization phase for the repo governance kernel
+Date: 2026-03-25
+Scope: versioned alpha roadmap for the repo governance kernel
 
 ## Goal
 
-Implement the smallest honest reusable kernel for repository governance defined
-in [`PRODUCT.md`](./PRODUCT.md):
+Keep the product centered on the smallest honest reusable kernel for repository
+governance defined in [`PRODUCT.md`](./PRODUCT.md):
 
 - files remain the source of truth
 - SQLite plus FTS5 remain retrieval support layers
@@ -14,14 +14,12 @@ in [`PRODUCT.md`](./PRODUCT.md):
 - machine behavior remains registry-first
 
 The product is a repo governance kernel, not a general autonomous rewrite
-engine.
-
-Its automation target remains bounded registry-owned execution.
-It is not a general autonomous rewrite engine.
+engine. Its automation target remains bounded registry-owned execution.
 
 ## Current State
 
-The repository already has a meaningful bounded kernel slice:
+The repository already has a meaningful bounded kernel slice and the first
+package-facing workflows:
 
 - objective, pivot, round, task-contract, exception-contract, adjudication, and
   transition-event files exist
@@ -30,12 +28,96 @@ The repository already has a meaningful bounded kernel slice:
 - audit and worktree enforcement exist
 - bounded adjudication follow-up execution exists
 - governed bundle execution exists for the bounded implemented subset
+- package-facing repo onboarding exists through `onboard-repo`
+- bounded natural-language wrappers exist for onboarding and one-time
+  external-target assessment
+- task-contract hard gating now blocks both direct round promotion and governed
+  close bundles
 
-The current gap is not "no semantics". The current gap is that the kernel is
-still mixed with self-hosted sample complexity and still only partially unified
-end to end.
+The current gap is no longer "can the kernel do anything real". The current gap
+is "does the package feel like a small product that agents can use without
+reverse-engineering host-local details".
 
-## Kernelization Priorities
+## Version Roadmap
+
+### `0.1.0a3` — Agent Packaging And Public Alpha Surface
+
+Primary outcome:
+
+- turn the current kernel entrypoints into a clearer public alpha surface
+
+Needed work:
+
+- define and freeze the first public alpha command set
+- add one repo-owned agent skill for bounded onboarding and bounded
+  single-assessment workflows
+- separate public package docs from host-local/internal tool docs more clearly
+- make one agent-readable entry path sufficient for install, onboarding, and
+  first assessment handoff
+
+Success standard:
+
+- an agent can discover and use the intended bounded package entrypoints without
+  reading smoke code or host-local docs
+
+### `0.1.0a4` — Config Layering And Installability Polish
+
+Primary outcome:
+
+- make external installation and provider/config resolution predictable
+
+Needed work:
+
+- add explicit user/project/local config layering for package-facing behavior
+- define provider resolution order across flags, environment, config files, and
+  build defaults
+- tighten installed-package proof so it does not depend on familiarity with this
+  source repo
+- keep package install docs and validation evidence aligned
+
+Success standard:
+
+- a new repo can install the package and understand how runtime configuration is
+  resolved without reading the source tree
+
+### `0.1.0a5` — One-Task Productization
+
+Primary outcome:
+
+- make the highest-frequency flows feel like one-task product surfaces
+
+Needed work:
+
+- keep compressing common workflows into bounded one-command entrypoints
+- stabilize JSON result contracts for those entrypoints
+- make failure semantics explicit and machine-readable
+- add one explanatory surface for blocked states if the current output still
+  forces agents to infer too much
+
+Success standard:
+
+- the common flows complete through one command plus one structured response,
+  not through command archaeology
+
+### `0.1.0b0` — Beta Contract Freeze
+
+Primary outcome:
+
+- freeze the first beta compatibility promise
+
+Needed work:
+
+- freeze public command contracts
+- freeze package doc layering
+- keep host-local evidence and package contract clearly separated
+- prove the beta matrix across install, onboarding, assessment, gating, and CI
+
+Success standard:
+
+- the project can make a defensible beta promise about what surfaces are stable
+  and what remains explicitly out of scope
+
+## Cross-Version Priorities
 
 ### 1. Stabilize the kernel surface
 
@@ -136,14 +218,13 @@ The following should stay out of scope for this phase:
 - new private bundle families
 - product broadening back into a generic memory platform
 
-## Implementation Order
+## Immediate Order
 
-1. keep canonical docs aligned on the kernel framing
-2. make task-contract enforcement narrower and more real
-3. raise promotion and closure paths onto shared enforcement gates
-4. continue registry-first unification of remaining execution semantics
-5. separate kernel-owned runtime surfaces from sample-owned repo artifacts
-6. validate the kernel on more repos after the owner-layer surface stabilizes
+1. land the `0.1.0a3` public alpha surface and first repo-owned agent skill
+2. tighten package-facing doc layering so public vs host-local surfaces stop blending
+3. add explicit config layering and installability proof for `0.1.0a4`
+4. compress the highest-frequency workflows into clearer one-task product surfaces for `0.1.0a5`
+5. freeze the beta contract only after the public surface and validation matrix stop drifting
 
 ## Validation Standard
 
