@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1718-commit-b1-candidate-subcontract-changes
 type: task-contract
 title: "Commit b1 candidate subcontract changes"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: c18f66b4923034042037b9252c432b9797e59ad4
+git_sha: a47358d96bde31269421b6cc5815b713daba7e8f
 paths:
   - kernel/public_flow_contracts.py
   - kernel/public_surface.py
@@ -26,7 +26,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T17:18:27+08:00
-updated_at: 2026-03-25T17:18:27+08:00
+updated_at: 2026-03-25T17:21:14+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1717-ratify-b1-evidence-layer-candidate-subcontract-changes"
@@ -58,7 +58,7 @@ Land the already validated b1 candidate subcontract code and doc changes into gi
 
 ## Resolution
 
-_none recorded_
+- git commit a47358d lands the owner-layer candidate subcontract catalog, doc alignment, smoke assertions, and the earlier bounded implementation-round history
 
 ## Active Risks
 
@@ -66,4 +66,9 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: the validated b1 candidate subcontract changes are now durably committed in git commit a47358d
+
+resolution recorded:
+- git commit a47358d lands the owner-layer candidate subcontract catalog, doc alignment, smoke assertions, and the earlier bounded implementation-round history
+
+Completed after the ratification commit landed.
