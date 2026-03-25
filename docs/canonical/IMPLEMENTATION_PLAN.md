@@ -160,6 +160,15 @@ Success standard:
 - the beta line stays coherent and boring under repeated install, onboarding,
   assessment, and publication checks
 
+Current status:
+
+- in progress in the current source line
+- the owner layer now records `b1-target` candidate subcontracts for the
+  smallest repeated kernels inside `execution`, `outcome`, and
+  `postconditions`
+- the current work is still intentionally narrower than freezing those whole
+  evidence objects into the released stable promise
+
 ## Cross-Version Priorities
 
 ### 1. Stabilize the kernel surface

@@ -99,6 +99,41 @@ This `0.1.0b0` promise is intentionally narrow. It freezes the public command
 surface plus the minimum public flow contract, not every detail-rich evidence
 object that may appear inside richer responses.
 
+## `0.1.0b1` Hardening Candidates In The Current Source Line
+
+The current source tree is now recording the next honest promotion targets for
+the beta line without claiming that they are already part of the released
+`0.1.0b0` stable promise.
+
+These `b1-target` candidate subcontracts are also exported through
+`describe-public-surface`.
+
+Why this intermediate layer exists:
+
+- agents already consume repeated kernels inside `execution`, `outcome`, and
+  `postconditions`
+- those kernels are more stable than the full evidence objects that contain
+  them
+- the owner layer should name those promotion targets explicitly before they
+  are frozen into the next release promise
+
+Current candidate promotion targets:
+
+- onboarding:
+  - `execution`
+  - `execution.compiled_bundle`
+  - `outcome`
+  - `outcome.created_control_state`
+  - `postconditions`
+- external-target assessment:
+  - `execution`
+  - `outcome`
+  - `postconditions`
+
+These candidate entries do not widen authority and do not freeze full evidence
+payloads. They only record the smallest repeated kernels that the current
+source line is testing for promotion into the next beta cut.
+
 ## Package-Internal But Implemented
 
 These commands remain real owner-layer surfaces, but they are not the frozen
@@ -144,4 +179,8 @@ The public beta surface is also exported through:
 
 That command exists so package docs, installed-package proof, and agent
 wrappers can consume one shared owner-layer truth instead of carrying slightly
-different prose lists.
+different prose lists. The descriptor now carries both:
+
+- the released `b0` stable contract
+- the current `b1-target` candidate subcontract catalog for evidence-layer
+  hardening

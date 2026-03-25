@@ -18,6 +18,10 @@ The current beta release is `0.1.0b0`. The automation scope is
 This is the first beta line: freeze the public command and flow contract before
 any broader product expansion.
 
+The current source line is now hardening that beta promise toward `0.1.0b1` by
+recording explicit candidate subcontracts for the smallest reusable
+evidence-layer response kernels. The released package remains `0.1.0b0`.
+
 ## What You Can Do Today
 
 - model repository work with objectives, rounds, task contracts, exception
@@ -136,6 +140,10 @@ The returned JSON is agent-facing. The important fields are:
 - `postconditions`
 - `next_actions`
 
+`describe-public-surface` now also exposes which smaller kernels inside
+`execution`, `outcome`, and `postconditions` are current `b1-target`
+promotion candidates, so agents can stop inferring them from smoke code.
+
 ### Let an agent say the same thing once
 
 ```powershell
@@ -160,7 +168,7 @@ artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe `
   audit-control-state `
   --project-id my-repo
 
-artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe `
+artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe `
   --repo-root C:/path/to/host/repo `
   enforce-worktree `
   --project-id my-repo `

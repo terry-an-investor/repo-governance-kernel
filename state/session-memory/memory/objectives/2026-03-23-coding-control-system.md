@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 5dd4f9ce31622b737f88f06b244500f790a1c726
+git_sha: c18f66b4923034042037b9252c432b9797e59ad4
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-25T16:39:30+08:00
-phase: paused
+updated_at: 2026-03-25T17:17:37+08:00
+phase: execution
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-paused
+execution
 
 ## Active Risks
 
@@ -180,3 +180,9 @@ Phase changed from `execution` to `paused` because The b0 public subcontract fre
 Phase changed from `paused` to `execution` because A bounded release slice is needed to promote the package from 0.1.0a5 preview identity to 0.1.0b0 beta identity, including public surface naming, docs, validation, and publication truth.
 
 Phase changed from `execution` to `paused` because the 0.1.0b0 beta release round is now closed locally after release commit 5dd4f9c and tag v0.1.0b0
+
+Phase changed from `paused` to `execution` because A bounded beta-hardening slice is needed to promote the smallest reusable evidence-layer response fields into owner-layer public contracts so agents stop inferring them from smoke code.
+
+Phase changed from `execution` to `paused` because the bounded b1 evidence-layer hardening round is closed, so the objective should return to paused until the next explicit beta-hardening slice opens
+
+Phase changed from `paused` to `execution` because The b1 candidate subcontract work is validated but still uncommitted, so one short ratification round is needed to land the code and doc changes into git honestly.

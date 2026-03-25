@@ -13,6 +13,8 @@ from git_exec import GIT_EXE
 from kernel.public_flow_contracts import (
     PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
     PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
+    public_flow_candidate_subcontract_required_fields,
+    public_flow_payload_subcontract,
     public_flow_required_top_level_fields,
     public_flow_subcontract_required_fields,
 )
@@ -66,6 +68,26 @@ def assert_required_public_flow_subcontract(
     ]
     if missing_fields:
         raise SystemExit(f"{context} {subcontract_name} is missing stable fields: {missing_fields}")
+    return subcontract
+
+
+def assert_required_public_flow_candidate_subcontract(
+    payload: dict[str, object],
+    *,
+    entrypoint: str,
+    subcontract_name: str,
+    context: str,
+) -> dict[str, object]:
+    subcontract = public_flow_payload_subcontract(payload, subcontract_name)
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"{context} is missing candidate {subcontract_name}")
+    missing_fields = [
+        field
+        for field in public_flow_candidate_subcontract_required_fields(entrypoint, subcontract_name)
+        if field not in subcontract
+    ]
+    if missing_fields:
+        raise SystemExit(f"{context} candidate {subcontract_name} is missing fields: {missing_fields}")
     return subcontract
 
 
@@ -405,11 +427,26 @@ def main() -> int:
         subcontract_name="flow_contract",
         context="external assessment intent wrapper",
     )
+    assert_required_public_flow_candidate_subcontract(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="execution",
+        context="external assessment intent wrapper",
+    )
+    external_workflow = assert_required_public_flow_candidate_subcontract(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="outcome",
+        context="external assessment intent wrapper",
+    )
+    assert_required_public_flow_candidate_subcontract(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="postconditions",
+        context="external assessment intent wrapper",
+    )
     if compiled_intent["bundle_name"] != "assess-external-target-once":
         raise SystemExit("natural-language entry should compile into the governed assessment bundle")
-    external_workflow = external_intent.get("outcome")
-    if not isinstance(external_workflow, dict):
-        raise SystemExit("external intent wrapper is missing outcome")
     workflow_assessment = external_workflow["assessment"]
     if str(workflow_assessment["final_enforce"]["status"]) != "ok":
         raise SystemExit("external workflow should finish with an unblocked assessment after rewriting scope")
@@ -417,9 +454,12 @@ def main() -> int:
         raise SystemExit("workflow assessment round scope should match the adopted rewrite scope")
     if workflow_assessment["task_contract_paths"] != external_workflow["adopted_task_paths"]:
         raise SystemExit("workflow assessment task scope should match the adopted rewrite scope")
-    execution = external_intent.get("execution")
-    if not isinstance(execution, dict):
-        raise SystemExit("external intent wrapper is missing execution")
+    execution = assert_required_public_flow_candidate_subcontract(
+        external_intent,
+        entrypoint="assess-external-target-from-intent",
+        subcontract_name="execution",
+        context="external assessment intent wrapper",
+    )
     if "executed assess-external-target-once" not in str(execution["bundle_detail"]):
         raise SystemExit("workflow wrapper should report governed bundle execution detail")
     if not WORKFLOW_REPORT_PATH.exists():

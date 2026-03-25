@@ -13,6 +13,8 @@ from git_exec import GIT_EXE
 from kernel.public_flow_contracts import (
     PUBLIC_FLOW_BLOCKED_DETAIL_FIELDS,
     PUBLIC_FLOW_RESULT_CONTRACT_FIELDS,
+    public_flow_candidate_subcontract_required_fields,
+    public_flow_payload_subcontract,
     public_flow_required_top_level_fields,
     public_flow_subcontract_required_fields,
 )
@@ -64,6 +66,26 @@ def assert_required_public_flow_subcontract(
     ]
     if missing_fields:
         raise SystemExit(f"{context} {subcontract_name} is missing stable fields: {missing_fields}")
+    return subcontract
+
+
+def assert_required_public_flow_candidate_subcontract(
+    payload: dict[str, object],
+    *,
+    entrypoint: str,
+    subcontract_name: str,
+    context: str,
+) -> dict[str, object]:
+    subcontract = public_flow_payload_subcontract(payload, subcontract_name)
+    if not isinstance(subcontract, dict):
+        raise SystemExit(f"{context} is missing candidate {subcontract_name}")
+    missing_fields = [
+        field
+        for field in public_flow_candidate_subcontract_required_fields(entrypoint, subcontract_name)
+        if field not in subcontract
+    ]
+    if missing_fields:
+        raise SystemExit(f"{context} candidate {subcontract_name} is missing fields: {missing_fields}")
     return subcontract
 
 
@@ -193,12 +215,18 @@ def assert_onboarding_result(
     if str(contract.get("bundle_name") or "") != "onboard-repo":
         raise SystemExit("unexpected onboarding bundle_name")
 
-    execution = onboarding.get("execution")
-    if not isinstance(execution, dict):
-        raise SystemExit("onboard-repo result is missing execution")
-    compiled = execution.get("compiled_bundle")
-    if not isinstance(compiled, dict):
-        raise SystemExit("onboard-repo result is missing execution.compiled_bundle")
+    execution = assert_required_public_flow_candidate_subcontract(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        subcontract_name="execution",
+        context=expected_entrypoint,
+    )
+    compiled = assert_required_public_flow_candidate_subcontract(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        subcontract_name="execution.compiled_bundle",
+        context=expected_entrypoint,
+    )
     observed_dirty_paths = sorted(str(item) for item in compiled.get("observed_repo_dirty_paths", []))
     expected_sorted_dirty_paths = sorted(expected_repo_dirty_paths)
     if observed_dirty_paths != expected_sorted_dirty_paths:
@@ -217,19 +245,28 @@ def assert_onboarding_result(
     if actual_scope_paths != expected_scope_paths:
         raise SystemExit(f"unexpected onboarding scope paths: {actual_scope_paths}")
 
-    outcome = onboarding.get("outcome")
-    if not isinstance(outcome, dict):
-        raise SystemExit("onboard-repo result is missing outcome")
-    control_state = outcome.get("created_control_state")
-    if not isinstance(control_state, dict):
-        raise SystemExit("onboard-repo result is missing outcome.created_control_state")
+    outcome = assert_required_public_flow_candidate_subcontract(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        subcontract_name="outcome",
+        context=expected_entrypoint,
+    )
+    control_state = assert_required_public_flow_candidate_subcontract(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        subcontract_name="outcome.created_control_state",
+        context=expected_entrypoint,
+    )
     for field in ("objective_id", "round_id", "task_contract_id"):
         if not str(control_state.get(field) or "").strip():
             raise SystemExit(f"onboard-repo result is missing outcome.created_control_state.{field}")
 
-    postconditions = onboarding.get("postconditions")
-    if not isinstance(postconditions, dict):
-        raise SystemExit("onboard-repo result is missing postconditions")
+    postconditions = assert_required_public_flow_candidate_subcontract(
+        onboarding,
+        entrypoint=expected_entrypoint,
+        subcontract_name="postconditions",
+        context=expected_entrypoint,
+    )
     audit = postconditions.get("audit")
     enforce = postconditions.get("enforce")
     if not isinstance(audit, dict) or str(postconditions.get("audit_status") or "") != "ok":

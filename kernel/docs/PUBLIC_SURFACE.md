@@ -22,6 +22,28 @@ That `0.1.0b0` descriptor includes:
 It still does not promise stable nested shapes for `execution`, `outcome`, or
 `postconditions`.
 
+The current source tree now also records `b1-target` candidate subcontracts for
+the smallest repeated kernels inside those evidence-layer objects so agents and
+smokes can consume one owner-layer promotion target instead of inferring shape
+from payload examples.
+
+Current candidate targets:
+
+- onboarding:
+  - `execution`
+  - `execution.compiled_bundle`
+  - `outcome`
+  - `outcome.created_control_state`
+  - `postconditions`
+- external-target assessment:
+  - `execution`
+  - `outcome`
+  - `postconditions`
+
+Those candidate entries are not yet part of the released `0.1.0b0` stable
+promise. They are the current beta-hardening promotion targets for the next
+cut.
+
 Use these commands as the intended direct package entrypoints:
 
 - `describe-config`

@@ -11,6 +11,10 @@ The current beta release is `0.1.0b0`.
 Its release theme is the first formal beta compatibility promise for the
 package-facing command and flow contract.
 
+The current source line is now hardening that beta promise toward `0.1.0b1`
+by recording explicit candidate subcontracts for the smallest reusable kernels
+inside the evidence-layer response objects.
+
 It owns:
 
 - transition semantics
@@ -39,19 +43,19 @@ artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --help
 ### Bootstrap a governed host repo
 
 ```powershell
-artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
+artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo bootstrap-repo --project-id my-repo
 ```
 
 ### Onboard a governed host repo into its first control line
 
 ```powershell
-artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo onboard-repo --project-id my-repo
+artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/host/repo onboard-repo --project-id my-repo
 ```
 
 ### Run one bounded external-target assessment
 
 ```powershell
-artifacts/preview-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/governed/host/repo assess-external-target-once --project-id my-repo --workspace-root C:/path/to/external/repo
+artifacts/beta-install/.venv/Scripts/repo-governance-kernel.exe --repo-root C:/path/to/governed/host/repo assess-external-target-once --project-id my-repo --workspace-root C:/path/to/external/repo
 ```
 
 ### Inspect shared config resolution
@@ -177,6 +181,10 @@ The `onboard-repo` result is now shaped as an agent-facing contract:
 
 That means an agent can read the returned ids, scope paths, validation status,
 and immediate follow-up commands without scraping prose.
+
+The same machine-readable public surface now also records `b1-target`
+candidate subcontracts for the smallest reusable kernels inside those
+evidence-layer objects, instead of leaving that shape implicit in smoke code.
 
 Run the same onboarding path from one bounded intent surface:
 

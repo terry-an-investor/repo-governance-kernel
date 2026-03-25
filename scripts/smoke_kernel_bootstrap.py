@@ -373,16 +373,36 @@ def assert_public_surface(payload: dict[str, object]) -> dict[str, object]:
         raise SystemExit("stable_public_flow_results is missing blocked detail field requirements")
     onboarding_subcontracts = (entrypoints.get("onboard-repo-from-intent") or {}).get("stable_subcontracts")
     assessment_subcontracts = (entrypoints.get("assess-external-target-from-intent") or {}).get("stable_subcontracts")
+    onboarding_candidate_subcontracts = (entrypoints.get("onboard-repo-from-intent") or {}).get("candidate_subcontracts")
+    assessment_candidate_subcontracts = (entrypoints.get("assess-external-target-from-intent") or {}).get(
+        "candidate_subcontracts"
+    )
     if not isinstance(onboarding_subcontracts, dict) or "intent_compilation" not in onboarding_subcontracts:
         raise SystemExit("stable_public_flow_results is missing onboarding intent subcontract detail")
     if not isinstance(assessment_subcontracts, dict) or "flow_contract" not in assessment_subcontracts:
         raise SystemExit("stable_public_flow_results is missing external assessment flow subcontract detail")
+    if str(stable_public_flow_results.get("candidate_status") or "") != "b1-target":
+        raise SystemExit("stable_public_flow_results is missing the b1 candidate status marker")
+    if not isinstance(onboarding_candidate_subcontracts, dict) or "execution.compiled_bundle" not in onboarding_candidate_subcontracts:
+        raise SystemExit("stable_public_flow_results is missing onboarding candidate evidence subcontract detail")
+    if not isinstance(assessment_candidate_subcontracts, dict) or "postconditions" not in assessment_candidate_subcontracts:
+        raise SystemExit("stable_public_flow_results is missing assessment candidate evidence subcontract detail")
     onboarding_intent_fields = (onboarding_subcontracts.get("intent_compilation") or {}).get("required_fields")
     assessment_flow_fields = (assessment_subcontracts.get("flow_contract") or {}).get("required_fields")
+    onboarding_candidate_compiled_fields = (
+        (onboarding_candidate_subcontracts.get("execution.compiled_bundle") or {}).get("required_fields")
+    )
+    assessment_candidate_postcondition_fields = (
+        (assessment_candidate_subcontracts.get("postconditions") or {}).get("required_fields")
+    )
     if not isinstance(onboarding_intent_fields, list) or "bundle_name" not in onboarding_intent_fields:
         raise SystemExit("stable onboarding intent subcontract is missing bundle_name")
     if not isinstance(assessment_flow_fields, list) or "scope_strategy" not in assessment_flow_fields:
         raise SystemExit("stable external assessment flow subcontract is missing scope_strategy")
+    if not isinstance(onboarding_candidate_compiled_fields, list) or "onboarding_scope_paths" not in onboarding_candidate_compiled_fields:
+        raise SystemExit("onboarding candidate execution.compiled_bundle is missing onboarding_scope_paths")
+    if not isinstance(assessment_candidate_postcondition_fields, list) or "audit_status" not in assessment_candidate_postcondition_fields:
+        raise SystemExit("assessment candidate postconditions is missing audit_status")
 
     return {
         "target_version": payload.get("target_version"),
@@ -394,6 +414,13 @@ def assert_public_surface(payload: dict[str, object]) -> dict[str, object]:
             1
             for entry in entrypoints.values()
             if isinstance(entry, dict) and isinstance(entry.get("stable_subcontracts"), dict) and entry["stable_subcontracts"]
+        ),
+        "candidate_public_subcontract_entrypoint_count": sum(
+            1
+            for entry in entrypoints.values()
+            if isinstance(entry, dict)
+            and isinstance(entry.get("candidate_subcontracts"), dict)
+            and entry["candidate_subcontracts"]
         ),
     }
 

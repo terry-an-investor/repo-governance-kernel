@@ -135,6 +135,7 @@ def describe_public_surface() -> dict[str, object]:
             "public commands are the intended direct beta entrypoints for users and agent callers in the 0.1.0b0 line",
             "the current public beta release version is 0.1.0b0 and the frozen surface now includes package-facing inspection commands as well as the bounded workflow commands",
             "the current b0 stable public flow contract exports both top-level result fields and the minimum stable nested subcontracts for flow_contract and intent_compilation",
+            "the same descriptor now also records b1-target candidate subcontracts for repeated evidence-layer response kernels so agents and smokes can stop inferring them from payload examples",
             "package-internal commands remain implemented owner-layer surfaces but are not the frozen public beta compatibility promise",
             "repo-owned agent wrappers package the same bounded surfaces without widening authority",
             "host-local surfaces remain evidence or adapter layers rather than package contract",
