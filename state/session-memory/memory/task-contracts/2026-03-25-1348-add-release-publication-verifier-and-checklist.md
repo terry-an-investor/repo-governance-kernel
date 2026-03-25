@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1348-add-release-publication-verifier-and-checklist
 type: task-contract
 title: "Add release publication verifier and checklist"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: d91bfb377b5f7e4102ad75ae002c63e8839a6a91
+git_sha: 94badecd4ce4fa3ae52b8fcab8c9e58096927200
 paths:
   - scripts
   - docs
@@ -20,7 +20,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T13:48:28+08:00
-updated_at: 2026-03-25T13:48:29+08:00
+updated_at: 2026-03-25T13:52:11+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1348-add-release-publication-verifier-and-checklist"
@@ -54,7 +54,8 @@ Stop future release cuts from ending at push or tag by making remote publication
 
 ## Resolution
 
-_none recorded_
+- Added scripts/verify_release_publication.py plus the session_memory.py alias so one repo-owned command can verify remote branch, tag, GitHub Release object, and expected assets for a version.
+- Updated docs/canonical/RELEASE.md to include a concrete publication checklist and verifier usage, including the difference between immediate cut verification and later historical release audit.
 
 ## Active Risks
 
@@ -62,4 +63,10 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The repo now has a release publication verifier and canonical checklist for remote release completion.
+
+resolution recorded:
+- Added scripts/verify_release_publication.py plus the session_memory.py alias so one repo-owned command can verify remote branch, tag, GitHub Release object, and expected assets for a version.
+- Updated docs/canonical/RELEASE.md to include a concrete publication checklist and verifier usage, including the difference between immediate cut verification and later historical release audit.
+
+active -> completed: Release publication is now an auditable repo-owned step instead of a memory-only step.

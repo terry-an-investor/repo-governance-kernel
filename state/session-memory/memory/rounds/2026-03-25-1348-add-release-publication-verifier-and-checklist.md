@@ -2,12 +2,12 @@
 id: round-2026-03-25-1348-add-release-publication-verifier-and-checklist
 type: round-contract
 title: "Add release publication verifier and checklist"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: d91bfb377b5f7e4102ad75ae002c63e8839a6a91
+git_sha: 94badecd4ce4fa3ae52b8fcab8c9e58096927200
 paths:
   - scripts
   - docs
@@ -20,7 +20,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T13:48:12+08:00
-updated_at: 2026-03-25T13:48:12+08:00
+updated_at: 2026-03-25T13:52:50+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -43,6 +43,21 @@ One repo-owned release publication verifier and one canonical release checklist 
 ## Validation Plan
 
 Run the release verifier against v0.1.0a4, then rerun audit_product_docs, audit-control-state, and enforce-worktree.
+verify_release_publication.py
+session_memory.py verify-release-publication
+audit_product_docs
+audit-control-state
+enforce-worktree
+verify_release_publication.py
+session_memory.py verify-release-publication
+audit_product_docs
+audit-control-state
+enforce-worktree
+verify_release_publication.py
+session_memory.py verify-release-publication
+audit_product_docs
+audit-control-state
+enforce-worktree
 
 ## Active Risks
 
@@ -54,4 +69,29 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> validation_pending: The release publication process fix is implemented and validated.
+
+validated by:
+- verify_release_publication.py
+- session_memory.py verify-release-publication
+- audit_product_docs
+- audit-control-state
+- enforce-worktree
+
+validation_pending -> captured: The release publication process fix is validated and should now be captured.
+
+validated by:
+- verify_release_publication.py
+- session_memory.py verify-release-publication
+- audit_product_docs
+- audit-control-state
+- enforce-worktree
+
+captured -> closed: The release publication process fix is complete and no further active work remains in this round.
+
+validated by:
+- verify_release_publication.py
+- session_memory.py verify-release-publication
+- audit_product_docs
+- audit-control-state
+- enforce-worktree
