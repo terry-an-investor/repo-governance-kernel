@@ -55,6 +55,10 @@ uv sync
 uv run python scripts/install_hooks.py
 ```
 
+In this source repo, the installed `.githooks/pre-push` hook now runs the same
+phase-1 smoke surface that CI uses, so phase-1 regressions are blocked locally
+before push instead of being discovered first on GitHub Actions.
+
 ### Verify the host sample
 
 ```powershell

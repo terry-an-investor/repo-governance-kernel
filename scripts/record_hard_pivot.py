@@ -9,6 +9,7 @@ from round_control import (
     apply_transition_transaction,
     assert_no_unresolved_task_contracts,
     assert_objective_phase_command_contract,
+    durable_markdown_path,
     find_rounds,
     merged_tags,
     objective_record_payload,
@@ -157,7 +158,7 @@ def main() -> int:
         current_risks=args.risk,
         supersession_notes=args.supersession_notes,
     )
-    new_objective_path = objectives_dir(args.project_id) / f"{objective_file_stem}.md"
+    new_objective_path = durable_markdown_path(objectives_dir(args.project_id), objective_file_stem)
 
     pivot_title = args.pivot_title.strip() or f"Hard pivot to {args.title}"
     pivot_text = render_pivot_file(
@@ -187,7 +188,7 @@ def main() -> int:
         assumptions_invalidated=[item.strip() for item in args.invalidated_assumption if item.strip()],
         next_control_changes=[item.strip() for item in args.next_control_change if item.strip()],
     )
-    pivot_path = pivots_dir(args.project_id) / f"{pivot_file_stem}.md"
+    pivot_path = durable_markdown_path(pivots_dir(args.project_id), pivot_file_stem)
 
     active_path = active_objective_path(args.project_id)
     active_objective_text = render_active_objective_file(

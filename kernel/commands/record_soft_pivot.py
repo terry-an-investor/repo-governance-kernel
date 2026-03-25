@@ -10,6 +10,7 @@ from kernel.round_control import (
     active_objective_path,
     apply_transition_transaction,
     assert_objective_phase_command_contract,
+    durable_markdown_path,
     merged_tags,
     objective_record_payload,
     pivot_log_path,
@@ -225,7 +226,10 @@ def main() -> int:
     timestamp = timestamp_now()
     pivot_slug = slugify(args.pivot_title or f"soft-pivot-{objective_id}")
     pivot_id = f"piv-{timestamp.strftime('%Y-%m-%d-%H%M')}-{pivot_slug}"
-    pivot_path = pivots_dir(args.project_id) / f"{timestamp.strftime('%Y-%m-%d-%H%M')}-{pivot_slug}.md"
+    pivot_path = durable_markdown_path(
+        pivots_dir(args.project_id),
+        f"{timestamp.strftime('%Y-%m-%d-%H%M')}-{pivot_slug}",
+    )
     pivot_text = render_pivot_file(
         pivot_id=pivot_id,
         title=args.pivot_title.strip() or f"Soft pivot on {objective_id}",

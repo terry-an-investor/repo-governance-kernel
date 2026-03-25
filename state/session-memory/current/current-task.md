@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-25-0946-make-package-first-repo-onboarding-real`
+- Active round id: `round-2026-03-25-1116-start-explicit-package-config-layering-for-a4`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`

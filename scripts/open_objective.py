@@ -8,6 +8,7 @@ from round_control import (
     active_objective_path,
     apply_transition_transaction,
     assert_objective_phase_command_contract,
+    durable_markdown_path,
     find_objectives_by_status,
     load_active_objective,
     objectives_dir,
@@ -110,7 +111,7 @@ def main() -> int:
         current_risks=args.risk,
     )
 
-    objective_path = objectives_dir(args.project_id) / f"{file_stem}.md"
+    objective_path = durable_markdown_path(objectives_dir(args.project_id), file_stem)
     active_path = active_objective_path(args.project_id)
     pivot_path = pivot_log_path(args.project_id)
     assert_objective_phase_command_contract(

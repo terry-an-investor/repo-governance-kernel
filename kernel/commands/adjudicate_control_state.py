@@ -7,6 +7,7 @@ import json
 from kernel.audit_control_state import audit_project_control_state
 from kernel.round_control import (
     adjudications_dir,
+    durable_markdown_path,
     project_dir,
     render_adjudication_file,
     resolve_anchor,
@@ -180,7 +181,7 @@ def main() -> int:
         round_status_note=args.round_status_note.strip(),
     )
 
-    adjudication_path = adjudications_dir(args.project_id) / f"{file_stem}.md"
+    adjudication_path = durable_markdown_path(adjudications_dir(args.project_id), file_stem)
     adjudication_path.parent.mkdir(parents=True, exist_ok=True)
     adjudication_path.write_text(adjudication_text, encoding="utf-8")
 

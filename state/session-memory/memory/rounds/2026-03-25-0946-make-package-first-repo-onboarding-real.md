@@ -2,12 +2,12 @@
 id: round-2026-03-25-0946-make-package-first-repo-onboarding-real
 type: round-contract
 title: "Make package-first repo onboarding real"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 0fcdc4fc4110039273ff0f761eebe95870db9551
+git_sha: 80b47b322a49439cb9b79eb6884b8b6bdc8a89af
 paths:
   - kernel
   - scripts
@@ -23,7 +23,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T09:46:58+08:00
-updated_at: 2026-03-25T11:06:38+08:00
+updated_at: 2026-03-25T11:15:25+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -49,6 +49,11 @@ One versioned 0.1.0a3 preview cut with aligned package metadata, release-facing 
 ## Validation Plan
 
 Run audit_product_docs, audit-control-state, enforce-worktree, uv build, and the installed-wheel bootstrap smoke after the 0.1.0a3 version cut.
+uv build
+uv run python scripts/smoke_kernel_bootstrap.py
+uv run python scripts/audit_product_docs.py
+uv run python -m kernel.cli audit-control-state --project-id session-memory
+uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
 
 ## Active Risks
 
@@ -73,3 +78,16 @@ The active round now extends from onboarding delivery into package-surface plann
 Round rewritten because The a3 feature line is complete; the active round now also needs to cover the release cut that promotes the finished work from planned a3 surface to actual a3 versioned preview output.
 
 The active round now includes the release cut required to finish the completed a3 work as a versioned preview.
+
+active -> validation_pending: The a3 onboarding, agent packaging, public alpha surface freeze, and release cut are implemented and ready for round capture.
+
+validation_pending -> captured: The a3 preview line is validated by build, installed-wheel smoke, product-doc audit, control audit, and worktree enforcement.
+
+validated by:
+- uv build
+- uv run python scripts/smoke_kernel_bootstrap.py
+- uv run python scripts/audit_product_docs.py
+- uv run python -m kernel.cli audit-control-state --project-id session-memory
+- uv run python -m kernel.cli enforce-worktree --project-id session-memory --workspace-root C:/Users/terryzzb/Desktop/session-memory
+
+captured -> closed: The a3 preview round has been captured and no longer needs to remain the active execution contract.

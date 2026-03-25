@@ -1,8 +1,37 @@
-# Active Round
+---
+id: round-2026-03-25-1116-start-explicit-package-config-layering-for-a4
+type: round-contract
+title: "Start explicit package config layering for a4"
+status: active
+project_id: session-memory
+workspace_id: ws-1490b759
+workspace_root: C:/Users/terryzzb/Desktop/session-memory
+branch: master
+git_sha: 80b47b322a49439cb9b79eb6884b8b6bdc8a89af
+paths:
+  - kernel
+  - docs
+  - README.md
+  - pyproject.toml
+  - scripts
+  - .githooks
+thread_ids: []
+evidence_refs: []
+tags:
+  - round
+  - control-plane
+confidence: high
+created_at: 2026-03-25T11:16:27+08:00
+updated_at: 2026-03-25T11:26:42+08:00
+objective_id: obj-2026-03-23-0002
+phase: execution
+supersedes: []
+superseded_by: []
+---
 
-- Round id: `round-2026-03-25-1116-start-explicit-package-config-layering-for-a4`
-- Objective id: `obj-2026-03-23-0002`
-- Status: `active`
+## Summary
+
+Add one owner-layer config runtime and close the recurrent submit escape by aligning shared path budgeting and the local smoke gate with the same package-facing validation surface.
 
 ## Scope
 
@@ -27,3 +56,9 @@ Run focused filename-budget and transition smoke plus audit-control-state, enfor
 ## Blockers
 
 _none recorded_
+
+## Status Notes
+
+_none recorded_
+
+Round rewritten because This a4 slice needs to change the repo-owned pre-push gate alongside the shared config and path-budget runtime, so the open round scope must honestly cover .githooks.

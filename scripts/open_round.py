@@ -10,6 +10,7 @@ from round_control import (
     active_round_path,
     apply_transition_transaction,
     assert_round_command_contract,
+    durable_markdown_path,
     load_active_objective,
     load_active_round,
     project_dir,
@@ -112,7 +113,7 @@ def main() -> int:
         blockers=args.blocker,
     )
 
-    round_path = rounds_dir(args.project_id) / f"{file_stem}.md"
+    round_path = durable_markdown_path(rounds_dir(args.project_id), file_stem)
     control_path = active_round_path(args.project_id)
 
     previous_state = (

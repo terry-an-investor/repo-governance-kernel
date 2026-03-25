@@ -106,6 +106,10 @@ It should call the canonical suite runner so:
 - smoke selection is explicit
 - later CI and local execution share the same harness owner layer
 
+For this source repository, that means `.githooks/pre-push` should run
+`scripts/smoke_phase1.py` instead of relying on audit-only local gates while CI
+owns the first full harness execution.
+
 ## Current Limitations
 
 The current harness law now guarantees:

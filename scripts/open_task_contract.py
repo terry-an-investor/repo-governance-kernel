@@ -9,6 +9,7 @@ from round_control import (
     active_round_path,
     apply_transition_transaction,
     assert_task_contract_command_contract,
+    durable_markdown_path,
     find_task_contracts,
     load_active_round,
     load_round_file,
@@ -115,6 +116,7 @@ def main() -> int:
         status_notes=args.status_note,
     )
 
+    task_contract_path = durable_markdown_path(task_contracts_dir(args.project_id), file_stem)
     existing_contract_count = len(find_task_contracts(args.project_id, round_id=round_id))
     previous_state = (
         f"round `{round_id}` already had {existing_contract_count} durable task-contract record(s)"
@@ -140,7 +142,7 @@ def main() -> int:
         project_id=args.project_id,
         writes=[
             {
-                "path": task_contracts_dir(args.project_id) / f"{file_stem}.md",
+                "path": task_contract_path,
                 "text": task_contract_text,
                 "label": "durable task contract",
             },
@@ -163,7 +165,7 @@ def main() -> int:
                 "task_contract_id": task_contract_id,
                 "round_id": round_id,
                 "objective_id": objective_id,
-                "task_contract_path": str(task_contracts_dir(args.project_id) / f"{file_stem}.md"),
+                "task_contract_path": str(task_contract_path),
                 "transition_event_id": event_id,
                 "transition_event_path": str(event_path),
             },

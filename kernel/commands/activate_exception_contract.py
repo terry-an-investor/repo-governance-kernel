@@ -8,6 +8,7 @@ from kernel.round_control import (
     active_objective_path,
     apply_transition_transaction,
     assert_exception_contract_command_contract,
+    durable_markdown_path,
     exception_contracts_dir,
     exception_ledger_path,
     load_active_objective,
@@ -89,7 +90,7 @@ def main() -> int:
         evidence=[item.strip() for item in args.evidence if item.strip()],
         resolution="",
     )
-    contract_path = exception_contracts_dir(args.project_id) / f"{file_stem}.md"
+    contract_path = durable_markdown_path(exception_contracts_dir(args.project_id), file_stem)
     ledger_path = exception_ledger_path(args.project_id)
     assert_exception_contract_command_contract(
         "activate-exception-contract",

@@ -123,6 +123,21 @@ def safe_file_name_for_dir(
     return f"{safe_file_stem(value, max_length=bounded_stem_length)}{suffix}"
 
 
+def durable_markdown_path(
+    directory: Path,
+    file_stem: str,
+    *,
+    default_max_stem_length: int = 120,
+    max_total_path_length: int = 240,
+) -> Path:
+    return directory / safe_file_name_for_dir(
+        directory,
+        file_stem,
+        default_max_stem_length=default_max_stem_length,
+        max_total_path_length=max_total_path_length,
+    )
+
+
 def project_dir(project_id: str) -> Path:
     return resolve_project_state_root(project_id, ROOT)
 
@@ -2231,7 +2246,7 @@ def write_transition_event(
         target_ids=target_ids,
     )
     event_root = transition_events_dir(project_id)
-    event_path = event_root / safe_file_name_for_dir(event_root, file_stem)
+    event_path = durable_markdown_path(event_root, file_stem)
     event_path.parent.mkdir(parents=True, exist_ok=True)
     event_path.write_text(event_text, encoding="utf-8")
     return event_id, event_path
