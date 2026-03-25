@@ -15,6 +15,7 @@ from git_exec import GIT_EXE
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE_ROOT = ROOT / "artifacts" / "fixtures" / "assess-host-adoption"
 EXTERNAL_TARGET_ROOT = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-target"
+CLEAN_EXTERNAL_TARGET_ROOT = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-clean-external-target"
 PROJECT_ID = "assess-host-adoption"
 EXTERNAL_REPORT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-report.md"
 EXTERNAL_DRAFT_PATH = ROOT / "artifacts" / "fixtures" / "assess-host-adoption-external-draft.md"
@@ -91,11 +92,21 @@ def write_external_target_fixture(path: Path) -> None:
     (path / "docs" / "close_reading" / "theme_close_read.md").write_text("theme close read\n", encoding="utf-8", newline="\n")
 
 
+def write_clean_external_target_fixture(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    init_git_repo(path)
+    (path / "README.md").write_text("clean external fixture\n", encoding="utf-8", newline="\n")
+    run([GIT_EXE, "add", "README.md"], cwd=path)
+    run([GIT_EXE, "commit", "-m", "Initial clean external fixture baseline"], cwd=path)
+
+
 def main() -> int:
     if FIXTURE_ROOT.exists():
         shutil.rmtree(FIXTURE_ROOT, onerror=on_rm_error)
     if EXTERNAL_TARGET_ROOT.exists():
         shutil.rmtree(EXTERNAL_TARGET_ROOT, onerror=on_rm_error)
+    if CLEAN_EXTERNAL_TARGET_ROOT.exists():
+        shutil.rmtree(CLEAN_EXTERNAL_TARGET_ROOT, onerror=on_rm_error)
     if EXTERNAL_REPORT_PATH.exists():
         EXTERNAL_REPORT_PATH.unlink()
     if EXTERNAL_DRAFT_PATH.exists():
@@ -108,6 +119,7 @@ def main() -> int:
     run([GIT_EXE, "add", "README.md"], cwd=FIXTURE_ROOT)
     run([GIT_EXE, "commit", "-m", "Initial fixture baseline"], cwd=FIXTURE_ROOT)
     write_external_target_fixture(EXTERNAL_TARGET_ROOT)
+    write_clean_external_target_fixture(CLEAN_EXTERNAL_TARGET_ROOT)
 
     bootstrap = kernel_json(FIXTURE_ROOT, "bootstrap-repo", "--project-id", PROJECT_ID)
     objective = kernel_json(
@@ -280,6 +292,30 @@ def main() -> int:
     if str(external_assessment["final_enforce"]["status"]) != "blocked":
         raise SystemExit("external assessment should still be blocked before the workflow rewrites scope")
 
+    blocked_external_workflow = kernel_json(
+        FIXTURE_ROOT,
+        "assess-external-target-once",
+        "--project-id",
+        PROJECT_ID,
+        "--workspace-root",
+        str(CLEAN_EXTERNAL_TARGET_ROOT).replace("\\", "/"),
+        "--source-repo",
+        str(CLEAN_EXTERNAL_TARGET_ROOT).replace("\\", "/"),
+        expect_success=False,
+    )
+    if str(blocked_external_workflow.get("status") or "") != "blocked":
+        raise SystemExit("clean external-target workflow should report blocked")
+    blocked_workflow_contract = blocked_external_workflow.get("result_contract")
+    if not isinstance(blocked_workflow_contract, dict):
+        raise SystemExit("clean external-target workflow is missing result_contract")
+    if str(blocked_workflow_contract.get("entrypoint") or "") != "assess-external-target-once":
+        raise SystemExit("clean external-target workflow should keep the direct entrypoint")
+    blocked_workflow_detail = blocked_external_workflow.get("blocked")
+    if not isinstance(blocked_workflow_detail, dict):
+        raise SystemExit("clean external-target workflow is missing blocked detail")
+    if str(blocked_workflow_detail.get("code") or "") != "no_dirty_paths_observed":
+        raise SystemExit("clean external-target workflow should identify no_dirty_paths_observed")
+
     external_intent = kernel_json(
         FIXTURE_ROOT,
         "assess-external-target-from-intent",
@@ -292,9 +328,14 @@ def main() -> int:
         "--report-output",
         str(WORKFLOW_REPORT_PATH),
     )
-    if external_intent["compiled_intent"]["bundle_name"] != "assess-external-target-once":
+    compiled_intent = external_intent.get("intent_compilation")
+    if not isinstance(compiled_intent, dict):
+        raise SystemExit("external intent wrapper is missing intent_compilation")
+    if compiled_intent["bundle_name"] != "assess-external-target-once":
         raise SystemExit("natural-language entry should compile into the governed assessment bundle")
-    external_workflow = external_intent["workflow"]
+    external_workflow = external_intent.get("outcome")
+    if not isinstance(external_workflow, dict):
+        raise SystemExit("external intent wrapper is missing outcome")
     workflow_assessment = external_workflow["assessment"]
     if str(workflow_assessment["final_enforce"]["status"]) != "ok":
         raise SystemExit("external workflow should finish with an unblocked assessment after rewriting scope")
@@ -302,10 +343,30 @@ def main() -> int:
         raise SystemExit("workflow assessment round scope should match the adopted rewrite scope")
     if workflow_assessment["task_contract_paths"] != external_workflow["adopted_task_paths"]:
         raise SystemExit("workflow assessment task scope should match the adopted rewrite scope")
-    if "executed assess-external-target-once" not in str(external_workflow["bundle_detail"]):
+    execution = external_intent.get("execution")
+    if not isinstance(execution, dict):
+        raise SystemExit("external intent wrapper is missing execution")
+    if "executed assess-external-target-once" not in str(execution["bundle_detail"]):
         raise SystemExit("workflow wrapper should report governed bundle execution detail")
     if not WORKFLOW_REPORT_PATH.exists():
         raise SystemExit(f"workflow report was not written: {WORKFLOW_REPORT_PATH}")
+
+    blocked_external_intent = kernel_json(
+        FIXTURE_ROOT,
+        "assess-external-target-from-intent",
+        "--project-id",
+        PROJECT_ID,
+        "--request",
+        "Monitor this repo continuously.",
+        expect_success=False,
+    )
+    if str(blocked_external_intent.get("status") or "") != "blocked":
+        raise SystemExit("monitoring assessment intent should report blocked")
+    blocked_intent_detail = blocked_external_intent.get("blocked")
+    if not isinstance(blocked_intent_detail, dict) or str(blocked_intent_detail.get("code") or "") != "unsupported_request_scope":
+        raise SystemExit("monitoring assessment intent should identify unsupported_request_scope")
+    if str((blocked_external_intent.get("result_contract") or {}).get("entrypoint") or "") != "assess-external-target-from-intent":
+        raise SystemExit("blocked assessment intent should keep the intent entrypoint")
 
     print(
         json.dumps(
@@ -321,7 +382,9 @@ def main() -> int:
                 "assessment": assessment,
                 "external_draft": external_draft,
                 "external_assessment": external_assessment,
+                "blocked_external_workflow": blocked_external_workflow,
                 "external_intent": external_intent,
+                "blocked_external_intent": blocked_external_intent,
             },
             ensure_ascii=True,
             indent=2,

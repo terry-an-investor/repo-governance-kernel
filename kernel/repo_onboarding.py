@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from kernel.host_adoption import inspect_workspace_changed_paths
+from kernel.public_flow_contracts import build_public_flow_payload, render_public_flow_payload
 from kernel.round_control import (
     active_task_contract_records,
     load_all_objectives,
@@ -158,6 +158,34 @@ def onboarding_contract(project_id: str, workspace_root: str, *, skip_hooks: boo
     }
 
 
+def onboarding_blocked_next_actions(project_id: str, workspace_root: str, code: str) -> list[str]:
+    normalized_root = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/") if workspace_root.strip() else ""
+    state_prefix = f"state/{project_id}/" if project_id.strip() else "state/<project-id>/"
+    if code == "git_repository_not_found":
+        return [
+            "Run the command inside an existing git repository or initialize one first with `git init`.",
+            "Then rerun `onboard-repo` with the intended project id.",
+        ]
+    if code == "project_history_not_empty":
+        return [
+            f"Inspect the existing durable control history under `{state_prefix}` before trying to bootstrap the same project id again.",
+            "If this is a new governed line, pick a fresh project id instead of rerunning onboarding over existing history.",
+        ]
+    if code == "bundle_execution_failed":
+        return [
+            "Inspect the bundle execution detail and repair the lower-layer command that failed.",
+            "Rerun `onboard-repo` only after the repo returns to an honest audit-clean state.",
+        ]
+    if code == "postconditions_not_clean" and normalized_root:
+        return [
+            f"Run `repo-governance-kernel --repo-root {normalized_root} audit-control-state --project-id {project_id}` and inspect the remaining issues.",
+            f"Run `repo-governance-kernel --repo-root {normalized_root} enforce-worktree --project-id {project_id} --workspace-root {normalized_root}` and fix the blocked paths before retrying onboarding.",
+        ]
+    return [
+        "Inspect the blocked detail and repair the reported precondition before retrying the public onboarding flow.",
+    ]
+
+
 def assert_onboarding_target_available(project_id: str) -> None:
     objective_records = load_all_objectives(project_id)
     round_records = load_all_rounds(project_id)
@@ -210,48 +238,79 @@ def render_onboarding_success_payload(
     enforce: dict[str, object],
 ) -> dict[str, object]:
     normalized_root = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/")
-    return {
-        "status": "ok",
-        "project_id": project_id,
-        "workspace_root": normalized_root,
-        "onboarding_contract": onboarding_contract(project_id, normalized_root, skip_hooks=skip_hooks),
-        "compiled_onboarding": {
-            "governance_scope_paths": onboarding_payload["governance_scope_paths"],
-            "observed_repo_dirty_paths": onboarding_payload["observed_repo_dirty_paths"],
-            "onboarding_scope_paths": onboarding_payload["onboarding_scope_paths"],
-            "bundle_payload": bundle_payload,
+    return build_public_flow_payload(
+        status="ok",
+        flow_name="repo-onboarding",
+        entrypoint="onboard-repo",
+        entry_kind="direct-command",
+        project_id=project_id,
+        workspace_root=normalized_root,
+        flow_contract=onboarding_contract(project_id, normalized_root, skip_hooks=skip_hooks),
+        execution={
+            "bundle_name": "onboard-repo",
             "bundle_detail": bundle_detail,
+            "compiled_bundle": {
+                "governance_scope_paths": onboarding_payload["governance_scope_paths"],
+                "observed_repo_dirty_paths": onboarding_payload["observed_repo_dirty_paths"],
+                "onboarding_scope_paths": onboarding_payload["onboarding_scope_paths"],
+                "bundle_payload": bundle_payload,
+            },
         },
-        "created_control_state": control_state,
-        "postconditions": {
+        outcome={
+            "created_control_state": control_state,
+        },
+        postconditions={
             "audit_status": str(audit.get("status") or ""),
             "enforce_status": str(enforce.get("status") or ""),
             "audit": audit,
             "enforce": enforce,
         },
-        "next_actions": onboarding_next_commands(project_id, normalized_root),
-    }
+        next_actions=onboarding_next_commands(project_id, normalized_root),
+    )
 
 
 def render_onboarding_error(
     *,
+    stage: str,
     code: str,
     message: str,
     project_id: str = "",
     workspace_root: str = "",
+    skip_hooks: bool = False,
+    execution: dict[str, object] | None = None,
+    outcome: dict[str, object] | None = None,
+    postconditions: dict[str, object] | None = None,
     details: dict[str, object] | None = None,
 ) -> str:
-    payload = {
-        "status": "blocked",
-        "error": {
+    normalized_root = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/") if workspace_root.strip() else ""
+    meaning_by_code = {
+        "git_repository_not_found": "the onboarding flow only works against one real git repository because it writes repo-local governance control state and hooks",
+        "project_history_not_empty": "the onboarding flow is only for the first control line of one project id, not for reopening an existing governed history",
+        "bundle_execution_failed": "one lower-layer governed command failed before the onboarding workflow could leave a stable first control line",
+        "postconditions_not_clean": "the onboarding flow reached its end but the repo still did not pass both control audit and worktree enforcement",
+    }
+    return render_public_flow_payload(
+        status="blocked",
+        flow_name="repo-onboarding",
+        entrypoint="onboard-repo",
+        entry_kind="direct-command",
+        project_id=project_id,
+        workspace_root=normalized_root,
+        flow_contract=(
+            onboarding_contract(project_id, normalized_root, skip_hooks=skip_hooks)
+            if project_id.strip() and normalized_root
+            else None
+        ),
+        execution=execution,
+        outcome=outcome,
+        postconditions=postconditions,
+        next_actions=onboarding_blocked_next_actions(project_id, normalized_root, code),
+        blocked={
+            "stage": stage,
             "code": code,
             "message": message,
+            "meaning": meaning_by_code.get(code, "the public onboarding flow is blocked until the reported precondition is repaired"),
+            "suggested_next_actions": onboarding_blocked_next_actions(project_id, normalized_root, code),
+            **({"details": details} if details else {}),
         },
-    }
-    if project_id.strip():
-        payload["project_id"] = project_id.strip()
-    if workspace_root.strip():
-        payload["workspace_root"] = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/")
-    if details:
-        payload["error"]["details"] = details
-    return json.dumps(payload, ensure_ascii=True, indent=2)
+    )

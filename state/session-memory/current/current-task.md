@@ -16,7 +16,7 @@ The immediate objective is:
 
 - Project: `session-memory`
 - Objective id: `obj-2026-03-23-0002`
-- Active round id: `round-2026-03-25-1402-make-smoke-git-resolution-ci-portable`
+- Active round id: `round-2026-03-25-1414-stabilize-public-flow-result-contracts-for-a5`
 - Phase: `execution`
 - Workspace id: `ws-1490b759`
 - Workspace root: `C:/Users/terryzzb/Desktop/session-memory`

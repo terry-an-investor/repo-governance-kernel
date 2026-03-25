@@ -79,6 +79,12 @@ Primary outcomes:
 - stabilize JSON result contracts for those entrypoints
 - make blocked-state explanations easier for agents to consume directly
 
+Source-head progress already landed for the planned `0.1.0a5` cut:
+
+- `onboard-repo` and `onboard-repo-from-intent` now share one public result envelope
+- `assess-external-target-once` and `assess-external-target-from-intent` now share the same top-level result categories
+- blocked outcomes for those flows now stay machine-readable instead of falling back to plain string failures
+
 ## Promotion Bar
 
 Do not promote beyond alpha until:

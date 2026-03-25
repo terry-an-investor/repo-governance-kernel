@@ -1,22 +1,22 @@
 # Active Round
 
-- Round id: `round-2026-03-25-1402-make-smoke-git-resolution-ci-portable`
+- Round id: `round-2026-03-25-1414-stabilize-public-flow-result-contracts-for-a5`
 - Objective id: `obj-2026-03-23-0002`
 - Status: `active`
 
 ## Scope
 
-- Add one shared git executable resolver for repo-owned smoke and release verification scripts.
-- Rewrite each affected smoke or release verifier entrypoint to consume the shared resolver instead of a hardcoded Windows path.
-- Validate the changed paths with direct smoke runs and the repo acceptance smoke.
+- Add one shared public-flow result contract layer for the highest-frequency package entrypoints.
+- Rewrite onboarding and external-target assessment direct and intent wrappers to emit the same success and blocked categories.
+- Update smoke coverage and package-facing docs to treat the shared result contract as the a5 product surface.
 
 ## Deliverable
 
-A repo-owned cross-platform git resolution layer with passing smoke validation for the affected script surfaces.
+One shared public-flow contract for onboarding and one-time external-target assessment, with stable success and blocked payloads proven by smoke.
 
 ## Validation Plan
 
-Run smoke_config_runtime, smoke_repo_onboarding, smoke_kernel_bootstrap, verify_release_publication --help, and smoke_repo_acceptance after the resolver rewrite.
+Run smoke_repo_onboarding, smoke_assess_host_adoption, smoke_kernel_bootstrap, and smoke_repo_acceptance after the contract rewrite.
 
 ## Active Risks
 

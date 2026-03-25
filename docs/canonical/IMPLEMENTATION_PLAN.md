@@ -107,6 +107,15 @@ Success standard:
 - the common flows complete through one command plus one structured response,
   not through command archaeology
 
+Current status:
+
+- in progress on source head
+- the package-facing onboarding and one-time external-target assessment flows
+  now converge on one shared public result envelope across direct and
+  intent-wrapper entrypoints
+- blocked outcomes for those flows are now explicit package-facing payloads
+  instead of mixed plain-text failures and command-local json quirks
+
 ### `0.1.0b0` — Beta Contract Freeze
 
 Primary outcome:

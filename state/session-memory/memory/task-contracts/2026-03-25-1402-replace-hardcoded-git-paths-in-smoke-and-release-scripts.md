@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1402-replace-hardcoded-git-paths-in-smoke-and-release-scripts
 type: task-contract
 title: "Replace hardcoded git paths in smoke and release scripts"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: a434b6ae3bd90cdc6f4cda3137669d1ed3dd6a69
+git_sha: 5900e057f83b733d1c02d997617ef95f94646552
 paths:
   - scripts/git_exec.py
   - scripts/smoke_assess_host_adoption.py
@@ -24,7 +24,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T14:02:40+08:00
-updated_at: 2026-03-25T14:02:40+08:00
+updated_at: 2026-03-25T14:10:55+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1402-make-smoke-git-resolution-ci-portable"
@@ -57,7 +57,7 @@ Remove Windows-only git executable assumptions from repo-owned smoke and release
 
 ## Resolution
 
-_none recorded_
+- Added scripts/git_exec.py, rewrote the affected smoke and release verification scripts to consume it, and validated the path with smoke_config_runtime, smoke_repo_onboarding, smoke_kernel_bootstrap, verify_release_publication --help, smoke_repo_acceptance, and GitHub Actions run 23527409033.
 
 ## Active Risks
 
@@ -65,4 +65,7 @@ _none recorded_
 
 ## Status Notes
 
-_none recorded_
+active -> completed: The shared git executable resolver landed, the affected scripts were migrated, and the targeted smoke plus CI validations passed.
+
+resolution recorded:
+- Added scripts/git_exec.py, rewrote the affected smoke and release verification scripts to consume it, and validated the path with smoke_config_runtime, smoke_repo_onboarding, smoke_kernel_bootstrap, verify_release_publication --help, smoke_repo_acceptance, and GitHub Actions run 23527409033.

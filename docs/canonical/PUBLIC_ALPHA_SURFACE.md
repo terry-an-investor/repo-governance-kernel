@@ -17,6 +17,12 @@ The direct package command contract remains the same entrypoint set first
 frozen in `0.1.0a3`, but the live public preview release identity is now
 `0.1.0a4`.
 
+On source head, the next planned `0.1.0a5` line keeps this same command set but
+starts standardizing the result contract for the highest-frequency product
+flows. The command list is stable across `a4` and planned `a5`; the main
+source-head change is the shared success/blocked payload envelope for those
+flows.
+
 The product remains a repo governance kernel as defined in
 [`PRODUCT.md`](./PRODUCT.md). Its automation scope remains `bounded
 registry-owned execution`. Its autonomy boundary remains `not a general
@@ -42,6 +48,12 @@ Why these and not more:
 - they already represent the package's highest-frequency product tasks
 - they have a clearer package-facing meaning than the lower-level owner-layer
   primitives they compose
+
+For the upcoming `a5` line on source head, the productization focus for these
+same commands is:
+
+- shared top-level result categories across direct and intent-wrapper entrypoints
+- explicit machine-readable blocked payloads when the one-task workflow cannot finish cleanly
 
 ## Package-Internal But Implemented
 

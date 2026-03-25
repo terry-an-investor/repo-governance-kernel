@@ -307,6 +307,8 @@ def onboard_governed_host(
     )
     if str(onboarding.get("status") or "") != "ok":
         raise SystemExit("onboard-repo did not report ok")
+    if str((onboarding.get("result_contract") or {}).get("entrypoint") or "") != "onboard-repo":
+        raise SystemExit("installed onboard-repo did not report the direct entrypoint contract")
     return onboarding
 
 
@@ -459,7 +461,10 @@ def run_installed_external_assessment(
     if "Host Shadow Adoption Assessment Report" not in report_text:
         raise SystemExit("installed package assessment report missing expected title")
 
-    assessment = workflow.get("assessment")
+    outcome = workflow.get("outcome")
+    if not isinstance(outcome, dict):
+        raise SystemExit("installed package workflow missing outcome payload")
+    assessment = outcome.get("assessment")
     if not isinstance(assessment, dict):
         raise SystemExit("installed package workflow missing assessment payload")
     final_enforce = assessment.get("final_enforce")
@@ -472,13 +477,13 @@ def run_installed_external_assessment(
     if assessment_contract.get("mode") != "external-target-shadow":
         raise SystemExit(f"unexpected installed assessment mode: {assessment_contract.get('mode')}")
 
-    actual_dirty_paths = sorted(str(item) for item in workflow["draft"]["dirty_paths"])
+    actual_dirty_paths = sorted(str(item) for item in outcome["draft"]["dirty_paths"])
     expected_sorted = sorted(expected_dirty_paths)
     if actual_dirty_paths != expected_sorted:
         raise SystemExit(f"unexpected installed draft dirty paths: {actual_dirty_paths}")
 
-    adopted_round_scope_paths = sorted(str(item) for item in workflow["adopted_round_scope_paths"])
-    adopted_task_paths = sorted(str(item) for item in workflow["adopted_task_paths"])
+    adopted_round_scope_paths = sorted(str(item) for item in outcome["adopted_round_scope_paths"])
+    adopted_task_paths = sorted(str(item) for item in outcome["adopted_task_paths"])
     if adopted_round_scope_paths != expected_sorted:
         raise SystemExit(f"installed workflow adopted unexpected round scope paths: {adopted_round_scope_paths}")
     if adopted_task_paths != expected_sorted:

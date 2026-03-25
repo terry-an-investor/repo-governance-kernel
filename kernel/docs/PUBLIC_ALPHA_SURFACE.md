@@ -6,6 +6,9 @@ surface.
 This entrypoint set remains unchanged from the surface first frozen in
 `0.1.0a3`.
 
+On source head, the next planned `0.1.0a5` line keeps this same command set and
+standardizes the result envelope for the highest-frequency one-task flows.
+
 Use these commands as the intended direct package entrypoints:
 
 - `audit-control-state`

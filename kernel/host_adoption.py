@@ -206,6 +206,65 @@ def draft_contract(
     }
 
 
+def external_target_assessment_flow_contract(
+    *,
+    project_id: str,
+    workspace_root: str,
+    source_repo: str,
+) -> dict[str, object]:
+    return {
+        "intent_class": "external-target-single-assessment",
+        "execution_surface": "governed-bundle-backed-workflow",
+        "bundle_name": "assess-external-target-once",
+        "project_id": project_id,
+        "workspace_root": str(_resolve_path(workspace_root)).replace("\\", "/"),
+        "source_repo": str(_resolve_path(source_repo)).replace("\\", "/"),
+        "scope_strategy": "dirty-path-derived",
+        "draft_before_assessment": True,
+        "scope_rewrite_allowed": True,
+        "requires_governed_control_state": True,
+        "target_repo_mutation_allowed": False,
+        "continuous_monitoring_in_scope": False,
+        "general_autonomous_rewrite_in_scope": False,
+    }
+
+
+def external_target_assessment_next_actions(
+    *,
+    project_id: str,
+    workspace_root: str,
+    blocker_classification: dict[str, object] | None = None,
+    report_path: str = "",
+) -> list[str]:
+    actions: list[str] = []
+    normalized_root = str(_resolve_path(workspace_root)).replace("\\", "/") if workspace_root.strip() else workspace_root
+    normalized_report_path = str(_resolve_path(report_path)).replace("\\", "/") if report_path.strip() else ""
+    if report_path.strip():
+        actions.append(f"Review the written assessment report at `{normalized_report_path}` before deciding on the next governed action.")
+    if blocker_classification:
+        counts = blocker_classification.get("counts")
+        if isinstance(counts, dict) and int(counts.get("repo_scope_paths") or 0) > 0:
+            actions.append(
+                "Rewrite the active round and task-contract paths so they honestly cover the remaining dirty repo paths, then rerun `assess-external-target-once`."
+            )
+        host_side_count = 0
+        if isinstance(counts, dict):
+            host_side_count = (
+                int(counts.get("hook_installation_paths") or 0)
+                + int(counts.get("host_governance_paths") or 0)
+                + int(counts.get("host_support_paths") or 0)
+            )
+        if host_side_count > 0:
+            actions.append(
+                "Decide whether the remaining host-side bootstrap/support paths belong in this adopted boundary or should move into a separate governance/setup round."
+            )
+    if normalized_root:
+        actions.append(
+            f"Keep the target repo in shadow mode and rerun the same workflow against `{normalized_root}` after the blocked reason is resolved."
+        )
+    return actions
+
+
 def inspect_workspace_changed_paths(workspace_root: str) -> tuple[dict[str, str], list[str]]:
     live_workspace = inspect_live_workspace({"workspace_root": workspace_root})
     if live_workspace.get("status") != "available":
