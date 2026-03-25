@@ -9,7 +9,7 @@ surface.
 The current preview release is `0.1.0a4`.
 
 Its release theme is explicit config layering and installability polish on top
-of the still-frozen `0.1.0a3` public alpha surface.
+of the same public alpha entrypoint set first frozen in `0.1.0a3`.
 
 The next planned release line is `0.1.0a5`: compress the highest-frequency
 flows into clearer one-task product surfaces and stabilize more of their
@@ -94,7 +94,7 @@ external-target single assessment.
 
 ## Alpha Surface
 
-The frozen `0.1.0a3` public alpha surface is:
+The current `0.1.0a4` public alpha surface is:
 
 - `audit-control-state`
 - `enforce-worktree`
@@ -125,7 +125,7 @@ Implemented lower-level owner-layer commands such as `assess-host-adoption`,
 remain available, but they are not the frozen public alpha promise.
 
 `describe-config` is now a package-facing inspection command for the current
-`a4` preview line, but it is not part of the frozen `0.1.0a3` public alpha
+`a4` preview line, but it is not part of the current public alpha command
 contract.
 
 ## Common Commands

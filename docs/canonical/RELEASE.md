@@ -50,8 +50,8 @@ Known reasons:
 The current preview cut is `0.1.0a4`.
 
 Its purpose was not to broaden the kernel. Its purpose was to make external
-installation and runtime configuration more predictable while keeping the
-frozen `0.1.0a3` public alpha command surface intact.
+installation and runtime configuration more predictable while keeping the same
+public alpha command set first frozen in `0.1.0a3`.
 
 Delivered outcomes:
 
@@ -101,7 +101,8 @@ Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
     includes the focused config runtime proof in the same repo-owned gate
 - `uv run python scripts/audit_product_docs.py`
   - package-facing and canonical docs stay aligned on the `0.1.0a4` release
-    boundary and the still-frozen `0.1.0a3` public alpha command contract
+    boundary and clearly separate the current release identity from the older
+    `0.1.0a3` freeze point for the unchanged command set
 
 - `uv run python scripts/smoke_kernel_bootstrap.py`
   - source-tree bootstrap still passes `audit-control-state`, and an installed
@@ -132,8 +133,9 @@ Preview validation completed on 2026-03-25 for the `0.1.0a4` cut.
   - `uv pip install --python artifacts/preview-install/.venv/Scripts/python.exe --force-reinstall dist/repo_governance_kernel-0.1.0a4-py3-none-any.whl`
   - `.venv/Scripts/python.exe -m kernel.cli --help` succeeds from an isolated install root
   - package-installed `kernel.docs/TRANSITION_COMMANDS.md` is present
-  - installed `describe-public-alpha-surface` returns the still-frozen
-    `0.1.0a3` public command set and repo-owned agent wrapper metadata
+  - installed `describe-public-alpha-surface` returns the current `0.1.0a4`
+    public release identity plus the `0.1.0a3` freeze lineage for the unchanged
+    command set and repo-owned agent wrapper metadata
   - installed `describe-config` reports resolved `repo_root` and `project_id` with source attribution, and installed `audit-control-state` can resolve `project_id` from `<repo_root>/.repo-governance-kernel/project.json` without an explicit flag
 
 ## Preview Residual Risks

@@ -4,7 +4,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 
 
-PUBLIC_ALPHA_TARGET_VERSION = "0.1.0a3"
+PUBLIC_ALPHA_TARGET_VERSION = "0.1.0a4"
+PUBLIC_ALPHA_FROZEN_SINCE_VERSION = "0.1.0a3"
 
 
 @dataclass(frozen=True)
@@ -109,13 +110,15 @@ def _host_local_surfaces() -> tuple[str, ...]:
 def describe_public_alpha_surface() -> dict[str, object]:
     return {
         "target_version": PUBLIC_ALPHA_TARGET_VERSION,
-        "status": "frozen-for-a3",
+        "frozen_since_version": PUBLIC_ALPHA_FROZEN_SINCE_VERSION,
+        "status": "public-alpha-unchanged-since-a3",
         "public_alpha_commands": [asdict(entry) for entry in _public_commands()],
         "package_internal_commands": [asdict(entry) for entry in _package_internal_commands()],
         "repo_owned_agent_wrappers": list(_repo_owned_agent_wrappers()),
         "host_local_surfaces": list(_host_local_surfaces()),
         "contract_notes": [
-            "public-alpha commands are the intended direct entrypoints for users and agent callers",
+            "public-alpha commands are the intended direct entrypoints for users and agent callers in the current preview release",
+            "the current public-alpha release version is 0.1.0a4 even though this command set has remained unchanged since 0.1.0a3",
             "package-internal commands remain implemented owner-layer surfaces but are not the frozen public alpha compatibility promise",
             "repo-owned agent wrappers package the same bounded surfaces without widening authority",
             "host-local surfaces remain evidence or adapter layers rather than package contract",

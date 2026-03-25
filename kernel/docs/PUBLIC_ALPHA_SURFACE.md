@@ -1,10 +1,10 @@
 # Repo Governance Kernel Public Alpha Surface
 
-This file is the package-facing summary of the frozen `0.1.0a3` public alpha
+This file is the package-facing summary of the current `0.1.0a4` public alpha
 surface.
 
-The current preview release is `0.1.0a4`, but this command contract remains
-the same frozen direct-entry surface.
+This entrypoint set remains unchanged from the surface first frozen in
+`0.1.0a3`.
 
 Use these commands as the intended direct package entrypoints:
 

@@ -1,18 +1,21 @@
 # Repo Governance Kernel Public Alpha Surface
 
 Date: 2026-03-25
-Scope: frozen `0.1.0a3` public alpha package surface
+Scope: current `0.1.0a4` public alpha package surface
 
 ## Goal
 
 Define the smallest public package contract that users and agents should depend
-on directly during the `0.1.0a3` alpha line.
+on directly during the current `0.1.0a4` alpha line.
 
 This document exists because "implemented command" and "frozen public alpha
 surface" are not the same thing.
 
-The current preview release is `0.1.0a4`, but the direct package command
-contract remains the same public alpha surface first frozen in `0.1.0a3`.
+The current preview release is `0.1.0a4`.
+
+The direct package command contract remains the same entrypoint set first
+frozen in `0.1.0a3`, but the live public preview release identity is now
+`0.1.0a4`.
 
 The product remains a repo governance kernel as defined in
 [`PRODUCT.md`](./PRODUCT.md). Its automation scope remains `bounded
@@ -22,7 +25,7 @@ autonomous rewrite engine`.
 ## Public Alpha Commands
 
 These are the intended direct entrypoints for users and agent callers during
-the `0.1.0a3` line:
+the current `0.1.0a4` line:
 
 - `audit-control-state`
 - `enforce-worktree`
