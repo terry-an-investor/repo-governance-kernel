@@ -2,12 +2,12 @@
 id: taskc-2026-03-25-1553-land-b0-public-flow-subcontract-catalog
 type: task-contract
 title: "Land b0 public flow subcontract catalog"
-status: active
+status: completed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 96e1f2dd79c134ccff6516cba4a98c6ba7725adb
+git_sha: c72085d98b4ea4358d900f60d942455b8e9571b2
 paths:
   - kernel/public_flow_contracts.py
   - kernel/public_alpha_surface.py
@@ -23,7 +23,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T15:53:30+08:00
-updated_at: 2026-03-25T16:00:46+08:00
+updated_at: 2026-03-25T16:02:07+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 round_id: "round-2026-03-25-1553-freeze-b0-public-flow-subcontracts"
@@ -57,7 +57,8 @@ Move public nested contract truth into one owner-layer descriptor so callers can
 
 ## Resolution
 
-_none recorded_
+- Added one owner-layer stable subcontract catalog for flow_contract and intent_compilation across the four public flow entrypoints.
+- Aligned public alpha docs and smoke assertions to the same nested-contract truth while leaving execution, outcome, and postconditions outside the minimum stable contract.
 
 ## Active Risks
 
@@ -66,3 +67,9 @@ _none recorded_
 ## Status Notes
 
 Task contract rewritten because The task also updated the installed-package bootstrap smoke to assert the exported subcontract catalog, so the task path boundary must cover that file.
+
+active -> completed: The b0 public subcontract catalog now freezes stable nested fields for flow_contract and intent_compilation, exports them through the public alpha descriptor, and enforces them in smoke.
+
+resolution recorded:
+- Added one owner-layer stable subcontract catalog for flow_contract and intent_compilation across the four public flow entrypoints.
+- Aligned public alpha docs and smoke assertions to the same nested-contract truth while leaving execution, outcome, and postconditions outside the minimum stable contract.
