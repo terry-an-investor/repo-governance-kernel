@@ -2,12 +2,12 @@
 id: round-2026-03-25-1116-start-explicit-package-config-layering-for-a4
 type: round-contract
 title: "Start explicit package config layering for a4"
-status: active
+status: closed
 project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: f8bcaaa227040371b83759566be5fab542de7927
+git_sha: d63f332ed41e616b5d57d8b73fbdaf7d759a7210
 paths:
   - kernel
   - docs
@@ -24,7 +24,7 @@ tags:
   - control-plane
 confidence: high
 created_at: 2026-03-25T11:16:27+08:00
-updated_at: 2026-03-25T13:09:28+08:00
+updated_at: 2026-03-25T13:16:53+08:00
 objective_id: obj-2026-03-23-0002
 phase: execution
 supersedes: []
@@ -49,6 +49,27 @@ One first a4 slice with layered config runtime, a Python-3.11-safe acceptance sm
 ## Validation Plan
 
 Run focused Python-3.11 acceptance smoke plus audit-control-state, enforce-worktree, audit_product_docs, and any changed repo-owned trigger path after the rename and config slice land.
+audit_product_docs
+smoke_config_runtime
+smoke_repo_acceptance
+uv build
+smoke_kernel_bootstrap
+audit-control-state
+enforce-worktree
+audit_product_docs
+smoke_config_runtime
+smoke_repo_acceptance
+uv build
+smoke_kernel_bootstrap
+audit-control-state
+enforce-worktree
+audit_product_docs
+smoke_config_runtime
+smoke_repo_acceptance
+uv build
+smoke_kernel_bootstrap
+audit-control-state
+enforce-worktree
 
 ## Active Risks
 
@@ -70,3 +91,36 @@ Round rewritten because This a4 slice needs to change the repo-owned pre-push ga
 Round rewritten because This a4 slice is now also renaming the top-level acceptance smoke surface and updating the repo-owned CI trigger path, so the round scope must honestly include .github and the release-facing acceptance entrypoint rename.
 
 Round rewritten because This a4 round now also needs the lockfile in scope so the actual version cut can be validated and committed honestly.
+
+active -> validation_pending: The a4 release slice is implemented, validated, and ready to leave active execution.
+
+validated by:
+- audit_product_docs
+- smoke_config_runtime
+- smoke_repo_acceptance
+- uv build
+- smoke_kernel_bootstrap
+- audit-control-state
+- enforce-worktree
+
+validation_pending -> captured: The a4 release slice is validated and should now be captured as completed round history.
+
+validated by:
+- audit_product_docs
+- smoke_config_runtime
+- smoke_repo_acceptance
+- uv build
+- smoke_kernel_bootstrap
+- audit-control-state
+- enforce-worktree
+
+captured -> closed: The a4 release slice is complete and no further active execution remains in this round.
+
+validated by:
+- audit_product_docs
+- smoke_config_runtime
+- smoke_repo_acceptance
+- uv build
+- smoke_kernel_bootstrap
+- audit-control-state
+- enforce-worktree

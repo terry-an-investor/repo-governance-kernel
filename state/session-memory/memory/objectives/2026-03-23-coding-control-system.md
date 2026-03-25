@@ -7,7 +7,7 @@ project_id: session-memory
 workspace_id: ws-1490b759
 workspace_root: C:/Users/terryzzb/Desktop/session-memory
 branch: master
-git_sha: 0493b1658e01acd42738d3d22ca9bf5ce93fc6f3
+git_sha: d63f332ed41e616b5d57d8b73fbdaf7d759a7210
 paths:
   - docs/canonical/CONTROL_SYSTEM.md
   - docs/canonical/DESIGN_PRINCIPLES.md
@@ -29,8 +29,8 @@ tags:
   - active
 confidence: high
 created_at: 2026-03-23T21:10:00+08:00
-updated_at: 2026-03-24T19:28:35+08:00
-phase: execution
+updated_at: 2026-03-25T13:17:39+08:00
+phase: paused
 supersedes:
   - obj-2026-03-23-0001
 superseded_by: []
@@ -68,7 +68,7 @@ that still lack an explicit control line.
 
 ## Current Phase
 
-execution
+paused
 
 ## Active Risks
 
@@ -147,3 +147,4 @@ Phase changed from `paused` to `execution` because Stage 1 now needs a real owne
 
 Scope review: Resume controlled implementation to land a kernel-owned host adoption assessment primitive.
 
+Phase changed from `execution` to `paused` because The a4 release slice is complete and the project should leave execution until the next bounded round is opened.
