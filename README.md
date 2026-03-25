@@ -25,6 +25,8 @@ The current preview release is `0.1.0a2`. The automation scope is
 - attach the package to a fresh repo with one bounded onboarding flow that
   bootstraps governance and opens the first honest objective, round, and task
   contract
+- trigger that same onboarding flow from one narrow natural-language request
+  when the caller is an agent rather than a human shell user
 - run one bounded external-target assessment flow that:
   - drafts scope from the target repo's live dirty paths
   - rewrites the active round and task contract through governed commands
@@ -64,6 +66,16 @@ uv run python -m kernel.cli `
   --repo-root C:/path/to/host/repo `
   onboard-repo `
   --project-id my-repo
+```
+
+### Let an agent say the same thing once
+
+```powershell
+uv run python -m kernel.cli `
+  --repo-root C:/path/to/host/repo `
+  onboard-repo-from-intent `
+  --project-id my-repo `
+  --request "Initialize governance for this repo."
 ```
 
 ### Run one external-target assessment

@@ -183,6 +183,7 @@ Bundle rules:
 
 Current bounded natural-language wrappers include:
 
+- `onboard-repo-from-intent`
 - `assess-external-target-from-intent`
 
 Intent-surface rules:
@@ -191,4 +192,5 @@ Intent-surface rules:
 - the parser may not introduce new mutation authority beyond the compiled surface
 - accepted intent classes must stay narrow, explicit, and smoke-proven
 - rejected requests must fail closed when they imply broader monitoring or freeform mutation
+- `onboard-repo-from-intent` currently compiles only first-control-line repo initialization requests into `onboard-repo`
 - `assess-external-target-from-intent` currently compiles only one-time external-target assessment requests into `assess-external-target-once`

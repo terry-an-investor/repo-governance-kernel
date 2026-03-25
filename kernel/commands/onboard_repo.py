@@ -9,6 +9,8 @@ from kernel.governed_bundle_runtime import execute_governed_bundle
 from kernel.repo_onboarding import (
     assert_onboarding_target_available,
     compile_repo_onboarding_bundle_payload,
+    render_onboarding_error,
+    render_onboarding_success_payload,
     resolve_onboarding_control_state,
 )
 from kernel.runtime_paths import resolve_repo_root
@@ -27,9 +29,26 @@ def main() -> int:
     args = parse_args()
     repo_root = resolve_repo_root()
     if not (repo_root / ".git").exists():
-        raise SystemExit(f"git repository not found at {repo_root}")
+        raise SystemExit(
+            render_onboarding_error(
+                code="git_repository_not_found",
+                message=f"git repository not found at {repo_root}",
+                project_id=args.project_id,
+                workspace_root=str(repo_root),
+            )
+        )
 
-    assert_onboarding_target_available(args.project_id)
+    try:
+        assert_onboarding_target_available(args.project_id)
+    except SystemExit as exc:
+        raise SystemExit(
+            render_onboarding_error(
+                code="project_history_not_empty",
+                message=str(exc),
+                project_id=args.project_id,
+                workspace_root=str(repo_root),
+            )
+        ) from exc
 
     workspace_root = str(repo_root).replace("\\", "/")
     onboarding = compile_repo_onboarding_bundle_payload(
@@ -69,7 +88,14 @@ def main() -> int:
         "onboard-repo",
     )
     if not bundle_success:
-        raise SystemExit(bundle_detail)
+        raise SystemExit(
+            render_onboarding_error(
+                code="bundle_execution_failed",
+                message=bundle_detail,
+                project_id=args.project_id,
+                workspace_root=workspace_root,
+            )
+        )
 
     audit = run_cli_command_json(
         "audit-control-state",
@@ -89,40 +115,32 @@ def main() -> int:
 
     if str(audit.get("status") or "") != "ok" or str(enforce.get("status") or "") != "ok":
         raise SystemExit(
-            json.dumps(
-                {
-                    "message": "onboard-repo did not finish in an audit-clean enforced state",
-                    "audit": audit,
-                    "enforce": enforce,
-                },
-                ensure_ascii=True,
-                indent=2,
+            render_onboarding_error(
+                code="postconditions_not_clean",
+                message="onboard-repo did not finish in an audit-clean enforced state",
+                project_id=args.project_id,
+                workspace_root=workspace_root,
+                details={"audit": audit, "enforce": enforce},
             )
         )
 
     control_state = resolve_onboarding_control_state(args.project_id)
 
-    print(
-        json.dumps(
-            {
-                "status": "ok",
-                "project_id": args.project_id,
-                "workspace_root": workspace_root,
-                "bundle_payload": bundle_payload,
-                "bundle_detail": bundle_detail,
-                "observed_repo_dirty_paths": onboarding["observed_repo_dirty_paths"],
-                "governance_scope_paths": onboarding["governance_scope_paths"],
-                "onboarding_scope_paths": onboarding["onboarding_scope_paths"],
-                "objective_id": control_state["objective_id"],
-                "round_id": control_state["round_id"],
-                "task_contract_id": control_state["task_contract_id"],
-                "audit": audit,
-                "enforce": enforce,
-            },
-            ensure_ascii=True,
-            indent=2,
-        )
-    )
+    print(json.dumps(
+        render_onboarding_success_payload(
+            project_id=args.project_id,
+            workspace_root=workspace_root,
+            skip_hooks=bool(args.skip_hooks),
+            bundle_payload=bundle_payload,
+            bundle_detail=bundle_detail,
+            onboarding_payload=onboarding,
+            control_state=control_state,
+            audit=audit,
+            enforce=enforce,
+        ),
+        ensure_ascii=True,
+        indent=2,
+    ))
     return 0
 
 

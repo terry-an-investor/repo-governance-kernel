@@ -34,6 +34,7 @@ COMMAND_MODULES = {
     "list-transition-registry": "kernel.commands.list_transition_registry",
     "bootstrap-repo": "kernel.commands.bootstrap_repo",
     "onboard-repo": "kernel.commands.onboard_repo",
+    "onboard-repo-from-intent": "kernel.commands.onboard_repo_from_intent",
     "open-objective": "kernel.commands.open_objective",
     "open-round": "kernel.commands.open_round",
     "open-task-contract": "kernel.commands.open_task_contract",

@@ -422,7 +422,12 @@ def main() -> int:
         )
 
         installed_cli, installed_env, installed_help = prepare_installed_cli()
-        if "bootstrap-repo" not in installed_help or "onboard-repo" not in installed_help or "assess-external-target-once" not in installed_help:
+        if (
+            "bootstrap-repo" not in installed_help
+            or "onboard-repo" not in installed_help
+            or "onboard-repo-from-intent" not in installed_help
+            or "assess-external-target-once" not in installed_help
+        ):
             raise SystemExit("installed package help is missing expected commands")
 
         installed_host = bootstrap_and_audit(

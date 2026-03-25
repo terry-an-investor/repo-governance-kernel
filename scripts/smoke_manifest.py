@@ -72,7 +72,7 @@ SMOKE_SPECS: tuple[SmokeSpec, ...] = (
         fixture_project_ids=(),
         parallel_safe=False,
         shared_resources=("artifacts_fixture_roots",),
-        description="Validate one package-facing onboarding flow can create the first honest governed boundary for a disposable host repo with real dirty paths.",
+        description="Validate direct and intent-compiled package-facing onboarding flows can create the first honest governed boundary for disposable host repos with real dirty paths.",
     ),
     SmokeSpec(
         name="objective_line",

@@ -61,6 +61,7 @@ The current package already supports:
 - `enforce-worktree`
 - `bootstrap-repo`
 - `onboard-repo`
+- `onboard-repo-from-intent`
 - `assess-host-adoption`
 - `draft-external-target-shadow-scope`
 - `assess-external-target-once`
@@ -117,6 +118,29 @@ This onboarding path exists to remove the manual bootstrap plus authoring gap:
 - it refreshes the current-task anchor to the governed host repo root
 - it carries any pre-existing dirty repo paths into the first honest round/task boundary instead of dropping them
 - it fails closed if the repo already has durable objective, round, or task-contract history for that project id
+
+The `onboard-repo` result is now shaped as an agent-facing contract:
+
+- `onboarding_contract`
+- `compiled_onboarding`
+- `created_control_state`
+- `postconditions`
+- `next_actions`
+
+That means an agent can read the returned ids, scope paths, validation status,
+and immediate follow-up commands without scraping prose.
+
+Run the same onboarding path from one bounded intent surface:
+
+```powershell
+repo-governance-kernel --repo-root C:/path/to/host/repo onboard-repo-from-intent --project-id my-repo --request "Initialize governance for this repo."
+```
+
+This intent wrapper stays narrow on purpose:
+
+- it only accepts first-control-line repo initialization requests
+- it compiles only into `onboard-repo`
+- it rejects monitoring and assessment requests instead of stretching its authority
 
 ## Validation Evidence
 

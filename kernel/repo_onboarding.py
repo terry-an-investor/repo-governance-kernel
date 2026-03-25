@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from kernel.host_adoption import inspect_workspace_changed_paths
@@ -126,6 +127,37 @@ def compile_repo_onboarding_bundle_payload(
     }
 
 
+def onboarding_next_commands(project_id: str, workspace_root: str) -> list[str]:
+    normalized_root = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/")
+    return [
+        f"repo-governance-kernel --repo-root {normalized_root} audit-control-state --project-id {project_id}",
+        f"repo-governance-kernel --repo-root {normalized_root} enforce-worktree --project-id {project_id} --workspace-root {normalized_root}",
+        (
+            f"repo-governance-kernel --repo-root {normalized_root} "
+            f"assess-external-target-from-intent --project-id {project_id} "
+            f'--request "Assess C:/path/to/external/repo current changes, set scope first, then give me the verdict."'
+        ),
+    ]
+
+
+def onboarding_contract(project_id: str, workspace_root: str, *, skip_hooks: bool) -> dict[str, object]:
+    normalized_root = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/")
+    return {
+        "intent_class": "repo-first-host-onboarding",
+        "execution_surface": "governed-bundle-backed-workflow",
+        "bundle_name": "onboard-repo",
+        "project_id": project_id,
+        "workspace_root": normalized_root,
+        "requires_git_repo": True,
+        "requires_empty_project_history": True,
+        "hook_installation_requested": not bool(skip_hooks),
+        "control_plane_mutation_allowed": True,
+        "preexisting_repo_dirty_path_mutation_allowed": False,
+        "continuous_monitoring_in_scope": False,
+        "general_autonomous_rewrite_in_scope": False,
+    }
+
+
 def assert_onboarding_target_available(project_id: str) -> None:
     objective_records = load_all_objectives(project_id)
     round_records = load_all_rounds(project_id)
@@ -163,3 +195,63 @@ def resolve_onboarding_control_state(project_id: str) -> dict[str, str]:
         "round_id": round_id,
         "task_contract_id": str(active_tasks[0][1].get("id") or "").strip(),
     }
+
+
+def render_onboarding_success_payload(
+    *,
+    project_id: str,
+    workspace_root: str,
+    skip_hooks: bool,
+    bundle_payload: dict[str, object],
+    bundle_detail: str,
+    onboarding_payload: dict[str, object],
+    control_state: dict[str, str],
+    audit: dict[str, object],
+    enforce: dict[str, object],
+) -> dict[str, object]:
+    normalized_root = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/")
+    return {
+        "status": "ok",
+        "project_id": project_id,
+        "workspace_root": normalized_root,
+        "onboarding_contract": onboarding_contract(project_id, normalized_root, skip_hooks=skip_hooks),
+        "compiled_onboarding": {
+            "governance_scope_paths": onboarding_payload["governance_scope_paths"],
+            "observed_repo_dirty_paths": onboarding_payload["observed_repo_dirty_paths"],
+            "onboarding_scope_paths": onboarding_payload["onboarding_scope_paths"],
+            "bundle_payload": bundle_payload,
+            "bundle_detail": bundle_detail,
+        },
+        "created_control_state": control_state,
+        "postconditions": {
+            "audit_status": str(audit.get("status") or ""),
+            "enforce_status": str(enforce.get("status") or ""),
+            "audit": audit,
+            "enforce": enforce,
+        },
+        "next_actions": onboarding_next_commands(project_id, normalized_root),
+    }
+
+
+def render_onboarding_error(
+    *,
+    code: str,
+    message: str,
+    project_id: str = "",
+    workspace_root: str = "",
+    details: dict[str, object] | None = None,
+) -> str:
+    payload = {
+        "status": "blocked",
+        "error": {
+            "code": code,
+            "message": message,
+        },
+    }
+    if project_id.strip():
+        payload["project_id"] = project_id.strip()
+    if workspace_root.strip():
+        payload["workspace_root"] = str(Path(workspace_root).expanduser().resolve()).replace("\\", "/")
+    if details:
+        payload["error"]["details"] = details
+    return json.dumps(payload, ensure_ascii=True, indent=2)
